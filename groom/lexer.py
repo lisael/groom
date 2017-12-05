@@ -10,7 +10,8 @@ TODO:
 
 
 """
-from ply.lex import TOKEN, lex
+from ply.lex import TOKEN
+from ply.lex import lex as plylex
 
 reserved = {
     "if": "IF",
@@ -168,7 +169,21 @@ def t_ID(t):
     return t
 
 
-lexer = lex()
+_lexer = plylex()
+
+
+from io import IOBase
+
+
+def lex(input):
+    if isinstance(input, IOBase):
+        data = input.read()
+    else:
+        data = input
+    clone = _lexer.clone()
+    clone.input(data)
+    return clone
+
 
 data = r'''
 """module docstring..."""
@@ -198,7 +213,3 @@ actor Main
   new create(env: Env) =>
     env.out.print("Hello, world! \xab \UABCDE0")
 '''
-
-lexer.input(data)
-for t in lexer:
-    print(t)
