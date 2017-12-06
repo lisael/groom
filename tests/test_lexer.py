@@ -24,3 +24,38 @@ def test_lex():
     lexer = lex("coucou")
     t = lexer.token()
     assert(t == Token("ID", 'coucou', 1, 0))
+
+
+pony_module = r'''
+"""module docstring..."""
+use "my_pkg"
+use localname = "my_other_pkg"
+
+// one line comment.
+
+/* three
+lines *
+comment */
+
+/* a comment
+// with embeded
+*/
+
+actor Main
+  let my_int: I64 = 2
+  let my_second_int: U32 = -2_000
+  let my_hex: I64 = 0xDEADB33F
+  let my_char: U8 = 'b'
+  let my_other_char: U8 = '\b'
+  let my_float: F64 = 4.2
+  let my_float': F64 = 3e12
+  let my_float'': F64 = -5.4E-9
+
+  new create(env: Env) =>
+    env.out.print("Hello, world! \xab \UABCDE0")
+'''
+
+
+def test_module():
+    lexer = lex(pony_module)
+    [t for t in lexer]

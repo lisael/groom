@@ -1,4 +1,7 @@
 test:
 	python -m pytest -s -v tests
 
-@PHONY: test
+coverage:
+	py.test -s --cov-report=html --cov=groom tests
+
+@PHONY: test coverage

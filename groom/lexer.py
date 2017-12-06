@@ -3,6 +3,9 @@ pony lexer
 
 WIP!!!
 
+This lexes the whole pony standard library... but the correctness is still
+to be proven
+
 TODO:
     - nested commnents (/* /* */ */)
       Did not search about recursive lexer rules...
@@ -10,7 +13,7 @@ TODO:
 
 
 """
-from ply.lex import TOKEN
+from ply.lex import TOKEN, LexError
 from ply.lex import lex as plylex
 
 reserved = {
@@ -87,14 +90,17 @@ tokens = [
     "FLOAT",
 ] + list(reserved.values())
 
-literals = ":()[]=.-"
+literals = ":()[]{}=.-!@|,;^?<>~+*/%#&"
 HEX = r'[0-9a-zA-Z]'
-HEX_ESC = f"\\\\x{HEX}{{2}}"
-UNICODE_ESC = f"\\\\u{HEX}{{4}}"
-UNICODE2_ESC = f"\\\\U{HEX}{{6}}"
-ESC = f'(\\\\(a|b|e|f|n|r|t|v|\\|0))|{HEX_ESC}|{UNICODE_ESC}|{UNICODE2_ESC}'
-STRING_CHARS = r'((\\")|' + ESC + '|[^\\"])*'
-STRING = r'("""' + STRING_CHARS + r'""")|("' + STRING_CHARS + '")'
+HEX_ESC = f"(\\\\x{HEX}{{2}})"
+UNICODE_ESC = f"(\\\\u{HEX}{{4}})"
+UNICODE2_ESC = f"(\\\\U{HEX}{{6}})"
+ESC = r'((\\(a|b|e|f|n|r|t|v|\\|0))|(\\t) ' + f'{HEX_ESC}|{UNICODE_ESC}|{UNICODE2_ESC})'
+SINGLE_STRING_CHARS = r'((\\")|' + ESC + '|[^"])*'
+TRIPLE_STRING_CHARS = r'('+ ESC + '|[^"]|("(?="""))|("(?!"")))*'
+TRIPLE_STRING = r'("""' + TRIPLE_STRING_CHARS + r'""")'
+SINGLE_STRING = r'("' + SINGLE_STRING_CHARS + '")'
+STRING = f"{TRIPLE_STRING} | {SINGLE_STRING}"
 
 CHAR_CHAR = r"((\\')|[^\\']|" + ESC + ")"
 
@@ -123,13 +129,9 @@ CHAR_INT = f"'{CHAR_CHAR}'"
 INT = f"{CHAR_INT} | {BIN_INT} | {HEX_INT} | {DEC_INT}"
 
 
-@TOKEN(FLOAT)
-def t_FLOAT(t):
-    return t
-
-
-@TOKEN(INT)
-def t_INT(t):
+@TOKEN(STRING)
+def t_STRING(t):
+    t.lexer.lineno += t.value.count("\n")
     return t
 
 
@@ -139,9 +141,13 @@ def t_NESTEDCOMMENT(t):
     return t
 
 
-@TOKEN(STRING)
-def t_STRING(t):
-    t.lexer.lineno += t.value.count("\n")
+@TOKEN(FLOAT)
+def t_FLOAT(t):
+    return t
+
+
+@TOKEN(INT)
+def t_INT(t):
     return t
 
 
@@ -169,6 +175,11 @@ def t_ID(t):
     return t
 
 
+def t_error(t):
+    import ipdb; ipdb.set_trace()
+    raise LexError("Error at line {}: {}".format(t.lexer.lineno, repr(t.lexer.lexdata[t.lexer.lexpos])), "")
+
+
 _lexer = plylex()
 
 
@@ -183,33 +194,3 @@ def lex(input):
     clone = _lexer.clone()
     clone.input(data)
     return clone
-
-
-data = r'''
-"""module docstring..."""
-use "my_pkg"
-use localname = "my_other_pkg"
-
-// one line comment.
-
-/* three
-lines *
-comment */
-
-/* a comment
-// with embeded
-*/
-
-actor Main
-  let my_int: I64 = 2
-  let my_second_int: U32 = -2_000
-  let my_hex: I64 = 0xDEADB33F
-  let my_char: U8 = 'b'
-  let my_other_char: U8 = '\b'
-  let my_float: F64 = 4.2
-  let my_float': F64 = 3e12
-  let my_float'': F64 = -5.4E-9
-
-  new create(env: Env) =>
-    env.out.print("Hello, world! \xab \UABCDE0")
-'''
