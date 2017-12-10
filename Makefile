@@ -4,4 +4,4 @@ test:
 coverage:
 	py.test -s --cov-report=html --cov=groom tests
 
-@PHONY: test coverage
+.PHONY: test coverage

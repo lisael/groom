@@ -13,7 +13,7 @@ def p_module(p):
     if len(p) == 4:
         p[0] = ast.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
     else:
-        p[0] = aslt.ModuleNode(uses=p[1], class_defs=p[2])
+        p[0] = ast.ModuleNode(uses=p[1], class_defs=p[2])
 
 
 def p_uses(p):

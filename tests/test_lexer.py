@@ -1,6 +1,7 @@
 import os
 
-from groom.lexer import lex
+from groom.lexer import lex_raw
+from groom.utils import find_pony_stdlib_path
 
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -21,7 +22,7 @@ class Token(object):
 
 
 def test_lex():
-    lexer = lex("coucou")
+    lexer = lex_raw("coucou")
     t = lexer.token()
     assert(t == Token("ID", 'coucou', 1, 0))
 
@@ -57,5 +58,13 @@ actor Main
 
 
 def test_module():
-    lexer = lex(pony_module)
+    lexer = lex_raw(pony_module)
     [t for t in lexer]
+
+
+def test_find_pony_stdlib_path():
+    path = find_pony_stdlib_path()
+    for root, dirs, files in os.walk(path):
+        for ponysrc in [f for f in files if f.endswith(".pony")]:
+            with open(os.path.join(root, ponysrc)) as src:
+                [t for t in lex_raw(src)]
