@@ -62,7 +62,7 @@ def test_module():
     [t for t in lexer]
 
 
-def test_find_pony_stdlib_path():
+def test_lex_stdlib():
     path = find_pony_stdlib_path()
     for root, dirs, files in os.walk(path):
         for ponysrc in [f for f in files if f.endswith(".pony")]:

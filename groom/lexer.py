@@ -124,7 +124,6 @@ t_BIG_ARROW = r'=>'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
-print(STRING.__repr__())
 
 DEC_INT = f"( {DIGIT} ( {DIGIT} | _ )* )"
 HEX_INT = f"(0x[0-9a-zA-Z_]+)"

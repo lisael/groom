@@ -109,13 +109,12 @@ def p_method(p):
     p[0] = p[1]
 
 
-parser = yacc.yacc()
+_parser = yacc.yacc()
 
-tree = parser.parse('''"""docstring..."""
-use "plop"
-use "plip"
 
-type hop
-''', lexer=Lexer(), debug=True)
-import pprint
-pprint.pprint(tree.as_dict())
+class Parser(object):
+    def __init__(self):
+        self._parser = _parser
+
+    def parse(self, *args, **kwargs):
+        return self._parser.parse(*args, **kwargs)

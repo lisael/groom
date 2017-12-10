@@ -11,7 +11,7 @@ def find_pony_stdlib_path():
         ponyc_path = check_output(["which", "ponyc"])
         ponyc_path = Path(ponyc_path.decode().strip())
         path = ponyc_path.resolve().joinpath("../../packages").resolve()
-        if not path.exists:
+        if not path.exists():
             raise FileNotFoundError()
         path = str(path)
         return path
