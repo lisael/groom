@@ -13,8 +13,11 @@ TODO:
 
 
 """
+from io import IOBase
+
 from ply.lex import TOKEN, LexError
 from ply.lex import lex as plylex
+
 
 reserved = {
     "if": "IF",
@@ -34,17 +37,17 @@ reserved = {
     "try": "TRY",
     "recover": "RECOVER",
     "counsme": "COUNSME",
-    "fun": "FUN",
-    "be": "BE",
-    "new": "NEW",
     "use": "USE",
-    "type": "TYPE",
-    "interface": "INTERFACE",
-    "trait": "TRAIT",
-    "primitive": "PRIMITIVE",
-    "struct": "STRUCT",
-    "class": "CLASS",
-    "actor": "ACTOR",
+    "interface": "CLASS_DECL",
+    "trait": "CLASS_DECL",
+    "primitive": "CLASS_DECL",
+    "struct": "CLASS_DECL",
+    "class": "CLASS_DECL",
+    "actor": "CLASS_DECL",
+    "fun": "METH_DECL",
+    "be": "METH_DECL",
+    "new": "METH_DECL",
+    "type": "CLASS_DECL",
     "is": "IS",
     "var": "VAR",
     "let": "LET",
@@ -67,12 +70,12 @@ reserved = {
     "as": "AS",
     "object": "OBJECT",
     "where": "WHERE",
-    "iso": "ISO",
-    "trn": "TRN",
-    "ref": "REF",
-    "val": "VAL",
-    "box": "BOX",
-    "tag": "TAG",
+    "iso": "CAP",
+    "trn": "CAP",
+    "ref": "CAP",
+    "val": "CAP",
+    "box": "CAP",
+    "tag": "CAP",
     "true": "TRUE",
     "false": "FALSE",
 }
@@ -88,16 +91,17 @@ tokens = [
     "BIG_ARROW",
     "INT",
     "FLOAT",
-] + list(reserved.values())
+] + list(set(reserved.values()))
 
 literals = ":()[]{}=.-!@|,;^?<>~+*/%#&"
 HEX = r'[0-9a-zA-Z]'
 HEX_ESC = f"(\\\\x{HEX}{{2}})"
 UNICODE_ESC = f"(\\\\u{HEX}{{4}})"
 UNICODE2_ESC = f"(\\\\U{HEX}{{6}})"
-ESC = r'((\\(a|b|e|f|n|r|t|v|\\|0))|(\\t) ' + f'{HEX_ESC}|{UNICODE_ESC}|{UNICODE2_ESC})'
+ESC = (r'((\\(a|b|e|f|n|r|t|v|\\|0))|(\\t) '
+       + f'{HEX_ESC}|{UNICODE_ESC}|{UNICODE2_ESC})')
 SINGLE_STRING_CHARS = r'((\\")|' + ESC + '|[^"])*'
-TRIPLE_STRING_CHARS = r'('+ ESC + '|[^"]|("(?="""))|("(?!"")))*'
+TRIPLE_STRING_CHARS = r'(' + ESC + '|[^"]|("(?="""))|("(?!"")))*'
 TRIPLE_STRING = r'("""' + TRIPLE_STRING_CHARS + r'""")'
 SINGLE_STRING = r'("' + SINGLE_STRING_CHARS + '")'
 STRING = f"{TRIPLE_STRING} | {SINGLE_STRING}"
@@ -176,21 +180,33 @@ def t_ID(t):
 
 
 def t_error(t):
-    import ipdb; ipdb.set_trace()
-    raise LexError("Error at line {}: {}".format(t.lexer.lineno, repr(t.lexer.lexdata[t.lexer.lexpos])), "")
+    raise LexError("Error at line {}: {}".format(
+        t.lexer.lineno, repr(t.lexer.lexdata[t.lexer.lexpos])), "")
 
 
-_lexer = plylex()
+raw_lexer = plylex()
 
 
-from io import IOBase
-
-
-def lex(input):
+def lex_raw(input):
+    """return a raw lexer, loaded with data"""
     if isinstance(input, IOBase):
         data = input.read()
     else:
         data = input
-    clone = _lexer.clone()
+    clone = raw_lexer.clone()
     clone.input(data)
     return clone
+
+
+class Lexer():
+    def __init__(self):
+        self._lexer = None
+
+    def input(self, input):
+        self._lexer = lex_raw(input)
+
+    def token(self):
+        t = self._lexer.token()
+        if t is not None and t.type in ("WS", "NEWLINE"):
+            return self.token()
+        return t

@@ -1,65 +1,19 @@
 import ply.yacc as yacc
-from groom.lexer import _lexer, tokens
-
-
-class Node(object):
-    def as_dict(self):
-        return dict(node_type=self.node_type)
-
-
-class DocNode(Node):
-    """a Node that holds a docstring"""
-    def __init__(self, docstring=None, **kwargs):
-        self.docstring = docstring
-
-    def as_dict(self):
-        return dict(
-                super(DocNode, self).as_dict(),
-                docstring=self.docstring
-                )
-
-
-class ModuleNode(DocNode):
-    node_type = "module"
-
-    def __init__(self, name=None, uses=None, **kwargs):
-        self.name = name
-        self.uses = uses if uses else []
-        super(ModuleNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(ModuleNode, self).as_dict(),
-                name=self.name,
-                uses=self.uses
-                )
-
-
-class UseNode(Node):
-    node_type = "use"
-
-    def __init__(self, name, pkg):
-        self.name = name
-        self.package = pkg
-        super(UseNode, self).__init__()
-
-    def as_dict(self):
-        return dict(
-                super(UseNode, self).as_dict(),
-                name=self.name,
-                uses=self.uses
-                )
+from groom.lexer import Lexer
+from groom.lexer import tokens  # noqa needed by yacc.yacc
+from groom import ast
+from groom.ast import build_class
 
 
 def p_module(p):
     """
-    module : STRING uses
-    module : uses
+    module : STRING uses class_defs
+    module : uses class_defs
     """
     if len(p) == 4:
-        p[0] = ModuleNode(docstring=p[1], uses=p[2])
+        p[0] = ast.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
     else:
-        p[0] = ModuleNode(uses=p[1])
+        p[0] = aslt.ModuleNode(uses=p[1], class_defs=p[2])
 
 
 def p_uses(p):
@@ -79,12 +33,89 @@ def p_uses(p):
 def p_use(p):
     """
     use : USE STRING
+    use : ID '=' STRING
     """
-    p[0] = UseNode(p[1], p[1])
+    p[0] = ast.UseNode(p[2], p[2])
+
+
+def p_class_defs(p):
+    """
+    class_defs : class_def class_defs
+    class_defs : class_def
+    class_defs :
+    """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+
+def p_class_def(p):
+    """
+    class_def : CLASS_DECL ID members
+    class_def : CLASS_DECL ID
+    """
+    if len(p) == 4:
+        p[0] = build_class(decl=p[1], id=p[2], members=p[3])
+    elif len(p) == 3:
+        p[0] = build_class(decl=p[1], id=p[2])
+
+
+def p_members(p):
+    """
+    members : fields methods
+    """
+    p[0] = (p[1], p[2])
+
+
+def p_fields(p):
+    """
+    fields : field fields
+    fields : field
+    """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
+
+
+def p_field(p):
+    """
+    field : LET
+    """
+    p[0] = p[1]
+
+
+def p_methods(p):
+    """
+    methods : method methods
+    methods : method
+    methods :
+    """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+
+def p_method(p):
+    """
+    method : METH_DECL
+    """
+    p[0] = p[1]
 
 
 parser = yacc.yacc()
 
-tree = parser.parse('''"""docstring..."""use "plop"''', lexer=_lexer)
+tree = parser.parse('''"""docstring..."""
+use "plop"
+use "plip"
 
-print(tree.as_dict())
+type hop
+''', lexer=Lexer(), debug=True)
+import pprint
+pprint.pprint(tree.as_dict())
