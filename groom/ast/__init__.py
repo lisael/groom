@@ -3,13 +3,14 @@ from groom.ast.nodes import (DocNode, ModuleNode, UseNode,  # noqa
 
 
 def build_class(**kwargs):
-    if kwargs["decl"] == "type":
-        if kwargs.get("members"):
+    decl = kwargs.pop('decl')
+    if decl == "type":
+        if kwargs.pop("members"):
             raise SyntaxError("type class definition doesn't accept members")
-        if kwargs.get("annotation"):
+        if kwargs.pop("annotation"):
             raise SyntaxError("type class definition doesn't accept annotations")
         return TypeNode(**kwargs)
-    elif kwargs["decl"] == "class":
+    elif decl== "class":
         return ClassNode(**kwargs)
     else:
         raise SyntaxError()

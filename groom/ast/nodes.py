@@ -67,7 +67,7 @@ class UseNode(Node):
 class ClassNode(DocNode, Annotated):
     node_type = "class"
 
-    def __init__(self, id, members, capability, **kwargs):
+    def __init__(self, id, members, capability, type_params, is_, **kwargs):
         self.id = id
         self.members = members if members else []
         self.capability = capability
@@ -85,7 +85,7 @@ class ClassNode(DocNode, Annotated):
 class TypeNode(DocNode):
     node_type = "type"
 
-    def __init__(self, id, **kwargs):
+    def __init__(self, id, capability, type_params, is_, **kwargs):
         self.id = id
         super(TypeNode, self).__init__(**kwargs)
 
