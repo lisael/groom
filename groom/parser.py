@@ -84,13 +84,35 @@ def p_typeparams_list(p):
 def p_typeparam(p):
     """
     typeparam : typed_id
+    typeparam : typed_id '=' typearg
     """
-    # TODO
-    # typeparam : typed_id '=' typearg
     if len(p) == 2:
         p[0] = (p[1][0], p[1][1], None)
     else:
         p[0] = (p[1][0], p[1][1], p[3])
+
+
+def p_typearg(p):
+    """
+    typearg : type
+    typearg : literal
+    """
+    # TODO typearg : '#' postfix
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[2]
+
+
+def p_literal(p):
+    """
+    literal : TRUE
+    literal : FALSE
+    literal : INT
+    literal : FLOAT
+    literal : STRING
+    """
+    p[0] = p[1]
 
 
 def p_typed_id(p):
@@ -120,12 +142,55 @@ def p_atomtype(p):
     atomtype : THIS
     atomtype : CAP
     atomtype : combined_types
+    atomtype : nominal
     """
     # TODO
-    # atomtype : nominal
     # atomtype : lambdatype
     # atomtype : barelambdatype
     p[0] = p[1]
+
+
+def p_nominal(p):
+    """
+    nominal : dotted typecap
+    nominal : dotted
+    """
+    if len(p) == 2:
+        p[0] = p[1] + (None,)
+    else:
+        p[0] = p[1] + (p[2],)
+
+
+def p_typecap(p):
+    """
+    typecap : CAP cap_modifier
+    typecap : GENCAP cap_modifier
+    typecap : CAP
+    typecap : GENCAP
+    """
+    if len(p) == 2:
+        p[0] = (p[1], None)
+    else:
+        p[0] = (p[1], p[2])
+
+
+def p_cap_modifier(p):
+    """
+    cap_modifier : '^'
+    cap_modifier : '!'
+    """
+    p[0] = p[1]
+
+
+def p_dotted(p):
+    """
+    dotted : ID '.' parametrised_id
+    dotted : parametrised_id
+    """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = (p[1],) + p[3]
 
 
 def p_combined_types(p):
@@ -176,8 +241,19 @@ def p_parametrised_id(p):
 
 def p_class_decl(p):
     """
-    class_decl : CLASS_DECL annotation cap parametrised_id
-    class_decl : CLASS_DECL cap parametrised_id
+    class_decl : class_decl_1 IS type
+    class_decl : class_decl_1
+    """
+    if len(p) == 2:
+        p[0] = p[1] + (None,)
+    else:
+        p[0] = p[1] + (p[3],)
+
+
+def p_class_decl_1(p):
+    """
+    class_decl_1 : CLASS_DECL annotation cap parametrised_id
+    class_decl_1 : CLASS_DECL cap parametrised_id
     """
     if len(p) == 5:
         p[0] = (p[1], p[2], p[3], p[4][0], p[4][1])
@@ -208,7 +284,7 @@ def p_class_def(p):
     p[0] = build_class(
             decl=p[1][0], annotation=p[1][1],
             capability=p[1][2], id=p[1][3],
-            type_params=p[1][4],
+            type_params=p[1][4], is_=p[1][5],
             docstring=p[2], members=members)
 
 

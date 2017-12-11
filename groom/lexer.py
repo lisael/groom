@@ -78,6 +78,11 @@ reserved = {
     "tag": "CAP",
     "true": "TRUE",
     "false": "FALSE",
+    '#read': "GENCAP",
+    '#send': "GENCAP",
+    '#share': "GENCAP",
+    '#alias': "GENCAP",
+    '#any': "GENCAP",
 }
 
 tokens = [

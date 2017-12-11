@@ -5,8 +5,10 @@ class Annotated(object):
 class Node(object):
     def __init__(self, **kwargs):
         if isinstance(self, Annotated):
-            annotations = kwargs["annotation"]
+            annotations = kwargs.pop("annotation")
             self.annotations = annotations if annotations else []
+        if len(kwargs):
+            raise(ValueError("Unkown params {}".format(list(kwargs.keys()))))
 
     def as_dict(self):
         d = dict(node_type=self.node_type)

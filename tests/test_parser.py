@@ -14,6 +14,8 @@ class \packed\ iso Hip[Hop]
 
 class Simple
 
+type Combined is (Foo|Bar)
+
 ''', lexer=Lexer(), debug=True)
     expected = {
         'class_defs': [
@@ -34,6 +36,7 @@ class Simple
                 'docstring': None,
                 "members": [],
             },
+            {'docstring': None, 'id': 'Combined', 'node_type': 'type'},
         ],
         'docstring': '"""docstring..."""',
         'name': None,
@@ -62,6 +65,7 @@ type hop
     }
     assert(tree.as_dict() == expected)
 
+
 def test_module_only_docstring():
     tree = Parser().parse('''"""Only
 docstring
@@ -75,4 +79,3 @@ docstring
         'uses': []
     }
     assert(tree.as_dict() == expected)
-
