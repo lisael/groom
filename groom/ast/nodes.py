@@ -1,16 +1,25 @@
-
-__all__ = ["DocNode", "ModuleNode", "UseNode", "TypeNode"]
+class Annotated(object):
+    pass
 
 
 class Node(object):
+    def __init__(self, **kwargs):
+        if isinstance(self, Annotated):
+            annotations = kwargs["annotation"]
+            self.annotations = annotations if annotations else []
+
     def as_dict(self):
-        return dict(node_type=self.node_type)
+        d = dict(node_type=self.node_type)
+        if hasattr(self, "annotations"):
+            d["annotations"] = self.annotations
+        return d
 
 
 class DocNode(Node):
     """a Node that holds a docstring"""
     def __init__(self, docstring=None, **kwargs):
         self.docstring = docstring
+        super(DocNode, self).__init__(**kwargs)
 
     def as_dict(self):
         return dict(
@@ -50,6 +59,24 @@ class UseNode(Node):
                 super(UseNode, self).as_dict(),
                 name=self.name,
                 packages=self.package
+                )
+
+
+class ClassNode(DocNode, Annotated):
+    node_type = "class"
+
+    def __init__(self, id, members, capability, **kwargs):
+        self.id = id
+        self.members = members if members else []
+        self.capability = capability
+        super(ClassNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+                super(ClassNode, self).as_dict(),
+                id=self.id,
+                capability=self.capability,
+                members=[m.as_dict() for m in self.members]
                 )
 
 

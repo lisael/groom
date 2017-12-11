@@ -89,8 +89,10 @@ tokens = [
     "NESTEDCOMMENT",
     "LPAREN",
     "BIG_ARROW",
+    "SMALL_ARROW",
     "INT",
     "FLOAT",
+    "BACKSLASH",
 ] + list(set(reserved.values()))
 
 literals = ":()[]{}=.-!@|,;^?<>~+*/%#&"
@@ -121,6 +123,8 @@ t_LINECOMMENT = r'//[^\n]+'
 
 LPAREN = r'\( | ( {NEWLINE} \( )'
 t_BIG_ARROW = r'=>'
+t_SMALL_ARROW = r'->'
+t_BACKSLASH = r'\\'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
