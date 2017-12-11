@@ -2,6 +2,10 @@ language: python
 python:
   - 3.6
   - nightly
+before_install:
+  - git clone https://github.com/ponylang/ponyc.git ponyc
+env:
+  - GROOM_PONY_STDLIB=ponyc/packages
 install:
   - pip install -r requirements.txt
 script:

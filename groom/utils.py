@@ -14,4 +14,4 @@ def find_pony_stdlib_path():
         if not path.exists():
             raise FileNotFoundError()
         path = str(path)
-        return path
+    return path
