@@ -1,7 +1,9 @@
+PYTEST?=py.test
+
 test:
-	python -m pytest -s -v tests
+	${PYTEST} -s -v tests
 
 coverage:
-	py.test -s -vv --cov-report=html --cov=groom tests
+	${PYTEST} -s -vv --cov-report=html --cov=groom tests
 
 .PHONY: test coverage
