@@ -11,7 +11,7 @@ type Hop
 
 class \packed\ iso Hip[Hop]
     """class docstring"""
-    let
+    let aa: String
 
 class Simple
 
@@ -29,7 +29,12 @@ class MultipleParams[Pif, Paf]
                 'capability': 'iso',
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
-                "members": [{'node_type': 'field'}],
+                "members": [
+                    {
+                        'node_type': 'letfield',
+                        'id': 'aa',
+                        'type': (('String', [], None), None), 'default': None},
+                ],
             },
             {
                 'node_type': 'class',

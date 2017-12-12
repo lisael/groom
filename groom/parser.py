@@ -350,10 +350,71 @@ def p_field(p):
 def p_field_decl(p):
     """
     field_decl : LET
-    field_decl : VAR
-    field_decl : EMBED
+               | VAR
+               | EMBED
     """
     p[0] = p[1]
+
+
+def p_infix(p):
+    """
+    infix : term op_list
+          | term
+    """
+    if len(p) == 3:
+        p[0] = (p[1], p[2])
+    else:
+        p[0] = (p[1], None)
+
+
+def p_op_list(p):
+    """
+    op_list : op op_list
+            | op
+    """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[2]
+
+
+def p_op(p):
+    """
+    op : AS type
+       | binop
+       | isop
+    """
+    # TODO
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
+
+
+def p_term(p):
+    """
+    term : ID
+    """
+    # TODO
+    p[0] = p[1]
+
+
+def p_isop(p):
+    """
+    isop : IS term
+         | ISNT term
+    """
+    # TODO
+    p[0] = (p[1], p[2])
+
+
+def p_binop(p):
+    """
+    binop : '+' term
+          | '-' term
+    """
+    # TODO
+    p[0] = (p[1], p[2])
 
 
 def p_methods(p):
