@@ -94,3 +94,31 @@ class TypeNode(DocNode):
                 super(TypeNode, self).as_dict(),
                 id=self.id,
                 )
+
+
+class FieldNode(Node):
+
+    def __init__(self, id, type, default=None):
+        self.id = id
+        self.type = type
+        self.default = default
+
+    def as_dict(self):
+        return dict(
+                super(FieldNode, self).as_dict(),
+                id=self.id,
+                type=self.type,
+                default=self.default
+                )
+
+
+class VarFieldNode(FieldNode):
+    node_type = "varfield"
+
+
+class LetFieldNode(FieldNode):
+    node_type = "letfield"
+
+
+class EmbedFieldNode(FieldNode):
+    node_type = "embedfield"

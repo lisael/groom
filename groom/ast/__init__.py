@@ -1,5 +1,6 @@
 from groom.ast.nodes import (DocNode, ModuleNode, UseNode,  # noqa
-                             TypeNode, ClassNode)  # noqa
+                             TypeNode, ClassNode, FieldNode,
+                             VarFieldNode, LetFieldNode, EmbedFieldNode)  # noqa
 
 
 def build_class(**kwargs):

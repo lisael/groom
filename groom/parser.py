@@ -309,8 +309,12 @@ def p_id_list(p):
 def p_members(p):
     """
     members : fields methods
+    members : methods
     """
-    p[0] = (p[1], p[2])
+    if len(p) == 3:
+        p[0] = p[1] + p[2]
+    else:
+        p[0] = p[2]
 
 
 def p_fields(p):
@@ -324,9 +328,30 @@ def p_fields(p):
         p[0] = [p[1]] + p[2]
 
 
+field_classes = {
+        "var": ast.VarFieldNode,
+        "let": ast.LetFieldNode,
+        "embed": ast.EmbedFieldNode
+        }
+
+
 def p_field(p):
     """
-    field : LET
+    field : field_decl ID ':' type '=' infix
+    field : field_decl ID ':' type
+    """
+    # p[0] = p[1]
+    if len(p) == 7:
+        p[0] = field_classes[p[1]](id=p[2], type=p[4], default=p[6])
+    else:
+        p[0] = field_classes[p[1]](id=p[2], type=p[4])
+
+
+def p_field_decl(p):
+    """
+    field_decl : LET
+    field_decl : VAR
+    field_decl : EMBED
     """
     p[0] = p[1]
 

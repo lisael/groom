@@ -11,10 +11,13 @@ type Hop
 
 class \packed\ iso Hip[Hop]
     """class docstring"""
+    let
 
 class Simple
 
 type Combined is (Foo|Bar)
+
+class MultipleParams[Pif, Paf]
 
 ''', lexer=Lexer(), debug=True)
     expected = {
@@ -26,7 +29,7 @@ type Combined is (Foo|Bar)
                 'capability': 'iso',
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
-                "members": [],
+                "members": [{'node_type': 'field'}],
             },
             {
                 'node_type': 'class',
@@ -37,6 +40,14 @@ type Combined is (Foo|Bar)
                 "members": [],
             },
             {'docstring': None, 'id': 'Combined', 'node_type': 'type'},
+            {
+                'node_type': 'class',
+                "annotations": [],
+                'capability': None,
+                'id': 'MultipleParams',
+                'docstring': None,
+                "members": [],
+            },
         ],
         'docstring': '"""docstring..."""',
         'name': None,
