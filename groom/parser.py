@@ -253,7 +253,7 @@ def p_class_decl(p):
 def p_class_decl_1(p):
     """
     class_decl_1 : CLASS_DECL annotation cap parametrised_id
-    class_decl_1 : CLASS_DECL cap parametrised_id
+                 | CLASS_DECL cap parametrised_id
     """
     if len(p) == 5:
         p[0] = (p[1], p[2], p[3], p[4][0], p[4][1])
@@ -410,17 +410,48 @@ def p_isop(p):
 
 def p_binop(p):
     """
-    binop : '+' term
-          | '-' term
+    binop : AND term
+          | OR term
+          | XOR term
+          |  '-'  term
+          |  '*'  term
+          |  '/'  term
+          |  '%'  term
+          |  '+' '~'  term
+          |  '-' '~'  term
+          |  '*' '~'  term
+          |  '/' '~'  term
+          |  '%' '~'  term
+          |  '<' '<'  term
+          |  '>' '>'  term
+          |  '<' '<' '~'  term
+          |  '>' '>' '~'  term
+          |  '=' '='  term
+          |  '!' '='  term
+          |  '<'  term
+          |  '<' '='  term
+          |  '>' '='  term
+          |  '>'  term
+          |  '=' '=' '~'  term
+          |  '!' '=' '~'  term
+          |  '<' '~'  term
+          |  '<' '=' '~'  term
+          |  '>' '=' '~'  term
+          |  '>' '~' term
     """
-    # TODO
-    p[0] = (p[1], p[2])
+    # TODO: missing a strange '?'? (see antlr grammar)
+    if len(p) == 3:
+        p[0] = (p[1], p[2])
+    elif len(p) == 4:
+        p[0] = (p[1] + p[2], p[3])
+    elif len(p) == 4:
+        p[0] = (p[1] + p[2] + p[3], p[4])
 
 
 def p_methods(p):
     """
     methods : method methods
-    methods : method
+            | method
     methods :
     """
     if len(p) == 2:
@@ -431,11 +462,36 @@ def p_methods(p):
         p[0] = []
 
 
+def p_meth_cap(p):
+    """
+    meth_cap : '@'
+             | CAP
+             |
+    """
+    if len(p) == 1:
+        p[0] = None
+    else:
+        p[0] = p[1]
+
+
+method_types = {
+    "new": ast.NewMethod,
+    "fun": ast.FunMethod,
+    "be": ast.BeMethod
+}
+
+
 def p_method(p):
     """
-    method : METH_DECL
+    method : METH_DECL annotation meth_cap parametrised_id
+           | METH_DECL meth_cap parametrised_id
     """
-    p[0] = p[1]
+    if len(p) == 5:
+        p[0] = method_types[p[1]](annotation=p[2],
+                capability=p[3], id=p[4][0], parameters=p[4][1])
+    else:
+        p[0] = method_types[p[1]](annotation=None,
+                capability=p[2], id=p[3][0], parameters=p[3][1])
 
 
 _parser = yacc.yacc()

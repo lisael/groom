@@ -122,3 +122,31 @@ class LetFieldNode(FieldNode):
 
 class EmbedFieldNode(FieldNode):
     node_type = "embedfield"
+
+class MethodNode(DocNode, Annotated):
+
+    def __init__(self, id, capability, parameters, **kwargs):
+        self.id = id
+        self.capability = capability
+        self.parameters = parameters
+        super(MethodNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+                super(MethodNode, self).as_dict(),
+                id=self.id,
+                capability=self.capability,
+                parameters=self.parameters,
+                )
+
+
+class NewMethod(MethodNode):
+    node_type = "new"
+
+
+class FunMethod(MethodNode):
+    node_type = "new"
+
+
+class BeMethod(MethodNode):
+    node_type = "new"

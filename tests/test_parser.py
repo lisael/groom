@@ -3,6 +3,12 @@ from groom.parser import Parser
 
 
 def test_module_parsing():
+    """
+    Test as much syntax constructs a possible
+
+    Not a real unit test, it's more of a dev tool and
+    a documentation of supported grammar
+    """
     tree = Parser().parse('''"""docstring..."""
 use "plop"
 use "plip"
@@ -11,7 +17,10 @@ type Hop
 
 class \packed\ iso Hip[Hop]
     """class docstring"""
+
     let aa: String
+
+    new create
 
 class Simple
 
@@ -33,7 +42,16 @@ class MultipleParams[Pif, Paf]
                     {
                         'node_type': 'letfield',
                         'id': 'aa',
-                        'type': (('String', [], None), None), 'default': None},
+                        'type': (('String', [], None), None),
+                        'default': None},
+                    {
+                        'node_type': 'new',
+                        'annotations': [],
+                        'docstring': None,
+                        'id': 'create',
+                        'capability': None,
+                        'parameters': []
+                    },
                 ],
             },
             {
