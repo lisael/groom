@@ -481,17 +481,36 @@ method_types = {
 }
 
 
+def p_meth_decl(p):
+    """
+    meth_decl : METH_DECL annotation
+              | METH_DECL
+    """
+    p[0] = (p[1], p[2]) if len(p) == 3 else (p[1], None)
+
+
 def p_method(p):
     """
-    method : METH_DECL annotation meth_cap parametrised_id
-           | METH_DECL meth_cap parametrised_id
+    method : meth_decl meth_cap parametrised_id params meth_type
     """
-    if len(p) == 5:
-        p[0] = method_types[p[1]](annotation=p[2],
-                capability=p[3], id=p[4][0], parameters=p[4][1])
-    else:
-        p[0] = method_types[p[1]](annotation=None,
-                capability=p[2], id=p[3][0], parameters=p[3][1])
+    p[0] = method_types[p[1][0]](annotation=p[1][1],
+            capability=p[2], id=p[3][0], parameters=p[3][1])
+
+
+def p_params(p):
+    """
+    params : LPAREN param_list ')'
+           | LPAREN ')'
+    """
+    p[0] = p[2] if len(p) == 4 else []
+
+
+def p_param_list(p):
+    """
+    param_list : param ',' param_list
+               | param
+    """
+    p[0] = [p[1]] + p[3] if len(p) == 4 else [p[1]]
 
 
 _parser = yacc.yacc()
