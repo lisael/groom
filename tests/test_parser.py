@@ -20,7 +20,7 @@ class \packed\ iso Hip[Hop]
 
     let aa: String
 
-    new create(env: Env): String
+    new create(env: Env): String ?
 
 class Simple
 
