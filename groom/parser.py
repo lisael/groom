@@ -497,12 +497,46 @@ def p_method(p):
             capability=p[2], id=p[3][0], parameters=p[3][1])
 
 
+def p_meth_type(p):
+    """
+    meth_type : ':' type
+              |
+    """
+    p[0] = p[2] if len(p) == 3 else None
+
+
 def p_params(p):
     """
     params : LPAREN param_list ')'
            | LPAREN ')'
     """
     p[0] = p[2] if len(p) == 4 else []
+
+
+def p_param(p):
+    """
+    param : param_1
+          | param_1 '=' infix
+    """
+    infix = p[3] if len(p) == 3 else None
+    p[0] = (p[1][0], p[1][1], infix)
+
+
+def p_param_1(p):
+    """
+    param_1 : parampattern
+            | parampattern ':' type
+    """
+    tp = p[3] if len(p) == 3 else None
+    p[0] = (p[1][0], p[1][1], tp)
+
+
+def p_parampattern(p):
+    """
+    parampattern : ID
+    """
+    # TODO: see parampattern in antlr...
+    p[0] = p[1]
 
 
 def p_param_list(p):
