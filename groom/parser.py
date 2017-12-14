@@ -394,6 +394,7 @@ def p_op(p):
 def p_term(p):
     """
     term : ID
+         | literal
     """
     # TODO
     p[0] = p[1]
@@ -474,7 +475,7 @@ def p_meth_cap(p):
         p[0] = p[1]
 
 
-method_types = {
+method_kinds = {
     "new": ast.NewMethod,
     "fun": ast.FunMethod,
     "be": ast.BeMethod
@@ -491,10 +492,23 @@ def p_meth_decl(p):
 
 def p_method(p):
     """
-    method : meth_decl meth_cap parametrised_id params meth_type
+    method : meth_decl meth_cap parametrised_id params meth_type maybe_partial
     """
-    p[0] = method_types[p[1][0]](annotation=p[1][1],
-            capability=p[2], id=p[3][0], parameters=p[3][1])
+    p[0] = method_kinds[p[1][0]](annotation=p[1][1],
+                                 capability=p[2], id=p[3][0],
+                                 method_parameters=p[3][1],
+                                 parameters=p[4],
+                                 return_type=p[5],
+                                 is_partial=p[6])
+
+
+def p_maybe_partial(p):
+    """
+    maybe_partial : '?'
+                  |
+    """
+    p[0] = len(p) == 2
+
 
 
 def p_meth_type(p):
@@ -518,7 +532,7 @@ def p_param(p):
     param : param_1
           | param_1 '=' infix
     """
-    infix = p[3] if len(p) == 3 else None
+    infix = p[3] if len(p) == 4 else None
     p[0] = (p[1][0], p[1][1], infix)
 
 
@@ -527,8 +541,8 @@ def p_param_1(p):
     param_1 : parampattern
             | parampattern ':' type
     """
-    tp = p[3] if len(p) == 3 else None
-    p[0] = (p[1][0], p[1][1], tp)
+    tp = p[3] if len(p) == 4 else None
+    p[0] = (p[1], tp)
 
 
 def p_parampattern(p):

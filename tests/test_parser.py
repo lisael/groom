@@ -18,7 +18,7 @@ type Hop
 class \packed\ iso Hip[Hop]
     """class docstring"""
 
-    let aa: String
+    let aa: String = "hello"
 
     new create(env: Env): String ?
 
@@ -43,14 +43,21 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'letfield',
                         'id': 'aa',
                         'type': (('String', [], None), None),
-                        'default': None},
+                        'default': ('"hello"', None)},
                     {
-                        'node_type': 'new',
                         'annotations': [],
+                        'capability': None,
                         'docstring': None,
                         'id': 'create',
-                        'capability': None,
-                        'parameters': []
+                        'is_partial': True,
+                        'method_parameters': [],
+                        'node_type': 'new',
+                        # parameters and return_type are messy at the momment. they
+                        # need their own nodes...
+                        'parameters': [('env',
+                                       (('Env', [], None), None),
+                                       None)],
+                        'return_type': (('String', [], None), None)
                     },
                 ],
             },
@@ -80,7 +87,8 @@ class MultipleParams[Pif, Paf]
             {'name': '"plip"', 'node_type': 'use', 'packages': '"plip"'}
         ]
     }
-    print(tree.as_dict())
+    from pprint import pprint
+    pprint(tree.as_dict())
     assert(tree.as_dict() == expected)
 
 

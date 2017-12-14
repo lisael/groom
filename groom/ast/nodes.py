@@ -123,20 +123,29 @@ class LetFieldNode(FieldNode):
 class EmbedFieldNode(FieldNode):
     node_type = "embedfield"
 
+
 class MethodNode(DocNode, Annotated):
 
-    def __init__(self, id, capability, parameters, **kwargs):
-        self.id = id
+    def __init__(self, capability, id, method_parameters, parameters,
+                 return_type, is_partial, **kwargs):
         self.capability = capability
+        self.id = id
+        self.method_parameters = method_parameters
+        self.parameters = parameters
+        self.return_type = return_type
+        self.is_partial = is_partial
         self.parameters = parameters
         super(MethodNode, self).__init__(**kwargs)
 
     def as_dict(self):
         return dict(
                 super(MethodNode, self).as_dict(),
-                id=self.id,
                 capability=self.capability,
+                id=self.id,
+                method_parameters=self.method_parameters,
                 parameters=self.parameters,
+                return_type=self.return_type,
+                is_partial=self.is_partial,
                 )
 
 
