@@ -414,6 +414,7 @@ def p_binop(p):
     binop : AND term
           | OR term
           | XOR term
+          | PLUS term
           |  '-'  term
           |  '*'  term
           |  '/'  term

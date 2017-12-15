@@ -67,4 +67,5 @@ def test_lex_stdlib():
     for root, dirs, files in os.walk(path):
         for ponysrc in [f for f in files if f.endswith(".pony")]:
             with open(os.path.join(root, ponysrc)) as src:
+                print(os.path.join(root, ponysrc))
                 [t for t in lex_raw(src)]

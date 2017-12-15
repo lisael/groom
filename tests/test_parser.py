@@ -19,6 +19,8 @@ class \packed\ iso Hip[Hop]
     """class docstring"""
 
     let aa: String = "hello"
+    let bb: Bool
+    let cc: I32 = 40 + 2
 
     new create(env: Env): String ?
 
@@ -43,7 +45,20 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'letfield',
                         'id': 'aa',
                         'type': (('String', [], None), None),
-                        'default': ('"hello"', None)},
+                        'default': ('"hello"', None)
+                    },
+                    {
+                        'node_type': 'letfield',
+                        'id': 'bb',
+                        'type': (('Bool', [], None), None),
+                        'default': None
+                    },
+                    {
+                        'node_type': 'letfield',
+                        'id': 'cc',
+                        'type': (('I32', [], None), None),
+                        'default': ('40', [('+', '2')]),
+                    },
                     {
                         'annotations': [],
                         'capability': None,

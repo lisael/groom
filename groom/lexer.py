@@ -98,9 +98,11 @@ tokens = [
     "INT",
     "FLOAT",
     "BACKSLASH",
+    "PLUS",
+    "MINUS",
 ] + list(set(reserved.values()))
 
-literals = ":()[]{}=.-!@|,;^?<>~+*/%#&"
+literals = ":()[]{}=.!@|,;^?<>~*/%#&"
 HEX = r'[0-9a-zA-Z]'
 HEX_ESC = f"(\\\\x{HEX}{{2}})"
 UNICODE_ESC = f"(\\\\u{HEX}{{4}})"
@@ -130,6 +132,8 @@ LPAREN = r'\( | ( {NEWLINE} \( )'
 t_BIG_ARROW = r'=>'
 t_SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
+t_PLUS = r'\+'
+t_MINUS = r'-'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
@@ -153,13 +157,13 @@ def t_NESTEDCOMMENT(t):
     return t
 
 
-@TOKEN(FLOAT)
-def t_FLOAT(t):
+@TOKEN(INT)
+def t_INT(t):
     return t
 
 
-@TOKEN(INT)
-def t_INT(t):
+@TOKEN(FLOAT)
+def t_FLOAT(t):
     return t
 
 
