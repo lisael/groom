@@ -15,7 +15,7 @@ use "plip"
 
 type Hop
 
-class \packed\ iso Hip[Hop]
+class \packed, something\ iso Hip[Hop]
     """class docstring"""
 
     let aa: String = "hello"
@@ -29,6 +29,7 @@ class Simple
 type Combined is (Foo|Bar)
 
 class MultipleParams[Pif, Paf]
+    new create(env: Env, stuff: String): String ?
 
 ''', lexer=Lexer(), debug=True)
     expected = {
@@ -36,7 +37,7 @@ class MultipleParams[Pif, Paf]
             {'docstring': None, 'id': 'Hop', 'node_type': 'type'},
             {
                 'node_type': 'class',
-                "annotations": ["packed"],
+                "annotations": ["packed", "something"],
                 'capability': 'iso',
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
@@ -57,7 +58,7 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'letfield',
                         'id': 'cc',
                         'type': (('I32', [], None), None),
-                        'default': ('40', [('+', '2')]),
+                        'default': ('40', [('+', '2', False)]),
                     },
                     {
                         'annotations': [],
@@ -91,7 +92,24 @@ class MultipleParams[Pif, Paf]
                 'capability': None,
                 'id': 'MultipleParams',
                 'docstring': None,
-                "members": [],
+                "members": [
+                    {
+                        'annotations': [],
+                        'capability': None,
+                        'docstring': None,
+                        'id': 'create',
+                        'is_partial': True,
+                        'method_parameters': [],
+                        'node_type': 'new',
+                        # parameters and return_type are messy at the momment. they
+                        # need their own nodes...
+                        'parameters': [
+                            ('env', (('Env', [], None), None), None),
+                            ('stuff', (('String', [], None), None), None)
+                        ],
+                        'return_type': (('String', [], None), None)
+                    },
+                ],
             },
         ],
         'docstring': '"""docstring..."""',

@@ -314,7 +314,7 @@ def p_members(p):
     if len(p) == 3:
         p[0] = p[1] + p[2]
     else:
-        p[0] = p[2]
+        p[0] = p[1]
 
 
 def p_fields(p):
@@ -411,50 +411,61 @@ def p_isop(p):
 
 def p_binop(p):
     """
-    binop : AND term
-          | OR term
-          | XOR term
-          | PLUS term
-          |  '-'  term
-          |  '*'  term
-          |  '/'  term
-          |  '%'  term
-          |  '+' '~'  term
-          |  '-' '~'  term
-          |  '*' '~'  term
-          |  '/' '~'  term
-          |  '%' '~'  term
-          |  '<' '<'  term
-          |  '>' '>'  term
-          |  '<' '<' '~'  term
-          |  '>' '>' '~'  term
-          |  '=' '='  term
-          |  '!' '='  term
-          |  '<'  term
-          |  '<' '='  term
-          |  '>' '='  term
-          |  '>'  term
-          |  '=' '=' '~'  term
-          |  '!' '=' '~'  term
-          |  '<' '~'  term
-          |  '<' '=' '~'  term
-          |  '>' '=' '~'  term
-          |  '>' '~' term
+    binop : binop_op term
+          | binop_op '?' term
     """
-    # TODO: missing a strange '?'? (see antlr grammar)
+    # TODO binop node ??
     if len(p) == 3:
-        p[0] = (p[1], p[2])
+        p[0] = (p[1], p[2], False)
+    else:
+        p[0] = (p[1], p[3], True)
+
+
+def p_binop_op(p):
+    """
+    binop_op : AND
+             | OR
+             | XOR
+             | PLUS
+             |  '-'
+             |  '*'
+             |  '/'
+             |  '%'
+             |  '+' '~'
+             |  '-' '~'
+             |  '*' '~'
+             |  '/' '~'
+             |  '%' '~'
+             |  '<' '<'
+             |  '>' '>'
+             |  '<' '<' '~'
+             |  '>' '>' '~'
+             |  '=' '='
+             |  '!' '='
+             |  '<'
+             |  '<' '='
+             |  '>' '='
+             |  '>'
+             |  '=' '=' '~'
+             |  '!' '=' '~'
+             |  '<' '~'
+             |  '<' '=' '~'
+             |  '>' '=' '~'
+             |  '>' '~'
+    """
+    if len(p) == 2:
+        p[0] = p[1]
+    elif len(p) == 3:
+        p[0] = p[1] + p[2]
     elif len(p) == 4:
-        p[0] = (p[1] + p[2], p[3])
-    elif len(p) == 4:
-        p[0] = (p[1] + p[2] + p[3], p[4])
+        p[0] = p[1] + p[2] + p[3]
 
 
 def p_methods(p):
     """
     methods : method methods
             | method
-    methods :
+            |
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -509,7 +520,6 @@ def p_maybe_partial(p):
                   |
     """
     p[0] = len(p) == 2
-
 
 
 def p_meth_type(p):
