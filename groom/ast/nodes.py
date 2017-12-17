@@ -127,7 +127,7 @@ class EmbedFieldNode(FieldNode):
 class MethodNode(DocNode, Annotated):
 
     def __init__(self, capability, id, method_parameters, parameters,
-                 return_type, is_partial, **kwargs):
+                 return_type, is_partial, guard, body, **kwargs):
         self.capability = capability
         self.id = id
         self.method_parameters = method_parameters
@@ -135,6 +135,8 @@ class MethodNode(DocNode, Annotated):
         self.return_type = return_type
         self.is_partial = is_partial
         self.parameters = parameters
+        self.guard = guard
+        self.body = body
         super(MethodNode, self).__init__(**kwargs)
 
     def as_dict(self):
@@ -146,6 +148,8 @@ class MethodNode(DocNode, Annotated):
                 parameters=self.parameters,
                 return_type=self.return_type,
                 is_partial=self.is_partial,
+                guard=self.guard,
+                body=self.body,
                 )
 
 

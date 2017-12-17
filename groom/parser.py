@@ -367,6 +367,17 @@ def p_infix(p):
         p[0] = (p[1], None)
 
 
+def p_nextinfix(p):
+    """
+    nextinfix : nextterm op_list
+              | nextterm
+    """
+    if len(p) == 3:
+        p[0] = (p[1], p[2])
+    else:
+        p[0] = (p[1], None)
+
+
 def p_op_list(p):
     """
     op_list : op op_list
@@ -395,6 +406,15 @@ def p_term(p):
     """
     term : ID
          | literal
+    """
+    # TODO
+    p[0] = p[1]
+
+
+def p_nextterm(p):
+    """
+    nextterm : ID
+             | literal
     """
     # TODO
     p[0] = p[1]
@@ -504,14 +524,32 @@ def p_meth_decl(p):
 
 def p_method(p):
     """
-    method : meth_decl meth_cap parametrised_id params meth_type maybe_partial
+    method : meth_decl meth_cap parametrised_id params meth_type maybe_partial guard body
     """
     p[0] = method_kinds[p[1][0]](annotation=p[1][1],
                                  capability=p[2], id=p[3][0],
                                  method_parameters=p[3][1],
                                  parameters=p[4],
                                  return_type=p[5],
-                                 is_partial=p[6])
+                                 is_partial=p[6],
+                                 guard=p[7],
+                                 body=p[8])
+
+
+def p_body(p):
+    """
+    body : BIG_ARROW rawseq
+         |
+    """
+    p[0] = None if len(p) == 1 else p[2]
+
+
+def p_guard(p):
+    """
+    guard : IF rawseq
+          |
+    """
+    p[0] = None if len(p) == 1 else p[2]
 
 
 def p_maybe_partial(p):
@@ -572,12 +610,92 @@ def p_param_list(p):
     p[0] = [p[1]] + p[3] if len(p) == 4 else [p[1]]
 
 
-_parser = yacc.yacc()
+def p_rawseq(p):
+    """
+    rawseq : exprseq
+           | jump
+    """
+    p[0] = p[1]
+
+
+def p_exprseq(p):
+    """
+    exprseq : assignment
+            | assignment semiexpr
+            | assignment nosemi
+    """
+    p[0] = p[1:2]
+
+
+def p_nextexprseq(p):
+    """
+    nextexprseq : nextassignment
+                | nextassignment semiexpr
+                | nextassignment nosemi
+    """
+    p[0] = p[1:2]
+
+
+def p_semiexpr(p):
+    """
+    semiexpr : ';' exprseq
+             | ';' jump
+    """
+    p[0] = p[2]
+
+
+def p_nosemi(p):
+    """
+    nosemi : nextexprseq
+           | jump
+    """
+    p[0] = p[1]
+
+
+def p_assignment(p):
+    """
+    assignment : infix
+               | infix '=' assignment
+    """
+    assignment = None if len(p) == 2 else p[3]
+    p[0] = (p[1], assignment)
+
+
+def p_nextassignment(p):
+    """
+    nextassignment : nextinfix
+                   | nextinfix '=' assignment
+    """
+    p_assignment(p)
+
+
+def p_jump(p):
+    """
+    jump : jump_statement
+         | jump_statement rawseq
+    """
+    seq = None if len(p) == 2 else p[2]
+    p[0] = (p[1], seq)
+
+
+def p_jump_statement(p):
+    """
+    jump_statement : RETURN
+                   | BREAK
+                   | CONTINUE
+                   | ERROR
+                   | COMPILE_INTRINSIC
+                   | COMPILE_ERROR
+    """
+    p[0] = p[1]
+
+
+# _parser = yacc.yacc()
 
 
 class Parser(object):
-    def __init__(self):
-        self._parser = _parser
+    def __init__(self, *args, **kwargs):
+        self._parser = yacc.yacc(*args, **kwargs)
 
     def parse(self, *args, **kwargs):
         return self._parser.parse(*args, **kwargs)

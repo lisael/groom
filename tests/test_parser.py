@@ -1,5 +1,34 @@
+from pprint import pprint
+
 from groom.lexer import Lexer
 from groom.parser import Parser
+
+
+def parse_code(data, expected, verbose=False, **parser_opts):
+    tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
+    if verbose:
+        pprint(tree.as_dict())
+    assert(tree.as_dict() == expected)
+
+
+def test_method():
+    data  = """
+        new create(env: Env): String ? if true => "stuff"
+    """
+    expected= {
+            'annotations': [],
+            'body': [(('"stuff"', None), None)],
+            'capability': None,
+            'docstring': None,
+            'guard': [(('true', None), None)],
+            'id': 'create',
+            'is_partial': True,
+            'method_parameters': [],
+            'node_type': 'new',
+            'parameters': [('env', (('Env', [], None), None), None)],
+            'return_type': (('String', [], None), None)
+    }
+    parse_code(data, expected, start='method')
 
 
 def test_module_parsing():
@@ -9,7 +38,7 @@ def test_module_parsing():
     Not a real unit test, it's more of a dev tool and
     a documentation of supported grammar
     """
-    tree = Parser().parse('''"""docstring..."""
+    data = '''"""docstring..."""
 use "plop"
 use "plip"
 
@@ -18,11 +47,13 @@ type Hop
 class \packed, something\ iso Hip[Hop]
     """class docstring"""
 
-    let aa: String = "hello"
+    let aa: String iso = "hello"
     let bb: Bool
     let cc: I32 = 40 + 2
 
-    new create(env: Env): String ?
+    new create(env: Env): String iso^ ? if true =>
+        true == true
+        return "stuff"
 
 class Simple
 
@@ -31,7 +62,7 @@ type Combined is (Foo|Bar)
 class MultipleParams[Pif, Paf]
     new create(env: Env, stuff: String): String ?
 
-''', lexer=Lexer(), debug=True)
+'''
     expected = {
         'class_defs': [
             {'docstring': None, 'id': 'Hop', 'node_type': 'type'},
@@ -45,7 +76,7 @@ class MultipleParams[Pif, Paf]
                     {
                         'node_type': 'letfield',
                         'id': 'aa',
-                        'type': (('String', [], None), None),
+                        'type': (('String', [], ('iso', None)), None),
                         'default': ('"hello"', None)
                     },
                     {
@@ -73,7 +104,9 @@ class MultipleParams[Pif, Paf]
                         'parameters': [('env',
                                        (('Env', [], None), None),
                                        None)],
-                        'return_type': (('String', [], None), None)
+                        'return_type': (('String', [], ('iso', '^')), None),
+                        'guard': [(('true', None), None)],
+                        'body': [(('true', [('==', 'true', False)]), None)],
                     },
                 ],
             },
@@ -107,7 +140,9 @@ class MultipleParams[Pif, Paf]
                             ('env', (('Env', [], None), None), None),
                             ('stuff', (('String', [], None), None), None)
                         ],
-                        'return_type': (('String', [], None), None)
+                        'return_type': (('String', [], None), None),
+                        'guard': None,
+                        'body': None,
                     },
                 ],
             },
@@ -120,9 +155,7 @@ class MultipleParams[Pif, Paf]
             {'name': '"plip"', 'node_type': 'use', 'packages': '"plip"'}
         ]
     }
-    from pprint import pprint
-    pprint(tree.as_dict())
-    assert(tree.as_dict() == expected)
+    parse_code(data, expected, verbose=True)
 
 
 def test_module_parsing_no_docstring_no_use():
