@@ -64,29 +64,41 @@ class UseNode(Node):
                 )
 
 
-class ClassNode(DocNode, Annotated):
-    node_type = "class"
+class ClassNodeBase(DocNode, Annotated):
 
-    def __init__(self, id, members, capability, type_params, is_, **kwargs):
+    def __init__(self, id=None, members=None, capability=None,
+                 type_params=None, is_=None, **kwargs):
         self.id = id
         self.members = members if members else []
         self.capability = capability
-        super(ClassNode, self).__init__(**kwargs)
+        self.is_ = is_
+        self.type_params = type_params
+        super(ClassNodeBase, self).__init__(**kwargs)
 
     def as_dict(self):
-        return dict(
-                super(ClassNode, self).as_dict(),
-                id=self.id,
-                capability=self.capability,
-                members=[m.as_dict() for m in self.members]
-                )
+        d = dict(
+            super(ClassNodeBase, self).as_dict(),
+            id=self.id,
+            capability=self.capability,
+            members=[m.as_dict() for m in self.members],
+            type_params=self.type_params,
+        )
+        d["is"] = self.is_
+        return d
 
 
-class TypeNode(DocNode):
+class ClassNode(ClassNodeBase):
+    node_type = "class"
+
+
+class TypeNode(ClassNodeBase):
     node_type = "type"
 
-    def __init__(self, id, capability, type_params, is_, **kwargs):
-        self.id = id
+    def __init__(self, **kwargs):
+        if kwargs.get("members"):
+            raise SyntaxError("type class definition doesn't accept members")
+        if kwargs.get("annotation"):
+            raise SyntaxError("type class definition doesn't accept annotations")
         super(TypeNode, self).__init__(**kwargs)
 
     def as_dict(self):

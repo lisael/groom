@@ -12,10 +12,10 @@ def parse_code(data, expected, verbose=False, **parser_opts):
 
 
 def test_method():
-    data  = """
-        new create(env: Env): String ? if true => "stuff"
+    data = """
+        new create(env: Env): String iso^ ? if true => "stuff"
     """
-    expected= {
+    expected = {
             'annotations': [],
             'body': [(('"stuff"', None), None)],
             'capability': None,
@@ -26,9 +26,16 @@ def test_method():
             'method_parameters': [],
             'node_type': 'new',
             'parameters': [('env', (('Env', [], None), None), None)],
-            'return_type': (('String', [], None), None)
+            'return_type': (('String', [], ('iso', '^')), None)
     }
     parse_code(data, expected, start='method')
+
+
+def test_if():
+    data = """
+        if true then false end
+    """
+    # parse_code(data, False, verbose=True, start='if')
 
 
 def test_module_parsing():
@@ -49,10 +56,12 @@ class \packed, something\ iso Hip[Hop]
 
     let aa: String iso = "hello"
     let bb: Bool
-    let cc: I32 = 40 + 2
+    let cc: I32 = 40 + 2 as I32
 
     new create(env: Env): String iso^ ? if true =>
         true == true
+        if true then false end
+        42; 44
         return "stuff"
 
 class Simple
@@ -89,7 +98,10 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'letfield',
                         'id': 'cc',
                         'type': (('I32', [], None), None),
-                        'default': ('40', [('+', '2', False)]),
+                        'default': ('40', [
+                            ('+', '2', False),
+                            (('I32', [], None), None)
+                        ]),
                     },
                     {
                         'annotations': [],
@@ -106,7 +118,12 @@ class MultipleParams[Pif, Paf]
                                        None)],
                         'return_type': (('String', [], ('iso', '^')), None),
                         'guard': [(('true', None), None)],
-                        'body': [(('true', [('==', 'true', False)]), None)],
+                        'body': [
+                            (('true', [('==', 'true', False)]), None),
+                            (('42', None), None),
+                            (('44', None), None),
+                            ('return', [(('"stuff"', None), None)])
+                        ],
                     },
                 ],
             },
@@ -159,9 +176,9 @@ class MultipleParams[Pif, Paf]
 
 
 def test_module_parsing_no_docstring_no_use():
-    tree = Parser().parse('''
-type hop
-''', lexer=Lexer())
+    data = '''
+        type hop
+    '''
     expected = {
         'class_defs': [
             {'docstring': None, 'id': 'hop', 'node_type': 'type'}
@@ -171,19 +188,21 @@ type hop
         'node_type': 'module',
         'uses': []
     }
-    assert(tree.as_dict() == expected)
+    parse_code(data, expected)
 
 
 def test_module_only_docstring():
-    tree = Parser().parse('''"""Only
-docstring
+    data = '''
 """
-''', lexer=Lexer())
+Only
+a docstring
+"""
+    '''
     expected = {
         'class_defs': [],
-        'docstring': '"""Only\ndocstring\n"""',
+        'docstring': '"""\nOnly\na docstring\n"""',
         'name': None,
         'node_type': 'module',
         'uses': []
     }
-    assert(tree.as_dict() == expected)
+    parse_code(data, expected)

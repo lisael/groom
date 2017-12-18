@@ -199,9 +199,9 @@ def p_combined_types(p):
     combined_types : LPAREN infixtype ')'
     """
     if len(p) == 5:
-        p[0] = [p[3]] + p[4]
+        p[0] = [p[2]] + p[3]
     else:
-        p[0] = [p[3]]
+        p[0] = [p[2]]
 
 
 def p_tupletype(p):
@@ -272,17 +272,20 @@ def p_docstring(p):
         p[0] = None
 
 
+class_nodes = {
+    "type": ast.TypeNode,
+    "class": ast.ClassNode
+}
+
+
 def p_class_def(p):
     """
     class_def : class_decl docstring members
     class_def : class_decl docstring
     """
-    if len(p) == 4:
-        members = p[3]
-    elif len(p) == 3:
-        members = []
-    p[0] = build_class(
-            decl=p[1][0], annotation=p[1][1],
+    members = [] if len(p) == 3 else p[3]
+    p[0] = class_nodes[p[1][0]](
+            annotation=p[1][1],
             capability=p[1][2], id=p[1][3],
             type_params=p[1][4], is_=p[1][5],
             docstring=p[2], members=members)
@@ -406,9 +409,31 @@ def p_term(p):
     """
     term : ID
          | literal
+         | if
     """
     # TODO
     p[0] = p[1]
+
+
+def p_if(p):
+    """
+    if : IF annotatedrawseq THEN rawseq END
+       | IF annotatedrawseq THEN rawseq else END
+    """
+
+
+def p_else(p):
+    """
+    else : elseif
+         | ELSE annotatedrawseq
+    """
+
+
+def p_elsif(p):
+    """
+    elseif : ELSIF annotatedrawseq THEN rawseq END
+           | ELSIF annotatedrawseq THEN rawseq else END
+    """
 
 
 def p_nextterm(p):
@@ -618,13 +643,25 @@ def p_rawseq(p):
     p[0] = p[1]
 
 
+def p_annotatedrawseq(p):
+    """
+    annotatedrawseq : annotation rawseq
+                    | rawseq
+    """
+    if len(p) == 2:
+        p[0] = (None, p[1])
+    else:
+        p[0] = (p[1], p[2])
+
+
 def p_exprseq(p):
     """
     exprseq : assignment
             | assignment semiexpr
             | assignment nosemi
     """
-    p[0] = p[1:2]
+    next_ = [] if len(p) == 2 else p[2]
+    p[0] = [p[1]] + next_
 
 
 def p_nextexprseq(p):
@@ -633,7 +670,7 @@ def p_nextexprseq(p):
                 | nextassignment semiexpr
                 | nextassignment nosemi
     """
-    p[0] = p[1:2]
+    p_exprseq(p)
 
 
 def p_semiexpr(p):
@@ -675,7 +712,7 @@ def p_jump(p):
          | jump_statement rawseq
     """
     seq = None if len(p) == 2 else p[2]
-    p[0] = (p[1], seq)
+    p[0] = [(p[1], seq)]
 
 
 def p_jump_statement(p):
@@ -699,3 +736,7 @@ class Parser(object):
 
     def parse(self, *args, **kwargs):
         return self._parser.parse(*args, **kwargs)
+
+
+if __name__ == "__main__":
+    yacc.yacc()
