@@ -1,8 +1,6 @@
 import ply.yacc as yacc
-from groom.lexer import Lexer
 from groom.lexer import tokens  # noqa needed by yacc.yacc
 from groom import ast
-from groom.ast import build_class
 
 
 def p_module(p):
@@ -421,7 +419,11 @@ def p_if(p):
        | IF annotatedrawseq THEN rawseq else END
     """
     else_ = p[5] if len(p) == 7 else None
-    p[0] = (p[2], p[4], else_)
+    p[0] = ast.IfNode(
+            annotation=p[2][0],
+            assertion=p[2][1],
+            members=p[4],
+            else_=else_)
 
 
 def p_else(p):
@@ -429,6 +431,7 @@ def p_else(p):
     else : elseif
          | ELSE annotatedrawseq
     """
+    p[0] = p[1] if len(p) == 2 else p[2]
 
 
 def p_elsif(p):

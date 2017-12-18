@@ -35,7 +35,42 @@ def test_if():
     data = """
         if true then false end
     """
-    # parse_code(data, False, verbose=True, start='if')
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        'else': None,
+        'members': [(('false', None), None)],
+        'node_type': 'if'
+    }
+    parse_code(data, expected, verbose=True, start='if')
+
+
+def test_if_else():
+    data = """
+        if true then false else "hello" end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        'else': (None, [(('"hello"', None), None)]),
+        'members': [(('false', None), None)],
+        'node_type': 'if'
+    }
+    parse_code(data, expected, verbose=True, start='if')
+
+
+def test_if_elseif():
+    data = """
+        if true then "bye" elseif false then "hello" end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        'else': (None, [(('"hello"', None), None)]),
+        'members': [(('false', None), None)],
+        'node_type': 'if'
+    }
+    # parse_code(data, expected, verbose=True, start='if')
 
 
 def test_module_parsing():
