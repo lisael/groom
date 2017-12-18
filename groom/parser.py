@@ -420,6 +420,8 @@ def p_if(p):
     if : IF annotatedrawseq THEN rawseq END
        | IF annotatedrawseq THEN rawseq else END
     """
+    else_ = p[5] if len(p) == 7 else None
+    p[0] = (p[2], p[4], else_)
 
 
 def p_else(p):

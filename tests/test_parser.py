@@ -60,7 +60,7 @@ class \packed, something\ iso Hip[Hop]
 
     new create(env: Env): String iso^ ? if true =>
         true == true
-        if true then false end
+        // if true then false end
         42; 44
         return "stuff"
 
@@ -74,13 +74,22 @@ class MultipleParams[Pif, Paf]
 '''
     expected = {
         'class_defs': [
-            {'docstring': None, 'id': 'Hop', 'node_type': 'type'},
+            {'annotations': [],
+                 'capability': None,
+                 'docstring': None,
+                 'id': 'Hop',
+                 'is': None,
+                 'members': [],
+                 'node_type': 'type',
+                 'type_params': []},
             {
                 'node_type': 'class',
                 "annotations": ["packed", "something"],
                 'capability': 'iso',
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
+                'is': None,
+                'type_params': [('Hop', None, None)],
                 "members": [
                     {
                         'node_type': 'letfield',
@@ -134,14 +143,28 @@ class MultipleParams[Pif, Paf]
                 'id': 'Simple',
                 'docstring': None,
                 "members": [],
+                "is": None,
+                "type_params": [],
             },
-            {'docstring': None, 'id': 'Combined', 'node_type': 'type'},
+            {
+                'annotations': [],
+                'capability': None,
+                'docstring': None,
+                'id': 'Combined',
+                'is': ([(('Foo', [], None), None)], None),
+                'members': [],
+                'node_type': 'type',
+                'type_params': []
+            },
+
             {
                 'node_type': 'class',
                 "annotations": [],
                 'capability': None,
                 'id': 'MultipleParams',
                 'docstring': None,
+                "is": None,
+                'type_params': [('Pif', None, None), ('Paf', None, None)],
                 "members": [
                     {
                         'annotations': [],
@@ -172,7 +195,7 @@ class MultipleParams[Pif, Paf]
             {'name': '"plip"', 'node_type': 'use', 'packages': '"plip"'}
         ]
     }
-    parse_code(data, expected, verbose=True)
+    parse_code(data, expected, verbose=False)
 
 
 def test_module_parsing_no_docstring_no_use():
@@ -181,14 +204,23 @@ def test_module_parsing_no_docstring_no_use():
     '''
     expected = {
         'class_defs': [
-            {'docstring': None, 'id': 'hop', 'node_type': 'type'}
+            {
+                'annotations': [],
+                'capability': None,
+                'docstring': None,
+                'id': 'hop',
+                'is': None,
+                'members': [],
+                'node_type': 'type',
+                'type_params': []
+            }
         ],
         'docstring': None,
         'name': None,
         'node_type': 'module',
         'uses': []
     }
-    parse_code(data, expected)
+    parse_code(data, expected, verbose=True)
 
 
 def test_module_only_docstring():

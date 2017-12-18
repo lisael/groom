@@ -219,6 +219,6 @@ class Lexer():
 
     def token(self):
         t = self._lexer.token()
-        if t is not None and t.type in ("WS", "NEWLINE"):
+        if t is not None and t.type in ("WS", "NEWLINE", "LINECOMMENT", "NESTEDCOMMENT"):
             return self.token()
         return t
