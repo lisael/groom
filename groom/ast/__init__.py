@@ -3,4 +3,4 @@ from groom.ast.nodes import (DocNode, ModuleNode, UseNode,
                              VarFieldNode, LetFieldNode, EmbedFieldNode,
                              NewMethod, FunMethod, BeMethod, IfNode,
                              ElseifNode, WhileNode, RepeatNode, ConsumeNode,
-                             RecoverNode)  # noqa
+                             RecoverNode, TryNode)  # noqa

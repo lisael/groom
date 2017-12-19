@@ -141,6 +141,62 @@ def test_repeat_else():
     parse_code(data, expected, verbose=True, start='repeat')
 
 
+def test_try():
+    data = """
+        try 1 +? 2 end
+    """
+    expected = {
+        'annotations': [],
+        'else': None,
+        'then': None,
+        'members': [(('1', [('+', '2', True)]), None)],
+        'node_type': 'try'
+    }
+    parse_code(data, expected, verbose=True, start='try')
+
+
+def test_try_else():
+    data = """
+        try 1 +? 2 else hop end
+    """
+    expected = {
+        'annotations': [],
+        'else':  ([], [(('hop', None), None)]),
+        'then': None,
+        'members': [(('1', [('+', '2', True)]), None)],
+        'node_type': 'try'
+    }
+    parse_code(data, expected, verbose=True, start='try')
+
+
+def test_try_then():
+    data = """
+        try 1 +? 2 then 42 end
+    """
+    expected = {
+        'annotations': [],
+        'else': None,
+        'then': ([], [(('42', None), None)]),
+        'members': [(('1', [('+', '2', True)]), None)],
+        'node_type': 'try'
+    }
+    parse_code(data, expected, verbose=True, start='try')
+
+
+def test_try_then_else():
+    data = """
+        try 1 +? 2 else hop then 42 end
+    """
+    expected = {
+        'annotations': [],
+        'else':  ([], [(('hop', None), None)]),
+        'then': ([], [(('42', None), None)]),
+        'members': [(('1', [('+', '2', True)]), None)],
+        'node_type': 'try'
+    }
+    parse_code(data, expected, verbose=True, start='try')
+
+
 def test_recover():
     data = """
         recover iso stuff end

@@ -417,6 +417,7 @@ def p_term(p):
     term : if
          | while
          | repeat
+         | try
          | recover
          | consume
          | pattern
@@ -427,62 +428,80 @@ def p_term(p):
 
 def p_if(p):
     """
-    if : IF annotatedrawseq THEN rawseq END
-       | IF annotatedrawseq THEN rawseq if_else END
+    if : IF annotatedrawseq THEN rawseq if_else END
     """
-    else_ = p[5] if len(p) == 7 else None
     p[0] = ast.IfNode(
             annotation=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=else_)
+            else_=p[5])
 
 
 def p_if_else(p):
     """
     if_else : elseif
-            | ELSE annotatedrawseq
+            | else
     """
-    p[0] = p[1] if len(p) == 2 else p[2]
+    p[0] = p[1]
 
 
 def p_elseif(p):
     """
-    elseif : ELSEIF annotatedrawseq THEN rawseq
-           | ELSEIF annotatedrawseq THEN rawseq if_else
+    elseif : ELSEIF annotatedrawseq THEN rawseq if_else
     """
-    else_ = p[5] if len(p) == 7 else None
     p[0] = ast.ElseifNode(
             annotation=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=else_)
+            else_=p[5])
 
 
 def p_while(p):
     """
-    while : WHILE annotatedrawseq DO rawseq END
-          | WHILE annotatedrawseq DO rawseq else END
+    while : WHILE annotatedrawseq DO rawseq else END
     """
-    else_ = p[5] if len(p) == 7 else None
     p[0] = ast.WhileNode(
             annotation=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=else_)
+            else_=p[5])
 
 
 def p_repeat(p):
     """
-    repeat : REPEAT rawseq UNTIL annotatedrawseq END
-           | REPEAT rawseq UNTIL annotatedrawseq else END
+    repeat : REPEAT rawseq UNTIL annotatedrawseq else END
     """
-    else_ = p[5] if len(p) == 7 else None
     p[0] = ast.RepeatNode(
             annotation=p[4][0],
             assertion=p[4][1],
             members=p[2],
-            else_=else_)
+            else_=p[5])
+
+def p_then(p):
+    """
+    then : THEN annotatedrawseq
+         |
+    """
+    p[0] = p[2] if len(p) == 3 else None
+
+
+def p_else_then(p):
+    """
+    else_then : else then
+    """
+    p[0] = (p[1], p[2])
+
+
+def p_try(p):
+    """
+    try : TRY annotation rawseq else_then END
+    """
+    p[0] = ast.TryNode(
+        annotation=p[2],
+        members=p[3],
+        else_=p[4][0],
+        then=p[4][1]
+    )
 
 
 def p_recover(p):
@@ -494,11 +513,13 @@ def p_recover(p):
             capability=p[3],
             members=p[4])
 
+
 def p_else(p):
     """
     else : ELSE annotatedrawseq
+         |
     """
-    p[0] = p[1] if len(p) == 2 else p[2]
+    p[0] = p[2] if len(p) == 3 else None
 
 
 def p_consume(p):

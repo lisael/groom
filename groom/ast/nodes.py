@@ -236,9 +236,27 @@ class RepeatNode(Node, Annotated):
     def as_dict(self):
         d = dict(
             super(RepeatNode, self).as_dict(),
-            # members=[m.as_dict() for m in self.members],
             members=self.members,
             assertion=self.assertion
+        )
+        d["else"] = self.else_
+        return d
+
+
+class TryNode(Node, Annotated):
+    node_type = "try"
+
+    def __init__(self, members, else_, then, **kwargs):
+        self.members = members
+        self.else_ = else_
+        self.then = then
+        super(TryNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        d = dict(
+            super(TryNode, self).as_dict(),
+            members=self.members,
+            then=self.then
         )
         d["else"] = self.else_
         return d
