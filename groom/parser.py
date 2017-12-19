@@ -420,6 +420,8 @@ def p_term(p):
          | match
          | while
          | repeat
+         | for
+         | with
          | try
          | recover
          | consume
@@ -629,7 +631,6 @@ def p_for(p):
     )
 
 
-
 def _flatten_idseq(seq):
     result = []
     for item in seq:
@@ -659,6 +660,33 @@ def p_idseq_list(p):
                | idseq ',' idseq_list
     """
     p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
+def p_with(p):
+    """
+    with : WITH annotation with_elem_list DO rawseq else END
+    """
+    p[0] = ast.WithNode(
+            annotation=p[2],
+            elems=p[3],
+            members=p[5],
+            else_=p[6]
+    )
+
+
+def p_with_elem_list(p):
+    """
+    with_elem_list : with_elem ',' with_elem_list
+                   | with_elem
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
+def p_with_elem(p):
+    """
+    with_elem : idseq '=' rawseq
+    """
+    p[0] = (p[1], p[3])
 
 
 def p_else_then(p):

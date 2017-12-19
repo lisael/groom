@@ -354,6 +354,22 @@ class ForNode(ElseNode, Annotated):
         )
 
 
+class WithNode(ElseNode, Annotated):
+    node_type = "with"
+
+    def __init__(self, elems, members, **kwargs):
+        self.elems=elems
+        self.members = members
+        super(WithNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(WithNode, self).as_dict(),
+            elems=self.elems,
+            members=self.members
+        )
+
+
 class TryNode(ElseNode, Annotated):
     node_type = "try"
 

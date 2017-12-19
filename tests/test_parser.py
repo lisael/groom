@@ -315,6 +315,24 @@ def test_for():
     parse_code(data, expected, verbose=VERBOSE, start='for')
 
 
+def test_with():
+    data = """
+        with file = myfile do
+            stuff
+        else
+            other
+        end
+    """
+    expected = {
+        'annotations': [],
+        'elems': [(['file'], [(('myfile', None), None)])],
+        'else': ([], [(('other', None), None)]),
+        'members': [(('stuff', None), None)],
+        'node_type': 'with'
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='with')
+
+
 def test_try():
     data = """
         try 1 +? 2 end

@@ -27,4 +27,5 @@ from groom.ast.nodes import (
         MatchNode,
         CaseNode,
         ForNode,
+        WithNode,
 )  # noqa
