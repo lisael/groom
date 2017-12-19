@@ -148,14 +148,15 @@ class MultipleParams[Pif, Paf]
 '''
     expected = {
         'class_defs': [
-            {'annotations': [],
-                 'capability': None,
-                 'docstring': None,
-                 'id': 'Hop',
-                 'is': None,
-                 'members': [],
-                 'node_type': 'type',
-                 'type_params': []},
+            {
+                'annotations': [],
+                'capability': None,
+                'docstring': None,
+                'id': 'Hop',
+                'is': None,
+                'members': [],
+                'node_type': 'type',
+                'type_params': []},
             {
                 'node_type': 'class',
                 "annotations": ["packed", "something"],
