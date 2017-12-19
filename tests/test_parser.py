@@ -52,7 +52,7 @@ def test_if_else():
     expected = {
         'annotations': [],
         'assertion': [(('true', None), None)],
-        'else': (None, [(('"hello"', None), None)]),
+        'else': ([], [(('"hello"', None), None)]),
         'members': [(('false', None), None)],
         'node_type': 'if'
     }
@@ -105,7 +105,7 @@ def test_while_else():
     expected = {
         'annotations': [],
         'assertion': [(('true', None), None)],
-        'else': (None, [(('bar', None), None)]),
+        'else': ([], [(('bar', None), None)]),
         'members': [(('stuff', None), None)],
         'node_type': 'while'
     }
@@ -134,7 +134,7 @@ def test_repeat_else():
     expected = {
         'annotations': [],
         'assertion': [(('true', None), None)],
-        'else': (None, [(('"hello"', None), None)]),
+        'else': ([], [(('"hello"', None), None)]),
         'members': [(('stuff', None), None)],
         'node_type': 'repeat'
     }

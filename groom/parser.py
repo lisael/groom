@@ -251,12 +251,8 @@ def p_class_decl(p):
 def p_class_decl_1(p):
     """
     class_decl_1 : CLASS_DECL annotation cap parametrised_id
-                 | CLASS_DECL cap parametrised_id
     """
-    if len(p) == 5:
-        p[0] = (p[1], p[2], p[3], p[4][0], p[4][1])
-    else:
-        p[0] = (p[1], [], p[2], p[3][0], p[3][1])
+    p[0] = (p[1], p[2], p[3], p[4][0], p[4][1])
 
 
 def p_docstring(p):
@@ -292,8 +288,12 @@ def p_class_def(p):
 def p_annotation(p):
     r"""
     annotation : BACKSLASH id_list BACKSLASH
+               |
     """
-    p[0] = p[2]
+    if len(p) == 1:
+        p[0] = []
+    else:
+        p[0] = p[2]
 
 
 def p_id_list(p):
@@ -414,11 +414,12 @@ def p_pattern(p):
 
 def p_term(p):
     """
-    term : pattern
-         | if
+    term : if
          | while
          | repeat
+         | recover
          | consume
+         | pattern
     """
     # TODO
     p[0] = p[1]
@@ -483,6 +484,11 @@ def p_repeat(p):
             members=p[2],
             else_=else_)
 
+
+def p_recover(p):
+    """
+    recover : RECOVER annotation cap
+    """
 
 def p_else(p):
     """
@@ -604,9 +610,8 @@ method_kinds = {
 def p_meth_decl(p):
     """
     meth_decl : METH_DECL annotation
-              | METH_DECL
     """
-    p[0] = (p[1], p[2]) if len(p) == 3 else (p[1], None)
+    p[0] = (p[1], p[2])
 
 
 def p_method(p):
@@ -708,12 +713,8 @@ def p_rawseq(p):
 def p_annotatedrawseq(p):
     """
     annotatedrawseq : annotation rawseq
-                    | rawseq
     """
-    if len(p) == 2:
-        p[0] = (None, p[1])
-    else:
-        p[0] = (p[1], p[2])
+    p[0] = (p[1], p[2])
 
 
 def p_exprseq(p):

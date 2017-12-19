@@ -36,7 +36,7 @@ reserved = {
     "with": "WITH",
     "try": "TRY",
     "recover": "RECOVER",
-    "counsme": "COUNSME",
+    'consume': "CONSUME",
     "use": "USE",
     "interface": "CLASS_DECL",
     "trait": "CLASS_DECL",
@@ -83,7 +83,6 @@ reserved = {
     '#share': "GENCAP",
     '#alias': "GENCAP",
     '#any': "GENCAP",
-    'consume': "CONSUME"
 }
 
 tokens = [
