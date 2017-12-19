@@ -434,11 +434,17 @@ def p_else(p):
     p[0] = p[1] if len(p) == 2 else p[2]
 
 
-def p_elsif(p):
+def p_elseif(p):
     """
-    elseif : ELSIF annotatedrawseq THEN rawseq END
-           | ELSIF annotatedrawseq THEN rawseq else END
+    elseif : ELSEIF annotatedrawseq THEN rawseq
+           | ELSEIF annotatedrawseq THEN rawseq else
     """
+    else_ = p[5] if len(p) == 7 else None
+    p[0] = ast.ElseifNode(
+            annotation=p[2][0],
+            assertion=p[2][1],
+            members=p[4],
+            else_=else_)
 
 
 def p_nextterm(p):
@@ -744,4 +750,4 @@ class Parser(object):
 
 
 if __name__ == "__main__":
-    yacc.yacc()
+    yacc.yacc()  # pragma: no cover

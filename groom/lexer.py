@@ -63,7 +63,7 @@ reserved = {
     "or": "OR",
     "not": "NOT",
     "xor": "XOR",
-    "elsif": "ELSIF",
+    "elseif": "ELSEIF",
     "addressof": "ADDRESSOF",
     "digestof": "DIGESTOF",
     "this": "THIS",

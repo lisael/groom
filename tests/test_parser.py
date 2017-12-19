@@ -33,10 +33,10 @@ def test_method():
 
 def test_if():
     data = """
-        if true then false end
+        if \likely\ true then false end
     """
     expected = {
-        'annotations': [],
+        'annotations': ['likely'],
         'assertion': [(('true', None), None)],
         'else': None,
         'members': [(('false', None), None)],
@@ -61,16 +61,26 @@ def test_if_else():
 
 def test_if_elseif():
     data = """
-        if true then "bye" elseif false then "hello" end
+        if true then
+            "bye"
+        elseif false then
+            "hello"
+        end
     """
     expected = {
         'annotations': [],
         'assertion': [(('true', None), None)],
-        'else': (None, [(('"hello"', None), None)]),
-        'members': [(('false', None), None)],
+        'else': {
+            'annotations': [],
+            'assertion': [(('false', None), None)],
+            'else': None,
+            'members': [(('"hello"', None), None)],
+            'node_type': 'elseif'
+        },
+        'members': [(('"bye"', None), None)],
         'node_type': 'if'
     }
-    # parse_code(data, expected, verbose=True, start='if')
+    parse_code(data, expected, verbose=True, start='if')
 
 
 def test_module_parsing():
@@ -93,7 +103,7 @@ class \packed, something\ iso Hip[Hop]
     let bb: Bool
     let cc: I32 = 40 + 2 as I32
 
-    new create(env: Env): String iso^ ? if true =>
+    new val create(env: Env): String iso^ ? if true =>
         true == true
         // if true then false end
         42; 44
@@ -149,7 +159,7 @@ class MultipleParams[Pif, Paf]
                     },
                     {
                         'annotations': [],
-                        'capability': None,
+                        'capability': 'val',
                         'docstring': None,
                         'id': 'create',
                         'is_partial': True,

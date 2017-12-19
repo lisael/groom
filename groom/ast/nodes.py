@@ -181,8 +181,15 @@ class IfNode(Node, Annotated):
             members=self.members,
             assertion=self.assertion
         )
-        d["else"] = self.else_
+        if isinstance(self.else_, Node):
+            d["else"] = self.else_.as_dict()
+        else:
+            d["else"] = self.else_
         return d
+
+
+class ElseifNode(IfNode):
+    node_type = "elseif"
 
 
 class NewMethod(MethodNode):
