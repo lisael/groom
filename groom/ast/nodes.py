@@ -242,3 +242,19 @@ class RepeatNode(Node, Annotated):
         )
         d["else"] = self.else_
         return d
+
+
+class ConsumeNode(Node):
+    node_type = "consume"
+
+    def __init__(self, capability, term, **kwargs):
+        self.capability = capability
+        self.term = term
+        super(ConsumeNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(ConsumeNode, self).as_dict(),
+            term=self.term,
+            capability=self.capability
+        )

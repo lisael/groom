@@ -141,6 +141,35 @@ def test_repeat_else():
     parse_code(data, expected, verbose=True, start='repeat')
 
 
+def test_consume():
+    data = """
+        consume stuff
+    """
+    expected = {
+        'node_type': 'consume',
+        'capability': None,
+        'term': 'stuff'
+    }
+    parse_code(data, expected, verbose=True, start='consume')
+
+
+def test_tupletype():
+    data = """
+        type Point is (I32, I32)
+    """
+    expected = {
+        'annotations': [],
+        'capability': None,
+        'docstring': None,
+        'id': 'Point',
+        'is': ([(('I32', [], None), None), (('I32', [], None), None)], None),
+        'members': [],
+        'node_type': 'type',
+        'type_params': []
+    }
+    parse_code(data, expected, verbose=True, start='class_def')
+
+
 def test_module_parsing():
     """
     Test as much syntax constructs a possible
@@ -164,7 +193,7 @@ class \packed, something\ iso Hip[Hop]
     new val create(env: Env): String iso^ ? if true =>
         true == true
         // if true then false end
-        42; 44
+        42 +? 2; 44
         return "stuff"
 
 class Simple
@@ -233,7 +262,7 @@ class MultipleParams[Pif, Paf]
                         'guard': [(('true', None), None)],
                         'body': [
                             (('true', [('==', 'true', False)]), None),
-                            (('42', None), None),
+                            (('42', [('+', '2', True)]), None),
                             (('44', None), None),
                             ('return', [(('"stuff"', None), None)])
                         ],

@@ -83,6 +83,7 @@ reserved = {
     '#share': "GENCAP",
     '#alias': "GENCAP",
     '#any': "GENCAP",
+    'consume': "CONSUME"
 }
 
 tokens = [

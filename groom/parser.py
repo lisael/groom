@@ -417,6 +417,8 @@ def p_term(p):
     term : pattern
          | if
          | while
+         | repeat
+         | consume
     """
     # TODO
     p[0] = p[1]
@@ -487,6 +489,13 @@ def p_else(p):
     else : ELSE annotatedrawseq
     """
     p[0] = p[1] if len(p) == 2 else p[2]
+
+
+def p_consume(p):
+    """
+    consume : CONSUME cap term
+    """
+    p[0] = ast.ConsumeNode(capability=p[2], term=p[3])
 
 
 def p_nextterm(p):
