@@ -30,6 +30,22 @@ class DocNode(Node):
                 )
 
 
+class ElseNode(Node):
+    def __init__(self, else_, **kwargs):
+        self.else_ = else_
+        super(ElseNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        d = dict(
+            super(ElseNode, self).as_dict(),
+        )
+        if isinstance(self.else_, Node):
+            d["else"] = self.else_.as_dict()
+        else:
+            d["else"] = self.else_
+        return d
+
+
 class ModuleNode(DocNode):
     node_type = "module"
 
@@ -177,81 +193,61 @@ class BeMethod(MethodNode):
     node_type = "new"
 
 
-class IfNode(Node, Annotated):
+class IfNode(ElseNode, Annotated):
     node_type = "if"
 
-    def __init__(self, assertion, members, else_, **kwargs):
+    def __init__(self, assertion, members, **kwargs):
         self.assertion = assertion
         self.members = members
-        self.else_ = else_
         super(IfNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
+        return dict(
             super(IfNode, self).as_dict(),
-            # members=[m.as_dict() for m in self.members],
             members=self.members,
             assertion=self.assertion
         )
-        if isinstance(self.else_, Node):
-            d["else"] = self.else_.as_dict()
-        else:
-            d["else"] = self.else_
-        return d
 
 
 class ElseifNode(IfNode):
     node_type = "elseif"
 
 
-class IfdefNode(Node, Annotated):
+class IfdefNode(ElseNode, Annotated):
     node_type = "ifdef"
 
-    def __init__(self, assertion, members, else_, **kwargs):
+    def __init__(self, assertion, members, **kwargs):
         self.assertion = assertion
         self.members = members
-        self.else_ = else_
         super(IfdefNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
+        return dict(
             super(IfdefNode, self).as_dict(),
-            # members=[m.as_dict() for m in self.members],
             members=self.members,
             assertion=self.assertion
         )
-        if isinstance(self.else_, Node):
-            d["else"] = self.else_.as_dict()
-        else:
-            d["else"] = self.else_
-        return d
 
 
 class ElseifdefNode(IfNode):
     node_type = "elseifdef"
 
 
-class IftypeNode(Node, Annotated):
+class IftypeNode(ElseNode, Annotated):
     node_type = "iftype"
 
-    def __init__(self, assertion, members, else_, **kwargs):
+    def __init__(self, assertion, members, **kwargs):
         self.assertion = assertion
         self.members = members
-        self.else_ = else_
         super(IftypeNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
+        return dict(
             super(IftypeNode, self).as_dict(),
             # members=[m.as_dict() for m in self.members],
             members=self.members,
             assertion=self.assertion.as_dict()
         )
-        if isinstance(self.else_, Node):
-            d["else"] = self.else_.as_dict()
-        else:
-            d["else"] = self.else_
-        return d
 
 
 class ElseifTypeNode(IftypeNode):
@@ -274,62 +270,68 @@ class TypeAssertionNode(Node):
         )
 
 
-class WhileNode(Node, Annotated):
-    node_type = "while"
+class MatchNode(ElseNode, Annotated):
+    node_type = "match"
 
-    def __init__(self, assertion, members, else_, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        self.else_ = else_
-        super(WhileNode, self).__init__(**kwargs)
+    def __init__(self, matchseq, cases, **kwargs):
+        self.matchseq = matchseq
+        self.cases = cases
+        super(MatchNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
-            super(WhileNode, self).as_dict(),
-            # members=[m.as_dict() for m in self.members],
+        return dict(
+            super(MatchNode, self).as_dict(),
             members=self.members,
             assertion=self.assertion
         )
-        d["else"] = self.else_
-        return d
 
 
-class RepeatNode(Node, Annotated):
-    node_type = "repeat"
+class WhileNode(ElseNode, Annotated):
+    node_type = "while"
 
-    def __init__(self, assertion, members, else_, **kwargs):
+    def __init__(self, assertion, members, **kwargs):
         self.assertion = assertion
         self.members = members
-        self.else_ = else_
+        super(WhileNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(WhileNode, self).as_dict(),
+            members=self.members,
+            assertion=self.assertion
+        )
+
+
+class RepeatNode(ElseNode, Annotated):
+    node_type = "repeat"
+
+    def __init__(self, assertion, members, **kwargs):
+        self.assertion = assertion
+        self.members = members
         super(RepeatNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
+        return dict(
             super(RepeatNode, self).as_dict(),
             members=self.members,
             assertion=self.assertion
         )
-        d["else"] = self.else_
-        return d
 
 
-class TryNode(Node, Annotated):
+class TryNode(ElseNode, Annotated):
     node_type = "try"
 
-    def __init__(self, members, else_, then, **kwargs):
+    def __init__(self, members, then, **kwargs):
         self.members = members
-        self.else_ = else_
         self.then = then
         super(TryNode, self).__init__(**kwargs)
 
     def as_dict(self):
-        d = dict(
+        return dict(
             super(TryNode, self).as_dict(),
             members=self.members,
             then=self.then
         )
-        d["else"] = self.else_
-        return d
 
 
 class RecoverNode(Node, Annotated):

@@ -417,6 +417,7 @@ def p_term(p):
     term : if
          | ifdef
          | iftype
+         | match
          | while
          | repeat
          | try
@@ -530,6 +531,38 @@ def p_elseiftype(p):
             members=p[5],
             else_=p[6]
     )
+
+
+def p_match(p):
+    """
+    match : MATCH annotation rawseq caseexpr_list else END
+    """
+    p[0] = ast.MatchNode(
+            annotation=p[2],
+            matchseq=p[3],
+            cases=p[4],
+            else_=p[5]
+    )
+
+
+def p_caseexpr_list(p):
+    """
+    caseexpr_list : caseexpr caseexpr_list
+                  | caseexpr
+                  |
+    """
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
+
+
+def p_caseexpr(p):
+    """
+    caseexpr : ID
+    """
 
 
 def p_while(p):
