@@ -13,6 +13,9 @@ def parse_code(data, expected, verbose=False, **parser_opts):
     assert(result == expected)
 
 
+VERBOSE = False
+
+
 def test_method():
     data = """
         new create(env: Env): String iso^ ? if true => "stuff"
@@ -44,7 +47,7 @@ def test_if():
         'members': [(('false', None), None)],
         'node_type': 'if'
     }
-    parse_code(data, expected, verbose=True, start='if')
+    parse_code(data, expected, verbose=VERBOSE, start='if')
 
 
 def test_if_else():
@@ -58,7 +61,7 @@ def test_if_else():
         'members': [(('false', None), None)],
         'node_type': 'if'
     }
-    parse_code(data, expected, verbose=True, start='if')
+    parse_code(data, expected, verbose=VERBOSE, start='if')
 
 
 def test_if_elseif():
@@ -82,7 +85,7 @@ def test_if_elseif():
         'members': [(('"bye"', None), None)],
         'node_type': 'if'
     }
-    parse_code(data, expected, verbose=True, start='if')
+    parse_code(data, expected, verbose=VERBOSE, start='if')
 
 
 def test_ifdef():
@@ -96,7 +99,7 @@ def test_ifdef():
         'members': [(('false', None), None)],
         'node_type': 'ifdef'
     }
-    parse_code(data, expected, verbose=True, start='ifdef')
+    parse_code(data, expected, verbose=VERBOSE, start='ifdef')
 
 
 def test_ifdef_elseifdef():
@@ -122,7 +125,7 @@ def test_ifdef_elseifdef():
         'members': [(('"lol"', None), None)],
         'node_type': 'ifdef'
     }
-    parse_code(data, expected, verbose=True, start='ifdef')
+    parse_code(data, expected, verbose=VERBOSE, start='ifdef')
 
 
 def test_while():
@@ -137,7 +140,7 @@ def test_while():
         'members': [(('stuff', None), None)],
         'node_type': 'while'
     }
-    parse_code(data, expected, verbose=True, start='while')
+    parse_code(data, expected, verbose=VERBOSE, start='while')
 
 
 def test_iftype():
@@ -159,7 +162,7 @@ def test_iftype():
         'members': [(('true', None), None)],
         'node_type': 'iftype'
     }
-    parse_code(data, expected, verbose=True, start='iftype')
+    parse_code(data, expected, verbose=VERBOSE, start='iftype')
 
 
 def test_iftype_elseiftype():
@@ -191,7 +194,7 @@ def test_iftype_elseiftype():
         'members': [(('true', None), None)],
         'node_type': 'iftype'
     }
-    parse_code(data, expected, verbose=True, start='iftype')
+    parse_code(data, expected, verbose=VERBOSE, start='iftype')
 
 
 def test_match():
@@ -221,7 +224,7 @@ def test_match():
         'matchseq': [(('stuf', None), None)],
         'node_type': 'match'
     }
-    parse_code(data, expected, verbose=True, start='match')
+    parse_code(data, expected, verbose=VERBOSE, start='match')
 
 
 def test_while_else():
@@ -235,7 +238,7 @@ def test_while_else():
         'members': [(('stuff', None), None)],
         'node_type': 'while'
     }
-    parse_code(data, expected, verbose=True, start='while')
+    parse_code(data, expected, verbose=VERBOSE, start='while')
 
 
 def test_repeat():
@@ -250,7 +253,7 @@ def test_repeat():
         'members': [(('stuff', None), None)],
         'node_type': 'repeat'
     }
-    parse_code(data, expected, verbose=True, start='repeat')
+    parse_code(data, expected, verbose=VERBOSE, start='repeat')
 
 
 def test_repeat_else():
@@ -264,7 +267,7 @@ def test_repeat_else():
         'members': [(('stuff', None), None)],
         'node_type': 'repeat'
     }
-    parse_code(data, expected, verbose=True, start='repeat')
+    parse_code(data, expected, verbose=VERBOSE, start='repeat')
 
 
 def test_idseq():
@@ -272,25 +275,25 @@ def test_idseq():
         a
     """
     expected = ['a']
-    parse_code(data, expected, verbose=True, start='idseq')
+    parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, b)
     """
     expected = ['a', 'b']
-    parse_code(data, expected, verbose=True, start='idseq')
+    parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, (b, c), d)
     """
     expected = ['a', ['b', 'c'], 'd']
-    parse_code(data, expected, verbose=True, start='idseq')
+    parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, ((b, c), d, (e, f)), g)
     """
     expected = ['a', [['b', 'c'], 'd', ['e', 'f']], 'g']
-    parse_code(data, expected, verbose=True, start='idseq')
+    parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
 
 def test_for():
@@ -309,8 +312,7 @@ def test_for():
         'node_type': 'for',
         'sequence': [(('pairs', None), None)]
     }
-    parse_code(data, expected, verbose=True, start='for')
-
+    parse_code(data, expected, verbose=VERBOSE, start='for')
 
 
 def test_try():
@@ -324,7 +326,7 @@ def test_try():
         'members': [(('1', [('+', '2', True)]), None)],
         'node_type': 'try'
     }
-    parse_code(data, expected, verbose=True, start='try')
+    parse_code(data, expected, verbose=VERBOSE, start='try')
 
 
 def test_try_else():
@@ -338,7 +340,7 @@ def test_try_else():
         'members': [(('1', [('+', '2', True)]), None)],
         'node_type': 'try'
     }
-    parse_code(data, expected, verbose=True, start='try')
+    parse_code(data, expected, verbose=VERBOSE, start='try')
 
 
 def test_try_then():
@@ -352,7 +354,7 @@ def test_try_then():
         'members': [(('1', [('+', '2', True)]), None)],
         'node_type': 'try'
     }
-    parse_code(data, expected, verbose=True, start='try')
+    parse_code(data, expected, verbose=VERBOSE, start='try')
 
 
 def test_try_then_else():
@@ -366,7 +368,7 @@ def test_try_then_else():
         'members': [(('1', [('+', '2', True)]), None)],
         'node_type': 'try'
     }
-    parse_code(data, expected, verbose=True, start='try')
+    parse_code(data, expected, verbose=VERBOSE, start='try')
 
 
 def test_recover():
@@ -379,7 +381,7 @@ def test_recover():
         'annotations': [],
         'members': [(('stuff', None), None)],
     }
-    parse_code(data, expected, verbose=True, start='recover')
+    parse_code(data, expected, verbose=VERBOSE, start='recover')
 
 
 def test_consume():
@@ -391,7 +393,7 @@ def test_consume():
         'capability': None,
         'term': 'stuff'
     }
-    parse_code(data, expected, verbose=True, start='consume')
+    parse_code(data, expected, verbose=VERBOSE, start='consume')
 
 
 def test_tupletype():
@@ -408,7 +410,7 @@ def test_tupletype():
         'node_type': 'type',
         'type_params': []
     }
-    parse_code(data, expected, verbose=True, start='class_def')
+    parse_code(data, expected, verbose=VERBOSE, start='class_def')
 
 
 def test_module_parsing():
@@ -594,7 +596,7 @@ def test_module_parsing_no_docstring_no_use():
         'node_type': 'module',
         'uses': []
     }
-    parse_code(data, expected, verbose=True)
+    parse_code(data, expected, verbose=VERBOSE)
 
 
 def test_module_only_docstring():
