@@ -487,8 +487,12 @@ def p_repeat(p):
 
 def p_recover(p):
     """
-    recover : RECOVER annotation cap
+    recover : RECOVER annotation cap rawseq END
     """
+    p[0] = ast.RecoverNode(
+            annotation=p[2],
+            capability=p[3],
+            members=p[4])
 
 def p_else(p):
     """

@@ -244,6 +244,22 @@ class RepeatNode(Node, Annotated):
         return d
 
 
+class RecoverNode(Node, Annotated):
+    node_type = "recover"
+
+    def __init__(self, capability, members, **kwargs):
+        self.capability = capability
+        self.members = members
+        super(RecoverNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(RecoverNode, self).as_dict(),
+            capability=self.capability,
+            members=self.members
+        )
+
+
 class ConsumeNode(Node):
     node_type = "consume"
 

@@ -141,6 +141,19 @@ def test_repeat_else():
     parse_code(data, expected, verbose=True, start='repeat')
 
 
+def test_recover():
+    data = """
+        recover iso stuff end
+    """
+    expected = {
+        'node_type': 'recover',
+        'capability': 'iso',
+        'annotations': [],
+        'members': [(('stuff', None), None)],
+    }
+    parse_code(data, expected, verbose=True, start='recover')
+
+
 def test_consume():
     data = """
         consume stuff
