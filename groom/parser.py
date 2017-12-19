@@ -415,6 +415,7 @@ def p_pattern(p):
 def p_term(p):
     """
     term : if
+         | ifdef
          | while
          | repeat
          | try
@@ -454,6 +455,38 @@ def p_elseif(p):
             assertion=p[2][1],
             members=p[4],
             else_=p[5])
+
+
+def p_ifdef(p):
+    """
+    ifdef : IFDEF annotation infix THEN rawseq ifdef_else END
+    """
+    p[0] = ast.IfdefNode(
+            annotation=p[2],
+            assertion=p[3],
+            members=p[5],
+            else_=p[6]
+    )
+
+
+def p_ifdef_else(p):
+    """
+    ifdef_else : else
+               | elseifdef
+    """
+    p[0] = p[1]
+
+
+def p_elseifdef(p):
+    """
+    elseifdef : ELSEIF annotation infix THEN rawseq ifdef_else
+    """
+    p[0] = ast.ElseifdefNode(
+            annotation=p[2],
+            assertion=p[3],
+            members=p[5],
+            else_=p[6]
+    )
 
 
 def p_while(p):

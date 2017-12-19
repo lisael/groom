@@ -83,6 +83,46 @@ def test_if_elseif():
     parse_code(data, expected, verbose=True, start='if')
 
 
+def test_ifdef():
+    data = """
+        ifdef os_haiku then false else "hello" end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': ('os_haiku', None),
+        'else': ([], [(('"hello"', None), None)]),
+        'members': [(('false', None), None)],
+        'node_type': 'ifdef'
+    }
+    parse_code(data, expected, verbose=True, start='ifdef')
+
+
+def test_ifdef_elseifdef():
+    data = """
+        ifdef os_haiku then
+            "lol"
+        elseif os_hurd then
+            "dont do drugs"
+        else
+            "dunno"
+        end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': ('os_haiku', None),
+        'else': {
+            'annotations': [],
+            'assertion': ('os_hurd', None),
+            'else': ([], [(('"dunno"', None), None)]),
+            'members': [(('"dont do drugs"', None), None)],
+            'node_type': 'elseifdef'
+        },
+        'members': [(('"lol"', None), None)],
+        'node_type': 'ifdef'
+    }
+    parse_code(data, expected, verbose=True, start='ifdef')
+
+
 def test_while():
     data = """
         while true do stuff end
