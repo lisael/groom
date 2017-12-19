@@ -616,6 +616,51 @@ def p_then(p):
     p[0] = p[2] if len(p) == 3 else None
 
 
+def p_for(p):
+    """
+    for : FOR annotation idseq IN rawseq DO rawseq else END
+    """
+    p[0] = ast.ForNode(
+            annotation=p[2],
+            ids=p[3],
+            sequence=p[5],
+            members=p[7],
+            else_=p[8]
+    )
+
+
+
+def _flatten_idseq(seq):
+    result = []
+    for item in seq:
+        if isinstance(item, list):
+            if len(item) > 1:
+                item = _flatten_idseq(item)
+                result.append(item)
+            else:
+                result.append(item[0])
+        else:
+            result.append(item)
+    return result
+
+
+def p_idseq(p):
+    """
+    idseq : ID
+          | LPAREN idseq_list ')'
+    """
+    idseq = [p[1]] if len(p) == 2 else p[2]
+    p[0] = _flatten_idseq(idseq)
+
+
+def p_idseq_list(p):
+    """
+    idseq_list : idseq
+               | idseq ',' idseq_list
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
 def p_else_then(p):
     """
     else_then : else then

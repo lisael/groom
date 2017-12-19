@@ -1,4 +1,5 @@
 from groom.ast.nodes import (
+        Node,
         DocNode,
         ModuleNode,
         UseNode,
@@ -25,4 +26,5 @@ from groom.ast.nodes import (
         ElseifTypeNode,
         MatchNode,
         CaseNode,
+        ForNode,
 )  # noqa

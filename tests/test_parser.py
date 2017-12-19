@@ -2,13 +2,15 @@ from pprint import pprint
 
 from groom.lexer import Lexer
 from groom.parser import Parser
+from groom import ast
 
 
 def parse_code(data, expected, verbose=False, **parser_opts):
     tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
+    result = tree.as_dict() if isinstance(tree, ast.Node) else tree
     if verbose:
-        pprint(tree.as_dict())
-    assert(tree.as_dict() == expected)
+        pprint(result)
+    assert(result == expected)
 
 
 def test_method():
@@ -263,6 +265,52 @@ def test_repeat_else():
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=True, start='repeat')
+
+
+def test_idseq():
+    data = """
+        a
+    """
+    expected = ['a']
+    parse_code(data, expected, verbose=True, start='idseq')
+
+    data = """
+        (a, b)
+    """
+    expected = ['a', 'b']
+    parse_code(data, expected, verbose=True, start='idseq')
+
+    data = """
+        (a, (b, c), d)
+    """
+    expected = ['a', ['b', 'c'], 'd']
+    parse_code(data, expected, verbose=True, start='idseq')
+
+    data = """
+        (a, ((b, c), d, (e, f)), g)
+    """
+    expected = ['a', [['b', 'c'], 'd', ['e', 'f']], 'g']
+    parse_code(data, expected, verbose=True, start='idseq')
+
+
+def test_for():
+    data = """
+        for (i, (n, _)) in pairs do
+            stuff
+        else
+            foo
+        end
+    """
+    expected = {
+        'annotations': [],
+        'else': ([], [(('foo', None), None)]),
+        'ids': ['i', ['n', '_']],
+        'members': [(('stuff', None), None)],
+        'node_type': 'for',
+        'sequence': [(('pairs', None), None)]
+    }
+    parse_code(data, expected, verbose=True, start='for')
+
 
 
 def test_try():

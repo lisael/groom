@@ -336,6 +336,24 @@ class RepeatNode(ElseNode, Annotated):
         )
 
 
+class ForNode(ElseNode, Annotated):
+    node_type = "for"
+
+    def __init__(self, ids, sequence, members, **kwargs):
+        self.ids = ids
+        self.sequence = sequence
+        self.members = members
+        super(ForNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(ForNode, self).as_dict(),
+            ids=self.ids,
+            sequence=self.sequence,
+            members=self.members
+        )
+
+
 class TryNode(ElseNode, Annotated):
     node_type = "try"
 
