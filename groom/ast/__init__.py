@@ -20,4 +20,7 @@ from groom.ast.nodes import (
         TryNode,
         IfdefNode,
         ElseifdefNode,
+        TypeAssertionNode,
+        IftypeNode,
+        ElseifTypeNode,
 )  # noqa

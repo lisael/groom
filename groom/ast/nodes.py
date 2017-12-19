@@ -231,6 +231,49 @@ class ElseifdefNode(IfNode):
     node_type = "elseifdef"
 
 
+class IftypeNode(Node, Annotated):
+    node_type = "iftype"
+
+    def __init__(self, assertion, members, else_, **kwargs):
+        self.assertion = assertion
+        self.members = members
+        self.else_ = else_
+        super(IftypeNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        d = dict(
+            super(IftypeNode, self).as_dict(),
+            # members=[m.as_dict() for m in self.members],
+            members=self.members,
+            assertion=self.assertion.as_dict()
+        )
+        if isinstance(self.else_, Node):
+            d["else"] = self.else_.as_dict()
+        else:
+            d["else"] = self.else_
+        return d
+
+
+class ElseifTypeNode(IftypeNode):
+    node_type = "elseiftype"
+
+
+class TypeAssertionNode(Node):
+    node_type = "type_assertion"
+
+    def __init__(self, child_type, parent_type, **kwargs):
+        self.child_type = child_type
+        self.parent_type = parent_type
+        super(TypeAssertionNode).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+                super(TypeAssertionNode, self).as_dict(),
+                child_type=self.child_type,
+                parent_type=self.parent_type,
+        )
+
+
 class WhileNode(Node, Annotated):
     node_type = "while"
 

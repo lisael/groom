@@ -138,6 +138,60 @@ def test_while():
     parse_code(data, expected, verbose=True, start='while')
 
 
+def test_iftype():
+    data = """
+        iftype A <: U128 then
+            true
+        else
+            false
+        end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': {
+            'child_type': (('A', [], None), None),
+            'node_type': 'type_assertion',
+            'parent_type': (('U128', [], None), None)
+        },
+        'else': ([], [(('false', None), None)]),
+        'members': [(('true', None), None)],
+        'node_type': 'iftype'
+    }
+    parse_code(data, expected, verbose=True, start='iftype')
+
+
+def test_iftype_elseiftype():
+    data = """
+        iftype A <: U128 then
+            true
+        elseif A <: U64 then
+            false
+        end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': {
+            'child_type': (('A', [], None), None),
+            'node_type': 'type_assertion',
+            'parent_type': (('U128', [], None), None)
+        },
+        'else': {
+            'annotations': [],
+            'assertion': {
+                'child_type': (('A', [], None), None),
+                'node_type': 'type_assertion',
+                'parent_type': (('U64', [], None), None)
+            },
+            'else': None,
+            'members': [(('false', None), None)],
+            'node_type': 'elseiftype'
+        },
+        'members': [(('true', None), None)],
+        'node_type': 'iftype'
+    }
+    parse_code(data, expected, verbose=True, start='iftype')
+
+
 def test_while_else():
     data = """
         while true do stuff else bar end

@@ -416,6 +416,7 @@ def p_term(p):
     """
     term : if
          | ifdef
+         | iftype
          | while
          | repeat
          | try
@@ -489,6 +490,48 @@ def p_elseifdef(p):
     )
 
 
+def p_type_assertion(p):
+    """
+    type_assertion : type IS_SUBTYPE type
+    """
+    p[0] = ast.TypeAssertionNode(
+                  child_type=p[1],
+                  parent_type=p[3]
+    )
+
+
+def p_iftype(p):
+    """
+    iftype : IFTYPE annotation type_assertion THEN rawseq iftype_else END
+    """
+    p[0] = ast.IftypeNode(
+            annotation=p[2],
+            assertion=p[3],
+            members=p[5],
+            else_=p[6]
+    )
+
+
+def p_iftype_else(p):
+    """
+    iftype_else : else
+                | elseiftype
+    """
+    p[0] = p[1]
+
+
+def p_elseiftype(p):
+    """
+    elseiftype : ELSEIF annotation type_assertion THEN rawseq iftype_else
+    """
+    p[0] = ast.ElseifTypeNode(
+            annotation=p[2],
+            assertion=p[3],
+            members=p[5],
+            else_=p[6]
+    )
+
+
 def p_while(p):
     """
     while : WHILE annotatedrawseq DO rawseq else END
@@ -509,6 +552,7 @@ def p_repeat(p):
             assertion=p[4][1],
             members=p[2],
             else_=p[5])
+
 
 def p_then(p):
     """

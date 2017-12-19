@@ -100,6 +100,7 @@ tokens = [
     "BACKSLASH",
     "PLUS",
     "MINUS",
+    "IS_SUBTYPE",
 ] + list(set(reserved.values()))
 
 literals = ":()[]{}=.!@|,;^?<>~*/%#&"
@@ -134,6 +135,7 @@ t_SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
 t_PLUS = r'\+'
 t_MINUS = r'-'
+t_IS_SUBTYPE='<:'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
