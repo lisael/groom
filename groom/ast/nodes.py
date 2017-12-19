@@ -281,9 +281,27 @@ class MatchNode(ElseNode, Annotated):
     def as_dict(self):
         return dict(
             super(MatchNode, self).as_dict(),
-            members=self.members,
-            assertion=self.assertion
+            matchseq=self.matchseq,
+            cases=[c.as_dict() for c in self.cases]
         )
+
+
+class CaseNode(Node, Annotated):
+    node_type = "case"
+
+    def __init__(self, pattern, guard, action, **kwargs):
+        self.pattern = pattern
+        self.guard = guard
+        self.action = action
+
+    def as_dict(self):
+        return dict(
+            super(CaseNode, self).as_dict(),
+            pattern=self.pattern,
+            action=self.action,
+            guard=self.guard
+        )
+
 
 
 class WhileNode(ElseNode, Annotated):

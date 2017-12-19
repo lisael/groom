@@ -559,10 +559,31 @@ def p_caseexpr_list(p):
         p[0] = []
 
 
+def p_maybe_pattern(p):
+    """
+    maybe_pattern : pattern
+                  |
+    """
+    p[0] = p[1] if len(p) == 2 else None
+
+
+def p_match_action(p):
+    """
+    match_action : BIG_ARROW rawseq
+    """
+    p[0] = p[2]
+
+
 def p_caseexpr(p):
     """
-    caseexpr : ID
+    caseexpr : '|' annotation maybe_pattern guard match_action
     """
+    p[0] = ast.CaseNode(
+            annotation=p[2],
+            pattern=p[3],
+            guard=p[4],
+            action=p[5]
+    )
 
 
 def p_while(p):

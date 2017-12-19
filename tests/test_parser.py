@@ -192,6 +192,36 @@ def test_iftype_elseiftype():
     parse_code(data, expected, verbose=True, start='iftype')
 
 
+def test_match():
+    data = """
+        match stuf
+        | foo => do_foo
+        | bar => do_bar
+        end
+    """
+    expected = {
+        'annotations': [],
+        'cases': [
+            {
+                'action': [(('do_foo', None), None)],
+                'guard': None,
+                'node_type': 'case',
+                'pattern': 'foo'
+            },
+            {
+                'action': [(('do_bar', None), None)],
+                'guard': None,
+                'node_type': 'case',
+                'pattern': 'bar'
+            }
+        ],
+        'else': None,
+        'matchseq': [(('stuf', None), None)],
+        'node_type': 'match'
+    }
+    parse_code(data, expected, verbose=True, start='match')
+
+
 def test_while_else():
     data = """
         while true do stuff else bar end

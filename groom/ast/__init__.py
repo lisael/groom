@@ -24,4 +24,5 @@ from groom.ast.nodes import (
         IftypeNode,
         ElseifTypeNode,
         MatchNode,
+        CaseNode,
 )  # noqa
