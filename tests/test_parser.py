@@ -83,6 +83,35 @@ def test_if_elseif():
     parse_code(data, expected, verbose=True, start='if')
 
 
+def test_while():
+    data = """
+        while true do stuff end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        # 'else': (None, [(('"hello"', None), None)]),
+        'else': None,
+        'members': [(('stuff', None), None)],
+        'node_type': 'while'
+    }
+    parse_code(data, expected, verbose=True, start='while')
+
+
+def test_while_else():
+    data = """
+        while true do stuff else bar end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        'else': (None, [(('bar', None), None)]),
+        'members': [(('stuff', None), None)],
+        'node_type': 'while'
+    }
+    parse_code(data, expected, verbose=True, start='while')
+
+
 def test_module_parsing():
     """
     Test as much syntax constructs a possible
@@ -165,8 +194,8 @@ class MultipleParams[Pif, Paf]
                         'is_partial': True,
                         'method_parameters': [],
                         'node_type': 'new',
-                        # parameters and return_type are messy at the momment. they
-                        # need their own nodes...
+                        # parameters and return_type are messy at the momment.
+                        # they need their own nodes...
                         'parameters': [('env',
                                        (('Env', [], None), None),
                                        None)],
@@ -219,8 +248,8 @@ class MultipleParams[Pif, Paf]
                         'is_partial': True,
                         'method_parameters': [],
                         'node_type': 'new',
-                        # parameters and return_type are messy at the momment. they
-                        # need their own nodes...
+                        # parameters and return_type are messy at the momment.
+                        # they need their own nodes...
                         'parameters': [
                             ('env', (('Env', [], None), None), None),
                             ('stuff', (('String', [], None), None), None)

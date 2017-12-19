@@ -165,6 +165,18 @@ class MethodNode(DocNode, Annotated):
                 )
 
 
+class NewMethod(MethodNode):
+    node_type = "new"
+
+
+class FunMethod(MethodNode):
+    node_type = "new"
+
+
+class BeMethod(MethodNode):
+    node_type = "new"
+
+
 class IfNode(Node, Annotated):
     node_type = "if"
 
@@ -192,13 +204,21 @@ class ElseifNode(IfNode):
     node_type = "elseif"
 
 
-class NewMethod(MethodNode):
-    node_type = "new"
+class WhileNode(Node, Annotated):
+    node_type = "while"
 
+    def __init__(self, assertion, members, else_, **kwargs):
+        self.assertion = assertion
+        self.members = members
+        self.else_ = else_
+        super(WhileNode, self).__init__(**kwargs)
 
-class FunMethod(MethodNode):
-    node_type = "new"
-
-
-class BeMethod(MethodNode):
-    node_type = "new"
+    def as_dict(self):
+        d = dict(
+            super(WhileNode, self).as_dict(),
+            # members=[m.as_dict() for m in self.members],
+            members=self.members,
+            assertion=self.assertion
+        )
+        d["else"] = self.else_
+        return d

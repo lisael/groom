@@ -416,7 +416,7 @@ def p_term(p):
 def p_if(p):
     """
     if : IF annotatedrawseq THEN rawseq END
-       | IF annotatedrawseq THEN rawseq else END
+       | IF annotatedrawseq THEN rawseq if_else END
     """
     else_ = p[5] if len(p) == 7 else None
     p[0] = ast.IfNode(
@@ -426,10 +426,10 @@ def p_if(p):
             else_=else_)
 
 
-def p_else(p):
+def p_if_else(p):
     """
-    else : elseif
-         | ELSE annotatedrawseq
+    if_else : elseif
+            | ELSE annotatedrawseq
     """
     p[0] = p[1] if len(p) == 2 else p[2]
 
@@ -437,7 +437,7 @@ def p_else(p):
 def p_elseif(p):
     """
     elseif : ELSEIF annotatedrawseq THEN rawseq
-           | ELSEIF annotatedrawseq THEN rawseq else
+           | ELSEIF annotatedrawseq THEN rawseq if_else
     """
     else_ = p[5] if len(p) == 7 else None
     p[0] = ast.ElseifNode(
@@ -445,6 +445,26 @@ def p_elseif(p):
             assertion=p[2][1],
             members=p[4],
             else_=else_)
+
+
+def p_while(p):
+    """
+    while : WHILE annotatedrawseq DO rawseq END
+          | WHILE annotatedrawseq DO rawseq else END
+    """
+    else_ = p[5] if len(p) == 7 else None
+    p[0] = ast.WhileNode(
+            annotation=p[2][0],
+            assertion=p[2][1],
+            members=p[4],
+            else_=else_)
+
+
+def p_else(p):
+    """
+    else : ELSE annotatedrawseq
+    """
+    p[0] = p[1] if len(p) == 2 else p[2]
 
 
 def p_nextterm(p):
