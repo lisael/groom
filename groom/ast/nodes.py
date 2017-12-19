@@ -222,3 +222,23 @@ class WhileNode(Node, Annotated):
         )
         d["else"] = self.else_
         return d
+
+
+class RepeatNode(Node, Annotated):
+    node_type = "repeat"
+
+    def __init__(self, assertion, members, else_, **kwargs):
+        self.assertion = assertion
+        self.members = members
+        self.else_ = else_
+        super(RepeatNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        d = dict(
+            super(RepeatNode, self).as_dict(),
+            # members=[m.as_dict() for m in self.members],
+            members=self.members,
+            assertion=self.assertion
+        )
+        d["else"] = self.else_
+        return d

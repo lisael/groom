@@ -403,11 +403,20 @@ def p_op(p):
         p[0] = p[1]
 
 
+def p_pattern(p):
+    """
+    pattern : ID
+            | literal
+    """
+    # TODO
+    p[0] = p[1]
+
+
 def p_term(p):
     """
-    term : ID
-         | literal
+    term : pattern
          | if
+         | while
     """
     # TODO
     p[0] = p[1]
@@ -457,6 +466,19 @@ def p_while(p):
             annotation=p[2][0],
             assertion=p[2][1],
             members=p[4],
+            else_=else_)
+
+
+def p_repeat(p):
+    """
+    repeat : REPEAT rawseq UNTIL annotatedrawseq END
+           | REPEAT rawseq UNTIL annotatedrawseq else END
+    """
+    else_ = p[5] if len(p) == 7 else None
+    p[0] = ast.RepeatNode(
+            annotation=p[4][0],
+            assertion=p[4][1],
+            members=p[2],
             else_=else_)
 
 

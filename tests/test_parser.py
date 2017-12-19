@@ -112,6 +112,35 @@ def test_while_else():
     parse_code(data, expected, verbose=True, start='while')
 
 
+def test_repeat():
+    data = """
+        repeat stuff until true end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        # 'else': (None, [(('"hello"', None), None)]),
+        'else': None,
+        'members': [(('stuff', None), None)],
+        'node_type': 'repeat'
+    }
+    parse_code(data, expected, verbose=True, start='repeat')
+
+
+def test_repeat_else():
+    data = """
+        repeat stuff until true else "hello" end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': [(('true', None), None)],
+        'else': (None, [(('"hello"', None), None)]),
+        'members': [(('stuff', None), None)],
+        'node_type': 'repeat'
+    }
+    parse_code(data, expected, verbose=True, start='repeat')
+
+
 def test_module_parsing():
     """
     Test as much syntax constructs a possible
