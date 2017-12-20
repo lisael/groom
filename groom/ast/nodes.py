@@ -67,16 +67,16 @@ class ModuleNode(DocNode):
 class UseNode(Node):
     node_type = "use"
 
-    def __init__(self, name, pkg):
-        self.name = name
-        self.package = pkg
-        super(UseNode, self).__init__()
+    def __init__(self, alias, package, **kwargs):
+        self.alias = alias
+        self.package = package
+        super(UseNode, self).__init__(**kwargs)
 
     def as_dict(self):
         return dict(
                 super(UseNode, self).as_dict(),
-                name=self.name,
-                packages=self.package
+                alias=self.alias,
+                package=self.package,
                 )
 
 

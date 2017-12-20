@@ -3,6 +3,13 @@ from groom.lexer import tokens  # noqa needed by yacc.yacc
 from groom import ast
 
 
+def p_empty(p):
+    """
+    empty :
+    """
+    p[0] = None
+
+
 def p_module(p):
     """
     module : STRING uses class_defs
@@ -30,10 +37,69 @@ def p_uses(p):
 
 def p_use(p):
     """
-    use : USE STRING
-    use : ID '=' STRING
+    use : USE used useif
     """
-    p[0] = ast.UseNode(p[2], p[2])
+    if isinstance(p[2][1], list):
+        package = None
+    else:
+        package = p[2][1]
+    p[0] = ast.UseNode(
+            alias=p[2][0],
+            package=package
+            )
+
+def p_useif(p):
+    """
+    useif : IF infix
+          | empty
+    """
+    p[0] = p[2] if len(p) == 3 else None
+
+
+def p_used(p):
+    """
+    used : used_id STRING
+         | used_id use_ffi
+    """
+    p[0] = (p[1], p[2])
+
+
+def p_used_id(p):
+    """
+    used_id : ID '='
+            | empty
+    """
+    p[0] = p[1]
+
+
+def p_use_ffi(p):
+    """
+    use_ffi : '@' id_or_string typeargs LPAREN params ')' maybe_partial
+    """
+    p[0] = (p[2], p[3], p[5], p[7])
+
+
+def p_typeargs(p):
+    """
+    typeargs : '[' typearglist ']'
+    """
+    p[0] = p[2]
+
+
+def p_typearglist(p):
+    """
+    typearglist : typearg
+                | typearg ',' typearglist
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
+def p_id_or_string(p):
+    """
+    id_or_string : ID
+                 | STRING
+    """
+    p[0] = p[1]
 
 
 def p_class_defs(p):

@@ -16,6 +16,14 @@ def parse_code(data, expected, verbose=False, **parser_opts):
 VERBOSE = False
 
 
+def test_use():
+    data = """
+        use "foo"
+    """
+    expected = {}
+    parse_code(data, expected, start='use')
+
+
 def test_method():
     data = """
         new create(env: Env): String iso^ ? if true => "stuff"
