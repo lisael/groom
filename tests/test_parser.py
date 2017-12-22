@@ -13,15 +13,21 @@ def parse_code(data, expected, verbose=False, **parser_opts):
     assert(result == expected)
 
 
-VERBOSE = False
+VERBOSE = True
 
 
 def test_use():
+    # these boots are made for walking.
     data = """
-        use "foo"
+        use myboots = "boots" if windows
     """
-    expected = {}
-    parse_code(data, expected, start='use')
+    expected = {
+        'alias': 'myboots',
+        'condition': ('windows', None),
+        'node_type': 'use',
+        'package': '"boots"'
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='use')
 
 
 def test_method():
@@ -41,7 +47,7 @@ def test_method():
             'parameters': [('env', (('Env', [], None), None), None)],
             'return_type': (('String', [], ('iso', '^')), None)
     }
-    parse_code(data, expected, start='method')
+    parse_code(data, expected, verbose=VERBOSE, start='method')
 
 
 def test_if():
@@ -439,7 +445,7 @@ def test_tupletype():
     parse_code(data, expected, verbose=VERBOSE, start='class_def')
 
 
-def test_module_parsing():
+def test_full_module():
     """
     Test as much syntax constructs a possible
 
@@ -525,8 +531,8 @@ class MultipleParams[Pif, Paf]
                         # parameters and return_type are messy at the momment.
                         # they need their own nodes...
                         'parameters': [('env',
-                                       (('Env', [], None), None),
-                                       None)],
+                                        (('Env', [], None), None),
+                                        None)],
                         'return_type': (('String', [], ('iso', '^')), None),
                         'guard': [(('true', None), None)],
                         'body': [
@@ -593,11 +599,21 @@ class MultipleParams[Pif, Paf]
         'name': None,
         'node_type': 'module',
         'uses': [
-            {'name': '"plop"', 'node_type': 'use', 'packages': '"plop"'},
-            {'name': '"plip"', 'node_type': 'use', 'packages': '"plip"'}
+            {
+                'alias': None,
+                'condition': None,
+                'node_type': 'use',
+                'package': '"plop"'
+            },
+            {
+                'alias': None,
+                'condition': None,
+                'node_type': 'use',
+                'package': '"plip"'
+            }
         ]
     }
-    parse_code(data, expected, verbose=False)
+    parse_code(data, expected, verbose=VERBOSE)
 
 
 def test_module_parsing_no_docstring_no_use():

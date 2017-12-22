@@ -67,9 +67,10 @@ class ModuleNode(DocNode):
 class UseNode(Node):
     node_type = "use"
 
-    def __init__(self, alias, package, **kwargs):
+    def __init__(self, alias, package, condition, **kwargs):
         self.alias = alias
         self.package = package
+        self.condition = condition
         super(UseNode, self).__init__(**kwargs)
 
     def as_dict(self):
@@ -77,6 +78,7 @@ class UseNode(Node):
                 super(UseNode, self).as_dict(),
                 alias=self.alias,
                 package=self.package,
+                condition=self.condition,
                 )
 
 
