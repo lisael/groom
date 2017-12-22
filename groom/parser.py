@@ -76,9 +76,9 @@ def p_used_id(p):
 
 def p_use_ffi(p):
     """
-    use_ffi : '@' id_or_string typeargs LPAREN params ')' maybe_partial
+    use_ffi : '@' id_or_string typeargs params maybe_partial
     """
-    p[0] = (p[2], p[3], p[5], p[7])
+    p[0] = (p[2], p[3], p[4], p[5])
 
 
 def p_typeargs(p):

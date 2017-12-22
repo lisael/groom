@@ -30,6 +30,21 @@ def test_use():
     parse_code(data, expected, verbose=VERBOSE, start='use')
 
 
+def test_use_ffi():
+    data = """
+        use mypkg = @ffipkg[I32](fd: I32) if windows
+    """
+    expected = {
+        'alias': 'mypkg',
+        'condition': ('windows', None),
+        'node_type': 'use',
+        'package': ('ffipkg',
+                    [(('I32', [], None), None)],
+                    [('fd', (('I32', [], None), None), None)],
+                    False)
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='use')
+
 def test_method():
     data = """
         new create(env: Env): String iso^ ? if true => "stuff"
