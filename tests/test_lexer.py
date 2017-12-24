@@ -53,6 +53,24 @@ def test_lparen_new():
     (""", 'LPAREN_NEW')
 
 
+def test_minus():
+    check_token("-", "MINUS")
+
+
+def test_minus_new():
+    check_token("""
+    -""", 'MINUS_NEW')
+
+
+def test_minus_tilde():
+    check_token("-~", "MINUS_TILDE")
+
+
+def test_minus_tilde_new():
+    check_token("""
+    -~""", 'MINUS_TILDE_NEW')
+
+
 pony_module = r'''
 """module docstring..."""
 use "my_pkg"

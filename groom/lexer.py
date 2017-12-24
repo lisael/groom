@@ -91,16 +91,17 @@ tokens = [
     "ID",
     "LINECOMMENT",
     "NESTEDCOMMENT",
-    "LPAREN",
-    "LPAREN_NEW",
     "BIG_ARROW",
     "SMALL_ARROW",
     "INT",
     "FLOAT",
     "BACKSLASH",
     "PLUS",
-    "MINUS",
     "IS_SUBTYPE",
+    "MINUS",
+    "MINUS_NEW",
+    "LPAREN",
+    "LPAREN_NEW",
     "MINUS_TILDE",
     "MINUS_TILDE_NEW",
 ] + list(set(reserved.values()))
@@ -133,14 +134,16 @@ t_LINECOMMENT = r'//[^\n]+'
 
 LPAREN_NEW = f'( {NEWLINE} \\( )'
 LPAREN = r'\('
+MINUS_NEW = f' {NEWLINE} -'
+MINUS = '-'
+MINUS_TILDE = '-~'
+MINUS_TILDE_NEW = f' {NEWLINE} -~'
+
 t_BIG_ARROW = r'=>'
 t_SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
 t_PLUS = r'\+'
-t_MINUS = r'-'
 t_IS_SUBTYPE = '<:'
-t_MINUS_TILDE = '-~'
-t_MINUS_TILDE_NEW = f' {NEWLINE} -~'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
@@ -184,6 +187,28 @@ def t_LPAREN_NEW(t):
 
 @TOKEN(LPAREN)
 def t_LPAREN(t):
+    return t
+
+
+@TOKEN(MINUS_TILDE_NEW)
+def t_MINUS_TILDE_NEW(t):
+    t.lexer.lineno += t.value.count("\n")
+    return t
+
+
+@TOKEN(MINUS_TILDE)
+def t_MINUS_TILDE(t):
+    return t
+
+
+@TOKEN(MINUS_NEW)
+def t_MINUS_NEW(t):
+    t.lexer.lineno += t.value.count("\n")
+    return t
+
+
+@TOKEN(MINUS)
+def t_MINUS(t):
     return t
 
 
