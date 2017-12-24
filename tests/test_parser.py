@@ -371,7 +371,7 @@ def test_try():
         'annotations': [],
         'else': None,
         'then': None,
-        'members': [(('1', [('+', '2', True)]), None)],
+        'members': [(('1', [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -383,9 +383,9 @@ def test_try_else():
     """
     expected = {
         'annotations': [],
-        'else':  ([], [(('hop', None), None)]),
+        'else':  ([], [((('hop', []), None), None)]),
         'then': None,
-        'members': [(('1', [('+', '2', True)]), None)],
+        'members': [(('1', [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -398,8 +398,8 @@ def test_try_then():
     expected = {
         'annotations': [],
         'else': None,
-        'then': ([], [(('42', None), None)]),
-        'members': [(('1', [('+', '2', True)]), None)],
+        'then': ([], [((('42', []), None), None)]),
+        'members': [(('1', [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -411,9 +411,9 @@ def test_try_then_else():
     """
     expected = {
         'annotations': [],
-        'else':  ([], [(('hop', None), None)]),
-        'then': ([], [(('42', None), None)]),
-        'members': [(('1', [('+', '2', True)]), None)],
+        'else':  ([], [((('hop', []), None), None)]),
+        'then': ([], [((('42', []), None), None)]),
+        'members': [(('1', [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -524,7 +524,7 @@ class MultipleParams[Pif, Paf]
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
                 'is': None,
-                'type_params': [('Hop', None, None)],
+                'type_params': [(('hop', []), None, None)],
                 "members": [
                     {
                         'node_type': 'flet',
@@ -542,8 +542,8 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'flet',
                         'id': 'cc',
                         'type': (('I32', [], None), None),
-                        'default': ('40', [
-                            ('+', '2', False),
+                        'default': (('40', []), [
+                            ('+', ('2', []), False),
                             (('I32', [], None), None)
                         ]),
                     },
@@ -564,7 +564,7 @@ class MultipleParams[Pif, Paf]
                         'guard': [(('true', None), None)],
                         'body': [
                             (('true', [('==', 'true', False)]), None),
-                            (('42', [('+', '2', True)]), None),
+                            ((('42', []), [('+', ('2', []), True)]), None),
                             (('44', None), None),
                             ('return', [(('"stuff"', None), None)])
                         ],
