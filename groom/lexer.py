@@ -125,13 +125,13 @@ DIGIT = r'[0-9]'
 
 ID = f"({LETTER}|_) ({LETTER}|{DIGIT}|_|')*"
 
-NEWLINE = r'(\n(\r|\s)*)+'
+NEWLINE = r'(\n(\r|\s)*)'
 WS = f"({ NEWLINE }) | \\s+"
 
 NESTEDCOMMENT = r'/\* ( [^*] | \*(?!/) )* \*/'
 t_LINECOMMENT = r'//[^\n]+'
 
-LPAREN_NEW = r'( {NEWLINE} \( )'
+LPAREN_NEW = f'( {NEWLINE} \\( )'
 LPAREN = r'\('
 t_BIG_ARROW = r'=>'
 t_SMALL_ARROW = r'->'
@@ -140,7 +140,7 @@ t_PLUS = r'\+'
 t_MINUS = r'-'
 t_IS_SUBTYPE = '<:'
 t_MINUS_TILDE = '-~'
-t_MINUS_TILDE_NEW = r' {NEWLINE} -~'
+t_MINUS_TILDE_NEW = f' {NEWLINE} -~'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'

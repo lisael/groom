@@ -1,4 +1,5 @@
 import os
+from unittest import skipIf
 
 from groom.lexer import lex_raw
 from groom.utils import find_pony_stdlib_path
@@ -43,6 +44,15 @@ def test_int():
     check_token("2", "INT")
 
 
+def test_lparen():
+    check_token("(", "LPAREN")
+
+
+def test_lparen_new():
+    check_token("""
+    (""", 'LPAREN_NEW')
+
+
 pony_module = r'''
 """module docstring..."""
 use "my_pkg"
@@ -68,7 +78,8 @@ actor Main
   let my_float': F64 = 3e12
   let my_float'': F64 = -5.4E-9
 
-  new create(env: Env) =>
+  new create
+    (env: Env) =>
     env.out.print("Hello, world! \xab \UABCDE0")
 '''
 
@@ -78,6 +89,7 @@ def test_module():
     [t for t in lexer]
 
 
+@skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_lex_stdlib():
     path = find_pony_stdlib_path()
     for root, dirs, files in os.walk(path):
