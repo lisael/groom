@@ -23,7 +23,7 @@ def test_use():
     """
     expected = {
         'alias': 'myboots',
-        'condition': ('windows', None),
+        'condition': (('windows', []), None),
         'node_type': 'use',
         'package': '"boots"'
     }
@@ -36,11 +36,11 @@ def test_use_ffi():
     """
     expected = {
         'alias': 'mypkg',
-        'condition': ('windows', None),
+        'condition': (('windows', []), None),
         'node_type': 'use',
         'package': ('ffipkg',
                     [(('I32', [], None), None)],
-                    [('fd', (('I32', [], None), None), None)],
+                    [(('fd', []), (('I32', [], None), None), None)],
                     False)
     }
     parse_code(data, expected, verbose=VERBOSE, start='use')
@@ -52,15 +52,15 @@ def test_method():
     """
     expected = {
             'annotations': [],
-            'body': [(('"stuff"', None), None)],
+            'body': [((('"stuff"', []), None), None)],
             'capability': None,
             'docstring': None,
-            'guard': [(('true', None), None)],
+            'guard': [((('true', []), None), None)],
             'id': 'create',
             'is_partial': True,
             'typeparams': [],
             'node_type': 'new',
-            'params': [('env', (('Env', [], None), None), None)],
+            'params': [(('env', []), (('Env', [], None), None), None)],
             'return_type': (('String', [], ('iso', '^')), None)
     }
     parse_code(data, expected, verbose=VERBOSE, start='method')
@@ -72,9 +72,9 @@ def test_if():
     """
     expected = {
         'annotations': ['likely'],
-        'assertion': [(('true', None), None)],
+        'assertion': [((('true', []), None), None)],
         'else': None,
-        'members': [(('false', None), None)],
+        'members': [((('false', []), None), None)],
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -86,9 +86,9 @@ def test_if_else():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
-        'else': ([], [(('"hello"', None), None)]),
-        'members': [(('false', None), None)],
+        'assertion': [((('true', []), None), None)],
+        'else': ([], [((('"hello"', []), None), None)]),
+        'members': [((('false', []), None), None)],
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -104,15 +104,15 @@ def test_if_elseif():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
+        'assertion': [((('true', []), None), None)],
         'else': {
             'annotations': [],
-            'assertion': [(('false', None), None)],
+            'assertion': [((('false', []), None), None)],
             'else': None,
-            'members': [(('"hello"', None), None)],
+            'members': [((('"hello"', []), None), None)],
             'node_type': 'elseif'
         },
-        'members': [(('"bye"', None), None)],
+        'members': [((('"bye"', []), None), None)],
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -124,9 +124,9 @@ def test_ifdef():
     """
     expected = {
         'annotations': [],
-        'assertion': ('os_haiku', None),
-        'else': ([], [(('"hello"', None), None)]),
-        'members': [(('false', None), None)],
+        'assertion': (('os_haiku', []), None),
+        'else': ([], [((('"hello"', []), None), None)]),
+        'members': [((('false', []), None), None)],
         'node_type': 'ifdef'
     }
     parse_code(data, expected, verbose=VERBOSE, start='ifdef')
@@ -144,15 +144,15 @@ def test_ifdef_elseifdef():
     """
     expected = {
         'annotations': [],
-        'assertion': ('os_haiku', None),
+        'assertion': (('os_haiku', []), None),
         'else': {
             'annotations': [],
-            'assertion': ('os_hurd', None),
-            'else': ([], [(('"dunno"', None), None)]),
-            'members': [(('"dont do drugs"', None), None)],
+            'assertion': (('os_hurd', []), None),
+            'else': ([], [((('"dunno"', []), None), None)]),
+            'members': [((('"dont do drugs"', []), None), None)],
             'node_type': 'elseifdef'
         },
-        'members': [(('"lol"', None), None)],
+        'members': [((('"lol"', []), None), None)],
         'node_type': 'ifdef'
     }
     parse_code(data, expected, verbose=VERBOSE, start='ifdef')
@@ -164,10 +164,10 @@ def test_while():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
-        # 'else': (None, [(('"hello"', None), None)]),
+        'assertion': [((('true', []), None), None)],
+        # 'else': (None, [((('"hello"', []), None), None)]),
         'else': None,
-        'members': [(('stuff', None), None)],
+        'members': [((('stuff', []), None), None)],
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -188,8 +188,8 @@ def test_iftype():
             'node_type': 'type_assertion',
             'parent_type': (('U128', [], None), None)
         },
-        'else': ([], [(('false', None), None)]),
-        'members': [(('true', None), None)],
+        'else': ([], [((('false', []), None), None)]),
+        'members': [((('true', []), None), None)],
         'node_type': 'iftype'
     }
     parse_code(data, expected, verbose=VERBOSE, start='iftype')
@@ -218,10 +218,10 @@ def test_iftype_elseiftype():
                 'parent_type': (('U64', [], None), None)
             },
             'else': None,
-            'members': [(('false', None), None)],
+            'members': [((('false', []), None), None)],
             'node_type': 'elseiftype'
         },
-        'members': [(('true', None), None)],
+        'members': [((('true', []), None), None)],
         'node_type': 'iftype'
     }
     parse_code(data, expected, verbose=VERBOSE, start='iftype')
@@ -238,20 +238,20 @@ def test_match():
         'annotations': [],
         'cases': [
             {
-                'action': [(('do_foo', None), None)],
+                'action': [((('do_foo', []), None), None)],
                 'guard': None,
                 'node_type': 'case',
-                'pattern': 'foo'
+                'pattern': ('foo', [])
             },
             {
-                'action': [(('do_bar', None), None)],
+                'action': [((('do_bar', []), None), None)],
                 'guard': None,
                 'node_type': 'case',
-                'pattern': 'bar'
+                'pattern': ('bar', [])
             }
         ],
         'else': None,
-        'matchseq': [(('stuf', None), None)],
+        'matchseq': [((('stuf', []), None), None)],
         'node_type': 'match'
     }
     parse_code(data, expected, verbose=VERBOSE, start='match')
@@ -263,9 +263,9 @@ def test_while_else():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
-        'else': ([], [(('bar', None), None)]),
-        'members': [(('stuff', None), None)],
+        'assertion': [((('true', []), None), None)],
+        'else': ([], [((('bar', []), None), None)]),
+        'members': [((('stuff', []), None), None)],
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -277,10 +277,10 @@ def test_repeat():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
-        # 'else': (None, [(('"hello"', None), None)]),
+        'assertion': [((('true', []), None), None)],
+        # 'else': (None, [((('"hello"', []), None), None)]),
         'else': None,
-        'members': [(('stuff', None), None)],
+        'members': [((('stuff', []), None), None)],
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -292,9 +292,9 @@ def test_repeat_else():
     """
     expected = {
         'annotations': [],
-        'assertion': [(('true', None), None)],
-        'else': ([], [(('"hello"', None), None)]),
-        'members': [(('stuff', None), None)],
+        'assertion': [((('true', []), None), None)],
+        'else': ([], [((('"hello"', []), None), None)]),
+        'members': [((('stuff', []), None), None)],
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -336,11 +336,11 @@ def test_for():
     """
     expected = {
         'annotations': [],
-        'else': ([], [(('foo', None), None)]),
+        'else': ([], [((('foo', []), None), None)]),
         'ids': ['i', ['n', '_']],
-        'members': [(('stuff', None), None)],
+        'members': [((('stuff', []), None), None)],
         'node_type': 'for',
-        'sequence': [(('pairs', None), None)]
+        'sequence': [((('pairs', []), None), None)]
     }
     parse_code(data, expected, verbose=VERBOSE, start='for')
 
@@ -355,9 +355,9 @@ def test_with():
     """
     expected = {
         'annotations': [],
-        'elems': [(['file'], [(('myfile', None), None)])],
-        'else': ([], [(('other', None), None)]),
-        'members': [(('stuff', None), None)],
+        'elems': [(['file'], [((('myfile', []), None), None)])],
+        'else': ([], [((('other', []), None), None)]),
+        'members': [((('stuff', []), None), None)],
         'node_type': 'with'
     }
     parse_code(data, expected, verbose=VERBOSE, start='with')
@@ -371,7 +371,7 @@ def test_try():
         'annotations': [],
         'else': None,
         'then': None,
-        'members': [(('1', [('+', ('2', []), True)]), None)],
+        'members': [((('1', []), [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -385,7 +385,7 @@ def test_try_else():
         'annotations': [],
         'else':  ([], [((('hop', []), None), None)]),
         'then': None,
-        'members': [(('1', [('+', ('2', []), True)]), None)],
+        'members': [((('1', []), [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -399,7 +399,7 @@ def test_try_then():
         'annotations': [],
         'else': None,
         'then': ([], [((('42', []), None), None)]),
-        'members': [(('1', [('+', ('2', []), True)]), None)],
+        'members': [((('1', []), [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -413,7 +413,7 @@ def test_try_then_else():
         'annotations': [],
         'else':  ([], [((('hop', []), None), None)]),
         'then': ([], [((('42', []), None), None)]),
-        'members': [(('1', [('+', ('2', []), True)]), None)],
+        'members': [((('1', []), [('+', ('2', []), True)]), None)],
         'node_type': 'try'
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
@@ -427,7 +427,7 @@ def test_recover():
         'node_type': 'recover',
         'capability': 'iso',
         'annotations': [],
-        'members': [(('stuff', None), None)],
+        'members': [((('stuff', []), None), None)],
     }
     parse_code(data, expected, verbose=VERBOSE, start='recover')
 
@@ -439,7 +439,7 @@ def test_consume():
     expected = {
         'node_type': 'consume',
         'capability': None,
-        'term': 'stuff'
+        'term': ('stuff', [])
     }
     parse_code(data, expected, verbose=VERBOSE, start='consume')
 
@@ -524,13 +524,13 @@ class MultipleParams[Pif, Paf]
                 'id': 'Hip',
                 'docstring': '"""class docstring"""',
                 'is': None,
-                'type_params': [(('hop', []), None, None)],
+                'type_params': [('Hop', None, None)],
                 "members": [
                     {
                         'node_type': 'flet',
                         'id': 'aa',
                         'type': (('String', [], ('iso', None)), None),
-                        'default': ('"hello"', None)
+                        'default': (('"hello"', []), None)
                     },
                     {
                         'node_type': 'flet',
@@ -557,16 +557,16 @@ class MultipleParams[Pif, Paf]
                         'node_type': 'new',
                         # parameters and return_type are messy at the momment.
                         # they need their own nodes...
-                        'params': [('env',
+                        'params': [(('env', []),
                                         (('Env', [], None), None),
                                         None)],
                         'return_type': (('String', [], ('iso', '^')), None),
-                        'guard': [(('true', None), None)],
+                        'guard': [((('true', []), None), None)],
                         'body': [
-                            (('true', [('==', 'true', False)]), None),
-                            ((('42', []), [('+', ('2', []), True)]), None),
-                            (('44', None), None),
-                            ('return', [(('"stuff"', None), None)])
+                            ((('true', []), [('==', ('true', []), False)]), None),
+                            (('42', [('+', ('2', []), True)]), None),
+                            ((('44', []), None), None),
+                            ('return', [((('"stuff"', []),  None), None)])
                         ],
                     },
                 ],
@@ -612,8 +612,8 @@ class MultipleParams[Pif, Paf]
                         # parameters and return_type are messy at the momment.
                         # they need their own nodes...
                         'params': [
-                            ('env', (('Env', [], None), None), None),
-                            ('stuff', (('String', [], None), None), None)
+                            (('env', []), (('Env', [], None), None), None),
+                            (('stuff', []), (('String', [], None), None), None)
                         ],
                         'return_type': (('String', [], None), None),
                         'guard': None,
