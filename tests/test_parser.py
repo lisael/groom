@@ -57,9 +57,9 @@ def test_method():
             'guard': [(('true', None), None)],
             'id': 'create',
             'is_partial': True,
-            'method_parameters': [],
+            'typeparams': [],
             'node_type': 'new',
-            'parameters': [('env', (('Env', [], None), None), None)],
+            'params': [('env', (('Env', [], None), None), None)],
             'return_type': (('String', [], ('iso', '^')), None)
     }
     parse_code(data, expected, verbose=VERBOSE, start='method')
@@ -515,19 +515,19 @@ class MultipleParams[Pif, Paf]
                 'type_params': [('Hop', None, None)],
                 "members": [
                     {
-                        'node_type': 'letfield',
+                        'node_type': 'flet',
                         'id': 'aa',
                         'type': (('String', [], ('iso', None)), None),
                         'default': ('"hello"', None)
                     },
                     {
-                        'node_type': 'letfield',
+                        'node_type': 'flet',
                         'id': 'bb',
                         'type': (('Bool', [], None), None),
                         'default': None
                     },
                     {
-                        'node_type': 'letfield',
+                        'node_type': 'flet',
                         'id': 'cc',
                         'type': (('I32', [], None), None),
                         'default': ('40', [
@@ -541,11 +541,11 @@ class MultipleParams[Pif, Paf]
                         'docstring': None,
                         'id': 'create',
                         'is_partial': True,
-                        'method_parameters': [],
+                        'typeparams': [],
                         'node_type': 'new',
                         # parameters and return_type are messy at the momment.
                         # they need their own nodes...
-                        'parameters': [('env',
+                        'params': [('env',
                                         (('Env', [], None), None),
                                         None)],
                         'return_type': (('String', [], ('iso', '^')), None),
@@ -595,11 +595,11 @@ class MultipleParams[Pif, Paf]
                         'docstring': None,
                         'id': 'create',
                         'is_partial': True,
-                        'method_parameters': [],
+                        'typeparams': [],
                         'node_type': 'new',
                         # parameters and return_type are messy at the momment.
                         # they need their own nodes...
-                        'parameters': [
+                        'params': [
                             ('env', (('Env', [], None), None), None),
                             ('stuff', (('String', [], None), None), None)
                         ],

@@ -143,28 +143,27 @@ class FieldNode(Node):
 
 
 class VarFieldNode(FieldNode):
-    node_type = "varfield"
+    node_type = "fvar"
 
 
 class LetFieldNode(FieldNode):
-    node_type = "letfield"
+    node_type = "flet"
 
 
 class EmbedFieldNode(FieldNode):
-    node_type = "embedfield"
+    node_type = "fembed"
 
 
 class MethodNode(DocNode, Annotated):
 
-    def __init__(self, capability, id, method_parameters, parameters,
+    def __init__(self, capability, id, typeparams, params,
                  return_type, is_partial, guard, body, **kwargs):
         self.capability = capability
         self.id = id
-        self.method_parameters = method_parameters
-        self.parameters = parameters
+        self.typeparams = typeparams
+        self.params = params
         self.return_type = return_type
         self.is_partial = is_partial
-        self.parameters = parameters
         self.guard = guard
         self.body = body
         super(MethodNode, self).__init__(**kwargs)
@@ -174,8 +173,8 @@ class MethodNode(DocNode, Annotated):
                 super(MethodNode, self).as_dict(),
                 capability=self.capability,
                 id=self.id,
-                method_parameters=self.method_parameters,
-                parameters=self.parameters,
+                typeparams=self.typeparams,
+                params=self.params,
                 return_type=self.return_type,
                 is_partial=self.is_partial,
                 guard=self.guard,

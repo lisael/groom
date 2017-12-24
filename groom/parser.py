@@ -6,12 +6,19 @@ from groom import ast
 def p_module(p):
     """
     module : STRING uses class_defs
-    module : uses class_defs
+           | uses class_defs
     """
     if len(p) == 4:
         p[0] = ast.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
     else:
         p[0] = ast.ModuleNode(uses=p[1], class_defs=p[2])
+
+
+def p_anyparen(p):
+    """
+    anylparen : LPAREN
+              | LPAREN_NEW
+    """
 
 
 def p_empty(p):
@@ -24,8 +31,8 @@ def p_empty(p):
 def p_uses(p):
     """
     uses : use uses
-    uses : use
-    uses :
+         | use
+         |
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -107,8 +114,8 @@ def p_id_or_string(p):
 def p_class_defs(p):
     """
     class_defs : class_def class_defs
-    class_defs : class_def
-    class_defs :
+               | class_def
+               |
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -121,12 +128,9 @@ def p_class_defs(p):
 def p_cap(p):
     """
     cap : CAP
-    cap :
+        | empty
     """
-    if len(p) == 2:
-        p[0] = p[1]
-    else:
-        p[0] = None
+    p[0] = p[1]
 
 
 def p_typeparams(p):
@@ -139,7 +143,7 @@ def p_typeparams(p):
 def p_typeparams_list(p):
     """
     typeparams_list : typeparam ',' typeparams_list
-    typeparams_list : typeparam
+                    | typeparam
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -161,7 +165,7 @@ def p_typeparam(p):
 def p_typearg(p):
     """
     typearg : type
-    typearg : literal
+            | literal
     """
     # TODO typearg : '#' postfix
     if len(p) == 2:
@@ -173,10 +177,10 @@ def p_typearg(p):
 def p_literal(p):
     """
     literal : TRUE
-    literal : FALSE
-    literal : INT
-    literal : FLOAT
-    literal : STRING
+            | FALSE
+            | INT
+            | FLOAT
+            | STRING
     """
     p[0] = p[1]
 
@@ -184,7 +188,7 @@ def p_literal(p):
 def p_typed_id(p):
     """
     typed_id : ID
-    typed_id : ID ':' type
+             | ID ':' type
     """
     if len(p) == 2:
         p[0] = (p[1], None)
@@ -195,7 +199,7 @@ def p_typed_id(p):
 def p_type(p):
     """
     type : atomtype
-    type : atomtype SMALL_ARROW type
+         | atomtype SMALL_ARROW type
     """
     if len(p) == 2:
         p[0] = (p[1], None)
@@ -206,9 +210,9 @@ def p_type(p):
 def p_atomtype(p):
     """
     atomtype : THIS
-    atomtype : CAP
-    atomtype : combined_types
-    atomtype : nominal
+             | CAP
+             | combined_types
+             | nominal
     """
     # TODO
     # atomtype : lambdatype
@@ -219,7 +223,7 @@ def p_atomtype(p):
 def p_nominal(p):
     """
     nominal : dotted typecap
-    nominal : dotted
+            | dotted
     """
     if len(p) == 2:
         p[0] = p[1] + (None,)
@@ -230,9 +234,9 @@ def p_nominal(p):
 def p_typecap(p):
     """
     typecap : CAP cap_modifier
-    typecap : GENCAP cap_modifier
-    typecap : CAP
-    typecap : GENCAP
+            | GENCAP cap_modifier
+            | CAP
+            | GENCAP
     """
     if len(p) == 2:
         p[0] = (p[1], None)
@@ -243,7 +247,7 @@ def p_typecap(p):
 def p_cap_modifier(p):
     """
     cap_modifier : '^'
-    cap_modifier : '!'
+                 | '!'
     """
     p[0] = p[1]
 
@@ -251,7 +255,7 @@ def p_cap_modifier(p):
 def p_dotted(p):
     """
     dotted : ID '.' parametrised_id
-    dotted : parametrised_id
+           | parametrised_id
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -261,8 +265,8 @@ def p_dotted(p):
 
 def p_combined_types(p):
     """
-    combined_types : LPAREN infixtype tupletype ')'
-    combined_types : LPAREN infixtype ')'
+    combined_types : anylparen infixtype tupletype ')'
+                   | anylparen infixtype ')'
     """
     if len(p) == 5:
         p[0] = [p[2]] + p[3]
@@ -273,7 +277,7 @@ def p_combined_types(p):
 def p_tupletype(p):
     """
     tupletype : ',' infixtype tupletype
-    tupletype : ',' infixtype
+              | ',' infixtype
     """
     if len(p) == 4:
         p[0] = [p[2]] + p[3]
@@ -284,8 +288,8 @@ def p_tupletype(p):
 def p_infixtype(p):
     """
     infixtype : type
-    infixtype : type '&' infixtype
-    infixtype : type '|' infixtype
+              | type '&' infixtype
+              | type '|' infixtype
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -297,7 +301,7 @@ def p_infixtype(p):
 def p_parametrised_id(p):
     """
     parametrised_id : ID typeparams
-    parametrised_id : ID
+                    | ID
     """
     if len(p) == 3:
         p[0] = (p[1], p[2])
@@ -308,7 +312,7 @@ def p_parametrised_id(p):
 def p_class_decl(p):
     """
     class_decl : class_decl_1 IS type
-    class_decl : class_decl_1
+               | class_decl_1
     """
     if len(p) == 2:
         p[0] = p[1] + (None,)
@@ -326,12 +330,9 @@ def p_class_decl_1(p):
 def p_docstring(p):
     """
     docstring : STRING
-    docstring :
+              | empty
     """
-    if len(p) == 2:
-        p[0] = p[1]
-    else:
-        p[0] = None
+    p[0] = p[1]
 
 
 class_nodes = {
@@ -343,7 +344,7 @@ class_nodes = {
 def p_class_def(p):
     """
     class_def : class_decl docstring members
-    class_def : class_decl docstring
+              | class_decl docstring
     """
     members = [] if len(p) == 3 else p[3]
     p[0] = class_nodes[p[1][0]](
@@ -367,7 +368,7 @@ def p_annotation(p):
 def p_id_list(p):
     """
     id_list : ID ',' id_list
-    id_list : ID
+            | ID
     """
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
@@ -378,7 +379,7 @@ def p_id_list(p):
 def p_members(p):
     """
     members : fields methods
-    members : methods
+            | methods
     """
     if len(p) == 3:
         p[0] = p[1] + p[2]
@@ -389,7 +390,7 @@ def p_members(p):
 def p_fields(p):
     """
     fields : field fields
-    fields : field
+           | field
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -406,8 +407,8 @@ field_classes = {
 
 def p_field(p):
     """
-    field : field_decl ID ':' type '=' infix
-    field : field_decl ID ':' type
+    field : varkw ID ':' type '=' infix
+          | varkw ID ':' type
     """
     # p[0] = p[1]
     if len(p) == 7:
@@ -416,11 +417,11 @@ def p_field(p):
         p[0] = field_classes[p[1]](id=p[2], type=p[4])
 
 
-def p_field_decl(p):
+def p_varkw(p):
     """
-    field_decl : LET
-               | VAR
-               | EMBED
+    varkw : LET
+          | VAR
+          | EMBED
     """
     p[0] = p[1]
 
@@ -471,10 +472,25 @@ def p_op(p):
         p[0] = p[1]
 
 
+def p_mabetyped(p):
+    """
+    maybe_typed : ':' type
+                |
+    """
+    p[0] = p[2] if len(p) == 3 else None
+
+
+def p_vardecl(p):
+    """
+    vardecl : varkw ID maybe_typed
+    """
+    p[0] = (p[1], p[2], p[3])
+
+
 def p_pattern(p):
     """
-    pattern : ID
-            | literal
+    pattern : vardecl
+            | parampattern
     """
     # TODO
     p[0] = p[1]
@@ -716,7 +732,7 @@ def _flatten_idseq(seq):
 def p_idseq(p):
     """
     idseq : ID
-          | LPAREN idseq_list ')'
+          | anylparen idseq_list ')'
     """
     idseq = [p[1]] if len(p) == 2 else p[2]
     p[0] = _flatten_idseq(idseq)
@@ -842,7 +858,7 @@ def p_binop_op(p):
              |  '/'
              |  '%'
              |  '+' '~'
-             |  '-' '~'
+             |  MINUS_TILDE
              |  '*' '~'
              |  '/' '~'
              |  '%' '~'
@@ -917,8 +933,8 @@ def p_method(p):
     """
     p[0] = method_kinds[p[1][0]](annotation=p[1][1],
                                  capability=p[2], id=p[3][0],
-                                 method_parameters=p[3][1],
-                                 parameters=p[4],
+                                 typeparams=p[3][1],
+                                 params=p[4],
                                  return_type=p[5],
                                  is_partial=p[6],
                                  guard=p[7],
@@ -959,8 +975,8 @@ def p_meth_type(p):
 
 def p_params(p):
     """
-    params : LPAREN param_list ')'
-           | LPAREN ')'
+    params : anylparen param_list ')'
+           | anylparen ')'
     """
     p[0] = p[2] if len(p) == 4 else []
 
@@ -985,9 +1001,104 @@ def p_param_1(p):
 
 def p_parampattern(p):
     """
-    parampattern : ID
+    parampattern : parampatternprefix parampattern
+                 | postfix
     """
     # TODO: see parampattern in antlr...
+    p[0] = p[1]
+
+
+def p_parampatternprefix(p):
+    """
+    parampatternprefix : NOT
+                       | ADDRESSOF
+                       | '-'
+                       | MINUS_TILDE
+                       | MINUS_TILDE_NEW
+                       | DIGESTOF
+    """
+    p[0] = p[1]
+
+
+def p_postfix(p):
+    """
+    postfix : atom atomsuffix_list
+    """
+    # TODO emit a node
+    p[0] = p[1]
+
+
+def p_atomsuffix_list(p):
+    """
+    atomsuffix_list : atomsuffix
+                    | atomsuffix atomsuffix_list
+                    |
+    """
+    if len(p) == 1:
+        p[0] = []
+    elif len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[2]
+
+
+def p_atomsuffix(p):
+    """
+    atomsuffix : dot
+               | tilde
+               | chain
+               | typeargs
+               | call
+    """
+    p[0] = p[1]
+
+
+def p_dot(p):
+    """
+    dot : '.' ID
+    """
+    p[0] = (p[1], p[2])
+
+
+def p_tilde(p):
+    """
+    tilde : '~' ID
+    """
+    p[0] = (p[1], p[2])
+
+
+def p_chain(p):
+    """
+    chain : '.' '>' ID
+    """
+    p[0] = (p[1], p[2], p[3])
+
+
+def p_call(p):
+    """
+    call : '(' positioal named ')' maybe_partial
+    """
+    p[0] = (p[2], p[3], p[5])
+
+
+def p_positional(p):
+    """
+    positioal : empty
+    """
+
+
+def p_named(p):
+    """
+    named : empty
+    """
+
+
+def p_atom(p):
+    """
+    atom : ID
+         | THIS
+         | literal
+    """
     p[0] = p[1]
 
 

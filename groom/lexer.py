@@ -87,12 +87,12 @@ reserved = {
 
 tokens = [
     "STRING",
-    "NEWLINE",
     "WS",
     "ID",
     "LINECOMMENT",
     "NESTEDCOMMENT",
     "LPAREN",
+    "LPAREN_NEW",
     "BIG_ARROW",
     "SMALL_ARROW",
     "INT",
@@ -101,6 +101,8 @@ tokens = [
     "PLUS",
     "MINUS",
     "IS_SUBTYPE",
+    "MINUS_TILDE",
+    "MINUS_TILDE_NEW",
 ] + list(set(reserved.values()))
 
 literals = ":()[]{}=.!@|,;^?<>~*/%#&"
@@ -129,13 +131,16 @@ WS = f"({ NEWLINE }) | \\s+"
 NESTEDCOMMENT = r'/\* ( [^*] | \*(?!/) )* \*/'
 t_LINECOMMENT = r'//[^\n]+'
 
-LPAREN = r'\( | ( {NEWLINE} \( )'
+LPAREN_NEW = r'( {NEWLINE} \( )'
+LPAREN = r'\('
 t_BIG_ARROW = r'=>'
 t_SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
 t_PLUS = r'\+'
 t_MINUS = r'-'
-t_IS_SUBTYPE='<:'
+t_IS_SUBTYPE = '<:'
+t_MINUS_TILDE = '-~'
+t_MINUS_TILDE_NEW = r' {NEWLINE} -~'
 
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
@@ -169,20 +174,19 @@ def t_FLOAT(t):
     return t
 
 
+@TOKEN(LPAREN_NEW)
+def t_LPAREN_NEW(t):
+    t.lexer.lineno += t.value.count("\n")
+    return t
+
+
 @TOKEN(LPAREN)
 def t_LPAREN(t):
-    t.lexer.lineno += t.value.count("\n")
     return t
 
 
 @TOKEN(WS)
 def t_WS(t):
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-
-@TOKEN(NEWLINE)
-def t_NEWLINE(t):
     t.lexer.lineno += t.value.count("\n")
     return t
 
