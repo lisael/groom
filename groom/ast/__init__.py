@@ -28,4 +28,8 @@ from groom.ast.nodes import (
         CaseNode,
         ForNode,
         WithNode,
+        NotNode,
+        AddressofNode,
+        UnaryMinusNode,
+        DigestOfNode,
 )  # noqa

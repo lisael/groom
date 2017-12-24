@@ -853,7 +853,7 @@ def p_binop_op(p):
              | OR
              | XOR
              | PLUS
-             |  '-'
+             | MINUS
              |  '*'
              |  '/'
              |  '%'
@@ -1004,20 +1004,32 @@ def p_parampattern(p):
     parampattern : parampatternprefix parampattern
                  | postfix
     """
-    # TODO: see parampattern in antlr...
     p[0] = p[1]
+
+
+pattern_prefix_node_classes = {
+    'not': ast.NotNode,
+    'addressof': ast.AddressofNode,
+
+    # TODO
+    '-': ast.UnaryMinusNode,
+    '-~': ast.UnaryMinusNode,
+
+    'digestof': ast.DigestOfNode
+}
 
 
 def p_parampatternprefix(p):
     """
     parampatternprefix : NOT
                        | ADDRESSOF
-                       | '-'
+                       | MINUS
                        | MINUS_TILDE
+                       | MINUS_NEW
                        | MINUS_TILDE_NEW
                        | DIGESTOF
     """
-    p[0] = p[1]
+    p[0] = pattern_prefix_node_classes[p[1]]
 
 
 def p_postfix(p):
