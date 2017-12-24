@@ -45,6 +45,7 @@ def test_use_ffi():
     }
     parse_code(data, expected, verbose=VERBOSE, start='use')
 
+
 def test_method():
     data = """
         new create(env: Env): String iso^ ? if true => "stuff"
@@ -458,6 +459,17 @@ def test_tupletype():
         'type_params': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='class_def')
+
+
+def test_call():
+    data = """
+        env.out.print("hello world")
+    """
+    expected = ('env',
+                [('.', 'out'),
+                 ('.', 'print'),
+                    ([[((('"hello world"', []), None), None)]], [], False)])
+    parse_code(data, expected, verbose=VERBOSE, start='term')
 
 
 def test_full_module():

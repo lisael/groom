@@ -1025,7 +1025,7 @@ def p_postfix(p):
     postfix : atom atomsuffix_list
     """
     # TODO emit a node
-    p[0] = p[1]
+    p[0] = (p[1], p[2])
 
 
 def p_atomsuffix_list(p):
@@ -1076,21 +1076,46 @@ def p_chain(p):
 
 def p_call(p):
     """
-    call : '(' positioal named ')' maybe_partial
+    call : LPAREN  positional named ')' maybe_partial
     """
     p[0] = (p[2], p[3], p[5])
 
 
 def p_positional(p):
     """
-    positioal : empty
+    positional : rawseq
+               | rawseq ',' positional
+               |
     """
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = []
 
 
 def p_named(p):
     """
-    named : empty
+    named : WHERE namedarglist
+          |
     """
+    p[0] = p[2] if len(p) == 3 else []
+
+
+def p_namedarglist(p):
+    """
+    namedarglist : namedarg
+                 | namedarg ',' namedarglist
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
+def p_namedarg(p):
+    """
+    namedarg : ID '=' rawseq
+    """
+    p[0] = (p[1], p[3])
 
 
 def p_atom(p):
