@@ -164,13 +164,15 @@ def t_NESTEDCOMMENT(t):
     return t
 
 
-@TOKEN(INT)
-def t_INT(t):
+@TOKEN(FLOAT)
+def t_FLOAT(t):
+    if '.' not in t.value and 'e' not in t.value.lower():
+        t.type = "INT"
     return t
 
 
-@TOKEN(FLOAT)
-def t_FLOAT(t):
+@TOKEN(INT)
+def t_INT(t):
     return t
 
 

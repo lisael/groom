@@ -20,11 +20,27 @@ class Token(object):
                 and self.lineno == other.lineno
                 and self.pos == other.lexpos)
 
+    def __repr__(self):
+        return "TestToken({},'{}',{},{})".format(
+            self.type, self.value, self.lineno, self.pos)
+
+
+def check_token(data, expected_type):
+    lexer = lex_raw(data)
+    t = lexer.token()
+    assert(t == Token(expected_type, data, 1, 0))
+
 
 def test_lex():
-    lexer = lex_raw("coucou")
-    t = lexer.token()
-    assert(t == Token("ID", 'coucou', 1, 0))
+    check_token("coucou", "ID")
+
+
+def test_float():
+    check_token("1.23", "FLOAT")
+
+
+def test_int():
+    check_token("2", "INT")
 
 
 pony_module = r'''
