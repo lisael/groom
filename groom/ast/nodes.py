@@ -1,12 +1,28 @@
 class Annotated(object):
+    """
+    Marker class for annotated nodes
+    """
+    pass
+
+
+class Id(object):
+    """
+    Marker class for nodes with an id
+    """
     pass
 
 
 class Node(object):
+    """
+    AST node base class
+    """
+
     def __init__(self, **kwargs):
         if isinstance(self, Annotated):
             annotations = kwargs.pop("annotation")
             self.annotations = annotations if annotations else []
+        if isinstance(self, Id):
+            self.id = kwargs.pop("id")
         if len(kwargs):
             raise(ValueError("Unkown params {}".format(list(kwargs.keys()))))
 
@@ -14,6 +30,8 @@ class Node(object):
         d = dict(node_type=self.node_type)
         if hasattr(self, "annotations"):
             d["annotations"] = self.annotations
+        if hasattr(self, "id"):
+            d["id"] = self.id
         return d
 
 
@@ -67,26 +85,39 @@ class ModuleNode(DocNode):
 class UseNode(Node):
     node_type = "use"
 
-    def __init__(self, alias, package, condition, **kwargs):
+    def __init__(self, alias, package, guard, **kwargs):
         self.alias = alias
         self.package = package
-        self.condition = condition
+        self.guard = guard
         super(UseNode, self).__init__(**kwargs)
 
     def as_dict(self):
+        guard = self.guard.as_dict() if self.guard is not None else None
         return dict(
                 super(UseNode, self).as_dict(),
                 alias=self.alias,
                 package=self.package,
-                condition=self.condition,
+                guard=guard
                 )
 
 
-class ClassNodeBase(DocNode, Annotated):
+class SeqNode(Node):
+    node_type = "seq"
 
-    def __init__(self, id=None, members=None, capability=None,
+    def __init__(self, seq, **kwargs):
+        self.seq = seq
+        super(SeqNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+                super(SeqNode, self).as_dict(),
+                seq=[s.as_dict() for s in self.seq],
+                )
+
+class ClassNodeBase(DocNode, Annotated, Id):
+
+    def __init__(self, members=None, capability=None,
                  type_params=None, is_=None, **kwargs):
-        self.id = id
         self.members = members if members else []
         self.capability = capability
         self.is_ = is_
@@ -96,7 +127,6 @@ class ClassNodeBase(DocNode, Annotated):
     def as_dict(self):
         d = dict(
             super(ClassNodeBase, self).as_dict(),
-            id=self.id,
             capability=self.capability,
             members=[m.as_dict() for m in self.members],
             type_params=self.type_params,
@@ -119,24 +149,16 @@ class TypeNode(ClassNodeBase):
             raise SyntaxError("type class definition doesn't accept annotations")
         super(TypeNode, self).__init__(**kwargs)
 
-    def as_dict(self):
-        return dict(
-                super(TypeNode, self).as_dict(),
-                id=self.id,
-                )
 
+class FieldNode(Node, Id):
 
-class FieldNode(Node):
-
-    def __init__(self, id, type, default=None):
-        self.id = id
+    def __init__(self, type, default=None):
         self.type = type
         self.default = default
 
     def as_dict(self):
         return dict(
                 super(FieldNode, self).as_dict(),
-                id=self.id,
                 type=self.type,
                 default=self.default
                 )
@@ -154,17 +176,16 @@ class EmbedFieldNode(FieldNode):
     node_type = "fembed"
 
 
-class MethodNode(DocNode, Annotated):
+class MethodNode(DocNode, Annotated, Id):
 
-    def __init__(self, capability, id, typeparams, params,
+    def __init__(self, capability, typeparams, params,
                  return_type, is_partial, guard, body, **kwargs):
         self.capability = capability
-        self.id = id
         self.typeparams = typeparams
         self.params = params
         self.return_type = return_type
         self.is_partial = is_partial
-        self.guard = guard
+        self.guard = guard.as_dict()
         self.body = body
         super(MethodNode, self).__init__(**kwargs)
 
@@ -172,14 +193,45 @@ class MethodNode(DocNode, Annotated):
         return dict(
                 super(MethodNode, self).as_dict(),
                 capability=self.capability,
-                id=self.id,
                 typeparams=self.typeparams,
                 params=self.params,
                 return_type=self.return_type,
                 is_partial=self.is_partial,
                 guard=self.guard,
-                body=self.body,
+                body=self.body.as_dict(),
                 )
+
+
+class PatternModifierNode(Node):
+    def __init__(self, pattern=None, **kwargs):
+        self.pattern = pattern
+        super(PatternModifierNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(PatternModifierNode, self).as_dict(),
+            pattern=self.pattern,
+        )
+
+
+class NotNode(PatternModifierNode):
+    node_type = "not"
+
+
+class AddressofNode(PatternModifierNode):
+    node_type = "addressof"
+
+
+class DigestOfNode(PatternModifierNode):
+    node_type = "digestof"
+
+
+class NegNode(PatternModifierNode):
+    node_type = "neg"
+
+
+class NegUnsafeNode(PatternModifierNode):
+    node_type = "neg_unsafe"
 
 
 class NewMethod(MethodNode):
@@ -187,11 +239,51 @@ class NewMethod(MethodNode):
 
 
 class FunMethod(MethodNode):
-    node_type = "new"
+    node_type = "fun"
 
 
 class BeMethod(MethodNode):
-    node_type = "new"
+    node_type = "be"
+
+
+class LiteralNode(Node):
+    def __init__(self, value, **kwargs):
+        self.value = value
+        super(LiteralNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(LiteralNode, self).as_dict(),
+            value=self.value,
+        )
+
+
+class TrueNode(LiteralNode):
+    node_type = "true"
+
+
+class FalseNode(LiteralNode):
+    node_type = "false"
+
+
+class IntNode(LiteralNode):
+    node_type = "int"
+
+
+class FloatNode(LiteralNode):
+    node_type = "float"
+
+
+class StringNode(LiteralNode):
+    node_type = "string"
+
+
+class ReferenceNode(Node, Id):
+    node_type = "reference"
+
+
+class ThisNode(Node):
+    node_type = "this"
 
 
 class IfNode(ElseNode, Annotated):
@@ -205,8 +297,86 @@ class IfNode(ElseNode, Annotated):
     def as_dict(self):
         return dict(
             super(IfNode, self).as_dict(),
-            members=self.members,
-            assertion=self.assertion
+            members=self.members.as_dict(),
+            assertion=self.assertion.as_dict()
+        )
+
+
+class DotNode(Node):
+    node_type = '.'
+
+    def __init__(self, first, second, **kwargs):
+        self.first = first
+        self.second = second
+        super(DotNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(DotNode, self).as_dict(),
+            first=self.first.as_dict(),
+            second=self.second
+        )
+
+
+class CallNode(Node):
+    node_type = "call"
+
+    def __init__(self, fun, positionalargs, namedargs, is_partial, **kwargs):
+        self.fun = fun
+        self.positionalargs = positionalargs
+        self.namedargs = namedargs
+        self.is_partial = is_partial
+        super(CallNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(CallNode, self).as_dict(),
+            fun=self.fun.as_dict(),
+            positionalargs=self.positionalargs.as_dict(),
+            namedargs=self.namedargs.as_dict(),
+            is_partial=self.is_partial,
+        )
+
+
+class PositionalArgsNode(Node):
+    node_type = "positionalargs"
+
+    def __init__(self, args, **kwargs):
+        self.args = args
+        super(PositionalArgsNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(PositionalArgsNode, self).as_dict(),
+            args=[a.as_dict() for a in self.args],
+        )
+
+
+class NamedArgsNode(Node):
+    node_type = "namedargs"
+
+    def __init__(self, args, **kwargs):
+        self.args = args
+        super(NamedArgsNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(NamedArgsNode, self).as_dict(),
+            args=[a.as_dict() for a in self.args],
+        )
+
+
+class NamedArgNode(Node, Id):
+    node_type = "namedarg"
+
+    def __init__(self, value, **kwargs):
+        self.value = value
+        super(NamedArgNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(NamedArgNode, self).as_dict(),
+            value=self.value.as_dict(),
         )
 
 
@@ -417,3 +587,37 @@ class ConsumeNode(Node):
             term=self.term,
             capability=self.capability
         )
+
+
+class InfixFactory(object):
+    def __init__(self, operator_class, **kwargs):
+        self.cls = operator_class
+        self.kwargs = kwargs
+
+    def __call__(self, term):
+        return self.cls(term=term, **self.kwargs)
+
+
+class InfixNode(Node):
+    def __init__(self, term, **kwargs):
+        self.term = term
+
+    def as_dict(self):
+        return dict(
+            super(InfixNode, self).as_dict(),
+            term=self.term,
+        )
+
+
+class AsNode(InfixNode):
+    node_type = "as"
+    def __init__(self, type, **kwargs):
+        self.type = type
+        super(AsNode, self).__init_(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(AsNode, self).as_dict(),
+            type=self.term,
+        )
+

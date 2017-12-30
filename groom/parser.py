@@ -53,7 +53,7 @@ def p_use(p):
         p[0] = ast.UseNode(
                 alias=p[2][0],
                 package=p[2][1],
-                condition=p[3]
+                guard=p[3]
                 )
 
 
@@ -174,13 +174,48 @@ def p_typearg(p):
         p[0] = p[2]
 
 
+def p_true(p):
+    """
+    true : TRUE
+    """
+    p[0] = ast.TrueNode(p[1])
+
+
+def p_false(p):
+    """
+    false : FALSE
+    """
+    p[0] = ast.FalseNode(p[1])
+
+
+def p_int(p):
+    """
+    int : INT
+    """
+    p[0] = ast.IntNode(p[1])
+
+
+def p_float(p):
+    """
+    float : FLOAT
+    """
+    p[0] = ast.FloatNode(p[1])
+
+
+def p_string(p):
+    """
+    string : STRING
+    """
+    p[0] = ast.StringNode(p[1])
+
+
 def p_literal(p):
     """
-    literal : TRUE
-            | FALSE
-            | INT
-            | FLOAT
-            | STRING
+    literal : true
+            | false
+            | int
+            | float
+            | string
     """
     p[0] = p[1]
 
@@ -432,9 +467,12 @@ def p_infix(p):
           | term
     """
     if len(p) == 3:
-        p[0] = (p[1], p[2])
+        result = p[1]
+        for op in p[2]:
+            result = op(result)
+        p[0] = result
     else:
-        p[0] = (p[1], None)
+        p[0] = p[1]
 
 
 def p_nextinfix(p):
@@ -442,10 +480,7 @@ def p_nextinfix(p):
     nextinfix : nextterm op_list
               | nextterm
     """
-    if len(p) == 3:
-        p[0] = (p[1], p[2])
-    else:
-        p[0] = (p[1], None)
+    p_infix(p)
 
 
 def p_op_list(p):
@@ -512,7 +547,7 @@ def p_term(p):
          | pattern
     """
     # TODO
-    p[0] = p[1]
+    p[0] = p[1] if isinstance(p[1], ast.Node) else ast.ReferenceNode(id=p[1])
 
 
 def p_if(p):
@@ -1004,17 +1039,14 @@ def p_parampattern(p):
     parampattern : parampatternprefix parampattern
                  | postfix
     """
-    p[0] = p[1]
+    p[0] = p[1](pattern=p[2]) if len(p) == 3 else p[1]
 
 
-pattern_prefix_node_classes = {
+pattern_prefix_node_constructor = {
     'not': ast.NotNode,
     'addressof': ast.AddressofNode,
-
-    # TODO
-    '-': ast.UnaryMinusNode,
-    '-~': ast.UnaryMinusNode,
-
+    '-': ast.NegNode,
+    '-~': ast.NegUnsafeNode,
     'digestof': ast.DigestOfNode
 }
 
@@ -1029,15 +1061,25 @@ def p_parampatternprefix(p):
                        | MINUS_TILDE_NEW
                        | DIGESTOF
     """
-    p[0] = pattern_prefix_node_classes[p[1]]
+    p[0] = pattern_prefix_node_constructor[p[1].strip()]
+
+
+atomsuffix_classes = {
+    '.': ast.DotNode,
+    'call': ast.CallNode,
+}
 
 
 def p_postfix(p):
     """
     postfix : atom atomsuffix_list
     """
-    # TODO emit a node
-    p[0] = (p[1], p[2])
+    result = p[1]
+    if not isinstance(result, ast.Node):
+        result = ast.ReferenceNode(id=result)
+    for s in p[2]:
+        result = atomsuffix_classes[s[0]](result, *s[1:])
+    p[0] = result
 
 
 def p_atomsuffix_list(p):
@@ -1083,14 +1125,15 @@ def p_chain(p):
     """
     chain : '.' '>' ID
     """
-    p[0] = (p[1], p[2], p[3])
+    p[0] = ('.>', p[3])
 
 
 def p_call(p):
     """
     call : LPAREN  positional named ')' maybe_partial
     """
-    p[0] = (p[2], p[3], p[5])
+    p[0] = ('call', ast.PositionalArgsNode(p[2]),
+            ast.NamedArgsNode(p[3]), p[5])
 
 
 def p_positional(p):
@@ -1127,13 +1170,20 @@ def p_namedarg(p):
     """
     namedarg : ID '=' rawseq
     """
-    p[0] = (p[1], p[3])
+    p[0] = ast.NamedArgNode(id=p[1], value=p[3])
+
+
+def p_this(p):
+    """
+    this : THIS
+    """
+    p[0] = ast.ThisNode(p[1])
 
 
 def p_atom(p):
     """
     atom : ID
-         | THIS
+         | this
          | literal
     """
     p[0] = p[1]
@@ -1152,7 +1202,10 @@ def p_rawseq(p):
     rawseq : exprseq
            | jump
     """
-    p[0] = p[1]
+    if isinstance(p[1], list):
+        p[0] = ast.SeqNode(p[1])
+    else:
+        p[0] = ast.SeqNode([p[1]])
 
 
 def p_annotatedrawseq(p):
@@ -1202,8 +1255,10 @@ def p_assignment(p):
     assignment : infix
                | infix '=' assignment
     """
-    assignment = None if len(p) == 2 else p[3]
-    p[0] = (p[1], assignment)
+    if len(p) == 4:
+        p[0] = (p[1], p[3])
+    else:
+        p[0] = p[1]
 
 
 def p_nextassignment(p):

@@ -16,6 +16,102 @@ def parse_code(data, expected, verbose=False, **parser_opts):
 VERBOSE = True
 
 
+def test_call():
+    data = """
+        env.out.print("hello world")
+    """
+    expected = {
+        'fun': {
+            'first': {
+                'first': {
+                    'id': 'env', 'node_type': 'reference'
+                },
+                'node_type': '.',
+                'second': 'out'
+            },
+            'node_type': '.',
+            'second': 'print'
+        },
+        'is_partial': False,
+        'namedargs': {
+            'args': [
+
+            ], 'node_type': 'namedargs'
+        },
+        'node_type': 'call',
+        'positionalargs': {
+            'args': [
+                {
+                    'node_type': 'seq',
+                    'seq': [
+                        {
+                            'node_type': 'string',
+                            'value': '"hello world"'
+                        }
+                    ]
+                }
+            ],
+            'node_type': 'positionalargs'
+        }
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='term')
+
+
+def test_call_full():
+    data = """
+        foo("hello world", 42 where pos=3)
+    """
+    expected = {
+        'fun': {
+            'id': 'foo', 'node_type': 'reference'
+        },
+        'is_partial': False,
+        'namedargs': {
+            'args': [
+                {
+                    'id': 'pos',
+                    'node_type': 'namedarg',
+                    'value': {
+                        'node_type': 'seq',
+                        'seq': [
+                                 {
+                                     'node_type': 'int',
+                                     'value': '3'
+                                 }
+                        ]
+                    }
+                }
+            ],
+            'node_type': 'namedargs'
+        },
+        'node_type': 'call',
+        'positionalargs': {
+            'args': [
+                {
+                    'node_type': 'seq',
+                    'seq': [
+                        {
+                            'node_type': 'string',
+                            'value': '"hello world"'
+                        }
+                    ]
+                },
+                {
+                    'node_type': 'seq',
+                    'seq': [
+                        {
+                            'node_type': 'int', 'value': '42'
+                        }
+                    ]
+                }
+            ],
+            'node_type': 'positionalargs'
+        }
+    }
+
+    parse_code(data, expected, verbose=VERBOSE, start='term')
+
+
 def test_use():
     # these boots are made for walking.
     data = """
@@ -23,7 +119,7 @@ def test_use():
     """
     expected = {
         'alias': 'myboots',
-        'condition': (('windows', []), None),
+        'guard': {'id': 'windows', 'node_type': 'reference'},
         'node_type': 'use',
         'package': '"boots"'
     }
@@ -36,11 +132,11 @@ def test_use_ffi():
     """
     expected = {
         'alias': 'mypkg',
-        'condition': (('windows', []), None),
+        'guard': {'id': 'windows', 'node_type': 'reference'},
         'node_type': 'use',
         'package': ('ffipkg',
                     [(('I32', [], None), None)],
-                    [(('fd', []), (('I32', [], None), None), None)],
+                    [('fd', (('I32', [], None), None), None)],
                     False)
     }
     parse_code(data, expected, verbose=VERBOSE, start='use')
@@ -51,17 +147,20 @@ def test_method():
         new create(env: Env): String iso^ ? if true => "stuff"
     """
     expected = {
-            'annotations': [],
-            'body': [((('"stuff"', []), None), None)],
-            'capability': None,
-            'docstring': None,
-            'guard': [((('true', []), None), None)],
-            'id': 'create',
-            'is_partial': True,
-            'typeparams': [],
-            'node_type': 'new',
-            'params': [(('env', []), (('Env', [], None), None), None)],
-            'return_type': (('String', [], ('iso', '^')), None)
+        'annotations': [],
+        'body': {
+            'node_type': 'seq',
+            'seq': [{'node_type': 'string', 'value': '"stuff"'}]},
+        'capability': None,
+        'docstring': None,
+        'guard': {
+            'node_type': 'seq', 'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'id': 'create',
+        'is_partial': True,
+        'node_type': 'new',
+        'params': [('env', (('Env', [], None), None), None)],
+        'return_type': (('String', [], ('iso', '^')), None),
+        'typeparams': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='method')
 
@@ -72,9 +171,19 @@ def test_if():
     """
     expected = {
         'annotations': ['likely'],
-        'assertion': [((('true', []), None), None)],
+        'assertion': {
+            'node_type': 'seq',
+            'seq': [
+                {'node_type': 'true', 'value': 'true'}
+            ]
+        },
         'else': None,
-        'members': [((('false', []), None), None)],
+        'members': {
+            'node_type': 'seq',
+            'seq': [
+                {'node_type': 'false', 'value': 'false'}
+            ]
+        },
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -250,6 +359,21 @@ def test_match():
                 'pattern': ('bar', [])
             }
         ],
+        'else': None,
+        'matchseq': [((('stuf', []), None), None)],
+        'node_type': 'match'
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='match')
+
+
+def test_empty_match():
+    data = """
+        match stuf
+        end
+    """
+    expected = {
+        'annotations': [],
+        'cases': [],
         'else': None,
         'matchseq': [((('stuf', []), None), None)],
         'node_type': 'match'
@@ -461,15 +585,15 @@ def test_tupletype():
     parse_code(data, expected, verbose=VERBOSE, start='class_def')
 
 
-def test_call():
+def test_unary_minus():
     data = """
-        env.out.print("hello world")
+        -2
     """
-    expected = ('env',
-                [('.', 'out'),
-                 ('.', 'print'),
-                    ([[((('"hello world"', []), None), None)]], [], False)])
-    parse_code(data, expected, verbose=VERBOSE, start='term')
+    expected = {
+        "node_type": "neg",
+        "pattern": ('2', [])
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='pattern')
 
 
 def test_full_module():
@@ -493,9 +617,11 @@ class \packed, something\ iso Hip[Hop]
     let cc: I32 = 40 + 2 as I32
 
     new val create(env: Env): String iso^ ? if true =>
+        let dd: Bool
         true == true
         // if true then false end
         42 +? 2; 44
+        43
         return "stuff"
 
 class Simple
@@ -504,6 +630,7 @@ type Combined is (Foo|Bar)
 
 class MultipleParams[Pif, Paf]
     new create(env: Env, stuff: String): String ?
+    fun foo()
 
 '''
     expected = {
@@ -563,9 +690,11 @@ class MultipleParams[Pif, Paf]
                         'return_type': (('String', [], ('iso', '^')), None),
                         'guard': [((('true', []), None), None)],
                         'body': [
+                            ((('let', 'dd', (('Bool', [], None), None)), None), None),
                             ((('true', []), [('==', ('true', []), False)]), None),
                             (('42', [('+', ('2', []), True)]), None),
                             ((('44', []), None), None),
+                            (('43', None), None),
                             ('return', [((('"stuff"', []),  None), None)])
                         ],
                     },
