@@ -48,4 +48,7 @@ from groom.ast.nodes import (
         PositionalArgsNode,
         NamedArgsNode,
         NamedArgNode,
+        ParamNode,
+        ParamsNode,
+        FFIDeclNode,
 )  # noqa

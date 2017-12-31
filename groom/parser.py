@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from groom.lexer import tokens  # noqa needed by yacc.yacc
 from groom import ast
+from groom.ast import nodes
 
 
 def p_module(p):
@@ -46,12 +47,15 @@ def p_use(p):
     """
     use : USE used useif
     """
-    if isinstance(p[2][1], list):
-        # ffi. TODO
-        pass
+    if isinstance(p[2][1], ast.FFIDeclNode):
+        p[0] = ast.UseNode(
+                id=p[2][0],
+                ffidecl=p[2][1],
+                guard=p[3]
+                )
     else:
         p[0] = ast.UseNode(
-                alias=p[2][0],
+                id=p[2][0],
                 package=p[2][1],
                 guard=p[3]
                 )
@@ -85,14 +89,14 @@ def p_use_ffi(p):
     """
     use_ffi : '@' id_or_string typeargs params maybe_partial
     """
-    p[0] = (p[2], p[3], p[4], p[5])
+    p[0] = ast.FFIDeclNode(id=p[2], typeargs=p[3], params=p[4], partial=p[5])
 
 
 def p_typeargs(p):
     """
     typeargs : '[' typearglist ']'
     """
-    p[0] = p[2]
+    p[0] = nodes.TypeArgs(typeargs=p[2])
 
 
 def p_typearglist(p):
@@ -166,8 +170,8 @@ def p_typearg(p):
     """
     typearg : type
             | literal
+            | '#' postfix
     """
-    # TODO typearg : '#' postfix
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -237,9 +241,9 @@ def p_type(p):
          | atomtype SMALL_ARROW type
     """
     if len(p) == 2:
-        p[0] = (p[1], None)
+        p[0] = p[1]
     else:
-        p[0] = (p[1], p[3])
+        p[0] = ArrowNode(origin=p[1], trarget=p[3])
 
 
 def p_atomtype(p):
@@ -257,13 +261,15 @@ def p_atomtype(p):
 
 def p_nominal(p):
     """
-    nominal : dotted typecap
-            | dotted
+    nominal : namespaced typecap
     """
-    if len(p) == 2:
-        p[0] = p[1] + (None,)
-    else:
-        p[0] = p[1] + (p[2],)
+    p[0] = nodes.Nominal(
+        package=p[1][0],
+        id=p[1][1],
+        typeargs=p[1][2],
+        cap=p[2][0],
+        cap_modifier=p[2][1],
+    )
 
 
 def p_typecap(p):
@@ -272,6 +278,7 @@ def p_typecap(p):
             | GENCAP cap_modifier
             | CAP
             | GENCAP
+            | empty
     """
     if len(p) == 2:
         p[0] = (p[1], None)
@@ -287,15 +294,26 @@ def p_cap_modifier(p):
     p[0] = p[1]
 
 
-def p_dotted(p):
+def p_namespaced(p):
     """
-    dotted : ID '.' parametrised_id
-           | parametrised_id
+    namespaced : ID '.' typeargs_id
+               | typeargs_id
     """
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = (None,) + p[1]
     else:
         p[0] = (p[1],) + p[3]
+
+
+def p_typeargs_id(p):
+    """
+    typeargs_id : ID typeargs
+                | ID
+    """
+    if len(p) == 3:
+        p[0] = (p[1], p[2])
+    else:
+        p[0] = (p[1], [])
 
 
 def p_combined_types(p):
@@ -1013,7 +1031,7 @@ def p_params(p):
     params : anylparen param_list ')'
            | anylparen ')'
     """
-    p[0] = p[2] if len(p) == 4 else []
+    p[0] = ast.ParamsNode(p[2]) if len(p) == 4 else ast.ParamNode([])
 
 
 def p_param(p):
@@ -1022,7 +1040,8 @@ def p_param(p):
           | param_1 '=' infix
     """
     infix = p[3] if len(p) == 4 else None
-    p[0] = (p[1][0], p[1][1], infix)
+    # p[0] = (p[1][0], p[1][1], infix)
+    p[0] = ast.ParamNode(id=p[1][0], type=p[1][1], default=infix)
 
 
 def p_param_1(p):
@@ -1030,8 +1049,8 @@ def p_param_1(p):
     param_1 : parampattern
             | parampattern ':' type
     """
-    tp = p[3] if len(p) == 4 else None
-    p[0] = (p[1], tp)
+    type = p[3] if len(p) == 4 else None
+    p[0] = (p[1], type)
 
 
 def p_parampattern(p):

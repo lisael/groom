@@ -82,23 +82,59 @@ class ModuleNode(DocNode):
                 )
 
 
-class UseNode(Node):
-    node_type = "use"
+class NodeMeta(type):
 
-    def __init__(self, alias, package, guard, **kwargs):
-        self.alias = alias
-        self.package = package
-        self.guard = guard
-        super(UseNode, self).__init__(**kwargs)
+    def __new__(cls, name, bases, attrs):
+        print(cls, name, bases, attrs)
+        for base in bases:
+            if hasattr(base, "node_attributes"):
+                attrs["node_attributes"] += base.node_attributes
+        return type.__new__(cls, name, bases, attrs)
+
+
+def _maybe_as_dict(obj):
+    if isinstance(obj, Node):
+        return obj.as_dict()
+    elif isinstance(obj, list):
+        return [_maybe_as_dict(i) for i in obj]
+    return obj
+
+class NodeBase(Node, metaclass=NodeMeta):
+    def __init__(self, **kwargs):
+        for attrname in self.node_attributes:
+            setattr(self, attrname, kwargs.pop(attrname, None))
 
     def as_dict(self):
-        guard = self.guard.as_dict() if self.guard is not None else None
-        return dict(
-                super(UseNode, self).as_dict(),
-                alias=self.alias,
-                package=self.package,
-                guard=guard
-                )
+        result = dict(node_type=self.node_type)
+        for attrname in self.node_attributes:
+            attr = getattr(self, attrname)
+            result[attrname] = _maybe_as_dict(attr)
+        return result
+
+
+class UseNode(NodeBase):
+    node_type = "use"
+    node_attributes = ["id", "package", "ffidecl", "guard"]
+
+
+class FFIDeclNode(NodeBase):
+    node_type = "ffidecl"
+    node_attributes = ["id", "typeargs", "params", "partial"]
+
+
+class TypeArgs(NodeBase):
+    node_type = "typeargs"
+    node_attributes = ["typeargs"]
+
+
+class Nominal(NodeBase):
+    node_type = "nominal"
+    node_attributes = ["package", "id", "typeargs", "cap", "cap_modifier"]
+
+
+class ArrowNode(NodeBase):
+    node_type = "->"
+    node_attributes = ["origin", "target"]
 
 
 class SeqNode(Node):
@@ -113,6 +149,7 @@ class SeqNode(Node):
                 super(SeqNode, self).as_dict(),
                 seq=[s.as_dict() for s in self.seq],
                 )
+
 
 class ClassNodeBase(DocNode, Annotated, Id):
 
@@ -280,6 +317,25 @@ class StringNode(LiteralNode):
 
 class ReferenceNode(Node, Id):
     node_type = "reference"
+
+
+class ParamNode(NodeBase, Id):
+    node_type = "param"
+    node_attributes = ["type", "default"]
+
+
+class ParamsNode(Node):
+    node_type = "paramsparams"
+
+    def __init__(self, params, **kwargs):
+        self.params = params
+        super(ParamsNode, self).__init__(**kwargs)
+
+    def as_dict(self):
+        return dict(
+            super(ParamsNode, self).as_dict(),
+            params=[a.as_dict() for a in self.params],
+        )
 
 
 class ThisNode(Node):

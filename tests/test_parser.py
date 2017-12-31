@@ -16,6 +16,32 @@ def parse_code(data, expected, verbose=False, **parser_opts):
 VERBOSE = True
 
 
+def test_ffidecl():
+    data = """
+        @ffifunc[I32](fd: I32)?
+    """
+    expected = {
+        'id': 'ffifunc',
+        'node_type': 'ffidecl',
+        'params': {'node_type': 'paramsparams',
+                   'params': [{'default': None,
+                               'node_type': 'param',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': 'I32',
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}]},
+        'partial': True,
+        'typeargs': {'node_type': 'typeargs',
+                     'typeargs': [{'cap': None,
+                                   'cap_modifier': None,
+                                   'id': 'I32',
+                                   'node_type': 'nominal',
+                                   'package': None,
+                                   'typeargs': []}]}}
+    parse_code(data, expected, verbose=VERBOSE, start="use_ffi")
+
 def test_call():
     data = """
         env.out.print("hello world")
@@ -108,17 +134,16 @@ def test_call_full():
             'node_type': 'positionalargs'
         }
     }
-
     parse_code(data, expected, verbose=VERBOSE, start='term')
 
 
 def test_use():
-    # these boots are made for walking.
     data = """
         use myboots = "boots" if windows
     """
     expected = {
-        'alias': 'myboots',
+        'ffidecl': None,
+        'id': 'myboots',
         'guard': {'id': 'windows', 'node_type': 'reference'},
         'node_type': 'use',
         'package': '"boots"'
@@ -128,16 +153,32 @@ def test_use():
 
 def test_use_ffi():
     data = """
-        use mypkg = @ffipkg[I32](fd: I32) if windows
+        use mypkg = @ffipkg[I64](fd: I32) if windows
     """
     expected = {
-        'alias': 'mypkg',
+        'ffidecl': {'id': 'ffipkg',
+                    'node_type': 'ffidecl',
+                    'params': {'node_type': 'paramsparams',
+                               'params': [{'default': None,
+                                           'node_type': 'param',
+                                           'type': {'cap': None,
+                                                    'cap_modifier': None,
+                                                    'id': 'I32',
+                                                    'node_type': 'nominal',
+                                                    'package': None,
+                                                    'typeargs': []}}]},
+                    'partial': False,
+                    'typeargs': {'node_type': 'typeargs',
+                                 'typeargs': [{'cap': None,
+                                               'cap_modifier': None,
+                                               'id': 'I64',
+                                               'node_type': 'nominal',
+                                               'package': None,
+                                               'typeargs': []}]}},
         'guard': {'id': 'windows', 'node_type': 'reference'},
+        'id': 'mypkg',
         'node_type': 'use',
-        'package': ('ffipkg',
-                    [(('I32', [], None), None)],
-                    [('fd', (('I32', [], None), None), None)],
-                    False)
+        'package': None
     }
     parse_code(data, expected, verbose=VERBOSE, start='use')
 
