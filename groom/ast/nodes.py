@@ -85,7 +85,7 @@ class ModuleNode(DocNode):
 class NodeMeta(type):
 
     def __new__(cls, name, bases, attrs):
-        print(cls, name, bases, attrs)
+        attrs.setdefault("node_attributes", [])
         for base in bases:
             if hasattr(base, "node_attributes"):
                 attrs["node_attributes"] += base.node_attributes
@@ -98,6 +98,7 @@ def _maybe_as_dict(obj):
     elif isinstance(obj, list):
         return [_maybe_as_dict(i) for i in obj]
     return obj
+
 
 class NodeBase(Node, metaclass=NodeMeta):
     def __init__(self, **kwargs):
@@ -213,30 +214,22 @@ class EmbedFieldNode(FieldNode):
     node_type = "fembed"
 
 
-class MethodNode(DocNode, Annotated, Id):
+class MethodNode(NodeBase):
+    node_attributes = ["docstring", "annotations", "id", "capability",
+            "typeparams", "params", "return_type", "is_partial", "guard",
+            "body"]
 
-    def __init__(self, capability, typeparams, params,
-                 return_type, is_partial, guard, body, **kwargs):
-        self.capability = capability
-        self.typeparams = typeparams
-        self.params = params
-        self.return_type = return_type
-        self.is_partial = is_partial
-        self.guard = guard.as_dict()
-        self.body = body
-        super(MethodNode, self).__init__(**kwargs)
 
-    def as_dict(self):
-        return dict(
-                super(MethodNode, self).as_dict(),
-                capability=self.capability,
-                typeparams=self.typeparams,
-                params=self.params,
-                return_type=self.return_type,
-                is_partial=self.is_partial,
-                guard=self.guard,
-                body=self.body.as_dict(),
-                )
+class NewMethod(MethodNode):
+    node_type = "new"
+
+
+class FunMethod(MethodNode):
+    node_type = "fun"
+
+
+class BeMethod(MethodNode):
+    node_type = "be"
 
 
 class PatternModifierNode(Node):
@@ -269,18 +262,6 @@ class NegNode(PatternModifierNode):
 
 class NegUnsafeNode(PatternModifierNode):
     node_type = "neg_unsafe"
-
-
-class NewMethod(MethodNode):
-    node_type = "new"
-
-
-class FunMethod(MethodNode):
-    node_type = "fun"
-
-
-class BeMethod(MethodNode):
-    node_type = "be"
 
 
 class LiteralNode(Node):
@@ -319,13 +300,13 @@ class ReferenceNode(Node, Id):
     node_type = "reference"
 
 
-class ParamNode(NodeBase, Id):
+class ParamNode(NodeBase):
     node_type = "param"
-    node_attributes = ["type", "default"]
+    node_attributes = ["id", "type", "default"]
 
 
 class ParamsNode(Node):
-    node_type = "paramsparams"
+    node_type = "params"
 
     def __init__(self, params, **kwargs):
         self.params = params
@@ -342,20 +323,10 @@ class ThisNode(Node):
     node_type = "this"
 
 
-class IfNode(ElseNode, Annotated):
+class IfNode(NodeBase):
     node_type = "if"
-
-    def __init__(self, assertion, members, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        super(IfNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(IfNode, self).as_dict(),
-            members=self.members.as_dict(),
-            assertion=self.assertion.as_dict()
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "assertion", "members"]
 
 
 class DotNode(Node):
@@ -436,24 +407,10 @@ class NamedArgNode(Node, Id):
         )
 
 
-class ElseifNode(IfNode):
-    node_type = "elseif"
-
-
-class IfdefNode(ElseNode, Annotated):
+class IfdefNode(NodeBase):
     node_type = "ifdef"
-
-    def __init__(self, assertion, members, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        super(IfdefNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(IfdefNode, self).as_dict(),
-            members=self.members,
-            assertion=self.assertion
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "assertion", "members"]
 
 
 class ElseifdefNode(IfNode):

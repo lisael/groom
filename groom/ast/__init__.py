@@ -13,7 +13,6 @@ from groom.ast.nodes import (
         FunMethod,
         BeMethod,
         IfNode,
-        ElseifNode,
         WhileNode,
         RepeatNode,
         ConsumeNode,

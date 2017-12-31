@@ -3,6 +3,7 @@ from pprint import pprint
 from groom.lexer import Lexer
 from groom.parser import Parser
 from groom import ast
+from unittest import skip
 
 
 def parse_code(data, expected, verbose=False, **parser_opts):
@@ -23,9 +24,10 @@ def test_ffidecl():
     expected = {
         'id': 'ffifunc',
         'node_type': 'ffidecl',
-        'params': {'node_type': 'paramsparams',
+        'params': {'node_type': 'params',
                    'params': [{'default': None,
                                'node_type': 'param',
+                               'id': 'fd',
                                'type': {'cap': None,
                                         'cap_modifier': None,
                                         'id': 'I32',
@@ -41,6 +43,7 @@ def test_ffidecl():
                                    'package': None,
                                    'typeargs': []}]}}
     parse_code(data, expected, verbose=VERBOSE, start="use_ffi")
+
 
 def test_call():
     data = """
@@ -158,9 +161,10 @@ def test_use_ffi():
     expected = {
         'ffidecl': {'id': 'ffipkg',
                     'node_type': 'ffidecl',
-                    'params': {'node_type': 'paramsparams',
+                    'params': {'node_type': 'params',
                                'params': [{'default': None,
                                            'node_type': 'param',
+                                           'id': 'fd',
                                            'type': {'cap': None,
                                                     'cap_modifier': None,
                                                     'id': 'I32',
@@ -188,19 +192,32 @@ def test_method():
         new create(env: Env): String iso^ ? if true => "stuff"
     """
     expected = {
-        'annotations': [],
-        'body': {
-            'node_type': 'seq',
-            'seq': [{'node_type': 'string', 'value': '"stuff"'}]},
+        'annotations': None,
+        'body': {'node_type': 'seq',
+                 'seq': [{'node_type': 'string', 'value': '"stuff"'}]},
         'capability': None,
         'docstring': None,
-        'guard': {
-            'node_type': 'seq', 'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'guard': {'node_type': 'seq',
+                  'seq': [{'node_type': 'true', 'value': 'true'}]},
         'id': 'create',
         'is_partial': True,
         'node_type': 'new',
-        'params': [('env', (('Env', [], None), None), None)],
-        'return_type': (('String', [], ('iso', '^')), None),
+        'params': {'node_type': 'params',
+                   'params': [{'default': None,
+                               'id': 'env',
+                               'node_type': 'param',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': 'Env',
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}]},
+        'return_type': {'cap': 'iso',
+                        'cap_modifier': '^',
+                        'id': 'String',
+                        'node_type': 'nominal',
+                        'package': None,
+                        'typeargs': []},
         'typeparams': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='method')
@@ -212,19 +229,12 @@ def test_if():
     """
     expected = {
         'annotations': ['likely'],
-        'assertion': {
-            'node_type': 'seq',
-            'seq': [
-                {'node_type': 'true', 'value': 'true'}
-            ]
-        },
-        'else': None,
-        'members': {
-            'node_type': 'seq',
-            'seq': [
-                {'node_type': 'false', 'value': 'false'}
-            ]
-        },
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': None,
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'false', 'value': 'false'}]},
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -236,9 +246,13 @@ def test_if_else():
     """
     expected = {
         'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        'else': ([], [((('"hello"', []), None), None)]),
-        'members': [((('false', []), None), None)],
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'node_type': 'string', 'value': '"hello"'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'false', 'value': 'false'}]},
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -254,15 +268,19 @@ def test_if_elseif():
     """
     expected = {
         'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        'else': {
-            'annotations': [],
-            'assertion': [((('false', []), None), None)],
-            'else': None,
-            'members': [((('"hello"', []), None), None)],
-            'node_type': 'elseif'
-        },
-        'members': [((('"bye"', []), None), None)],
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': {'annotations': [],
+                  'assertion': {'node_type': 'seq',
+                                'seq': [{'node_type': 'false', 'value': 'false'}]},
+                  'else_': None,
+                  'else_annotations': None,
+                  'members': {'node_type': 'seq',
+                              'seq': [{'node_type': 'string', 'value': '"hello"'}]},
+                  'node_type': 'if'},
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'string', 'value': '"bye"'}]},
         'node_type': 'if'
     }
     parse_code(data, expected, verbose=VERBOSE, start='if')
@@ -273,10 +291,13 @@ def test_ifdef():
         ifdef os_haiku then false else "hello" end
     """
     expected = {
-        'annotations': [],
-        'assertion': (('os_haiku', []), None),
-        'else': ([], [((('"hello"', []), None), None)]),
-        'members': [((('false', []), None), None)],
+        'annotations': None,
+        'assertion': {'id': 'os_haiku', 'node_type': 'reference'},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'node_type': 'string', 'value': '"hello"'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'false', 'value': 'false'}]},
         'node_type': 'ifdef'
     }
     parse_code(data, expected, verbose=VERBOSE, start='ifdef')
@@ -293,16 +314,22 @@ def test_ifdef_elseifdef():
         end
     """
     expected = {
-        'annotations': [],
-        'assertion': (('os_haiku', []), None),
-        'else': {
-            'annotations': [],
-            'assertion': (('os_hurd', []), None),
-            'else': ([], [((('"dunno"', []), None), None)]),
-            'members': [((('"dont do drugs"', []), None), None)],
-            'node_type': 'elseifdef'
-        },
-        'members': [((('"lol"', []), None), None)],
+        'annotations': None,
+        'assertion': {'id': 'os_haiku', 'node_type': 'reference'},
+        'else_': {'annotations': None,
+                  'assertion': {'id': 'os_hurd', 'node_type': 'reference'},
+                  'else_': {'node_type': 'seq',
+                            'seq': [
+                                {'node_type': 'string', 'value': '"dunno"'}
+                            ]},
+                  'else_annotations': [],
+                  'members': {'node_type': 'seq',
+                              'seq': [{'node_type': 'string',
+                                       'value': '"dont do drugs"'}]},
+                  'node_type': 'ifdef'},
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'string', 'value': '"lol"'}]},
         'node_type': 'ifdef'
     }
     parse_code(data, expected, verbose=VERBOSE, start='ifdef')

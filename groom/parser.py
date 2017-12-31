@@ -573,10 +573,11 @@ def p_if(p):
     if : IF annotatedrawseq THEN rawseq if_else END
     """
     p[0] = ast.IfNode(
-            annotation=p[2][0],
+            annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=p[5])
+            else_=p[5][1],
+            else_annotations=p[5][0])
 
 
 def p_if_else(p):
@@ -591,11 +592,12 @@ def p_elseif(p):
     """
     elseif : ELSEIF annotatedrawseq THEN rawseq if_else
     """
-    p[0] = ast.ElseifNode(
-            annotation=p[2][0],
+    p[0] = (None, ast.IfNode(
+            annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=p[5])
+            else_=p[5][1],
+            else_annotations=p[5][0]))
 
 
 def p_ifdef(p):
@@ -606,7 +608,8 @@ def p_ifdef(p):
             annotation=p[2],
             assertion=p[3],
             members=p[5],
-            else_=p[6]
+            else_=p[6][1],
+            else_annotations=p[6][0]
     )
 
 
@@ -622,12 +625,12 @@ def p_elseifdef(p):
     """
     elseifdef : ELSEIF annotation infix THEN rawseq ifdef_else
     """
-    p[0] = ast.ElseifdefNode(
+    p[0] = (None, ast.IfdefNode(
             annotation=p[2],
             assertion=p[3],
             members=p[5],
-            else_=p[6]
-    )
+            else_=p[6][1],
+            else_annotations=p[6][0]))
 
 
 def p_type_assertion(p):
@@ -860,7 +863,7 @@ def p_else(p):
     else : ELSE annotatedrawseq
          |
     """
-    p[0] = p[2] if len(p) == 3 else None
+    p[0] = p[2] if len(p) == 3 else (None, None)
 
 
 def p_consume(p):
@@ -1031,7 +1034,7 @@ def p_params(p):
     params : anylparen param_list ')'
            | anylparen ')'
     """
-    p[0] = ast.ParamsNode(p[2]) if len(p) == 4 else ast.ParamNode([])
+    p[0] = ast.ParamsNode(p[2]) if len(p) == 4 else ast.ParamsNode([])
 
 
 def p_param(p):
@@ -1039,9 +1042,8 @@ def p_param(p):
     param : param_1
           | param_1 '=' infix
     """
-    infix = p[3] if len(p) == 4 else None
-    # p[0] = (p[1][0], p[1][1], infix)
-    p[0] = ast.ParamNode(id=p[1][0], type=p[1][1], default=infix)
+    default = p[3] if len(p) == 4 else None
+    p[0] = ast.ParamNode(id=p[1][0].id, type=p[1][1], default=default)
 
 
 def p_param_1(p):
