@@ -413,193 +413,71 @@ class IfdefNode(NodeBase):
                        "assertion", "members"]
 
 
-class ElseifdefNode(IfNode):
-    node_type = "elseifdef"
-
-
-class IftypeNode(ElseNode, Annotated):
+class IftypeNode(NodeBase):
     node_type = "iftype"
-
-    def __init__(self, assertion, members, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        super(IftypeNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(IftypeNode, self).as_dict(),
-            # members=[m.as_dict() for m in self.members],
-            members=self.members,
-            assertion=self.assertion.as_dict()
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "assertion", "members"]
 
 
-class ElseifTypeNode(IftypeNode):
-    node_type = "elseiftype"
-
-
-class TypeAssertionNode(Node):
+class TypeAssertionNode(NodeBase):
     node_type = "type_assertion"
-
-    def __init__(self, child_type, parent_type, **kwargs):
-        self.child_type = child_type
-        self.parent_type = parent_type
-        super(TypeAssertionNode).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(TypeAssertionNode, self).as_dict(),
-                child_type=self.child_type,
-                parent_type=self.parent_type,
-        )
+    node_attributes = ["child_type", "parent_type"]
 
 
-class MatchNode(ElseNode, Annotated):
+class MatchNode(NodeBase):
     node_type = "match"
-
-    def __init__(self, matchseq, cases, **kwargs):
-        self.matchseq = matchseq
-        self.cases = cases
-        super(MatchNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(MatchNode, self).as_dict(),
-            matchseq=self.matchseq,
-            cases=[c.as_dict() for c in self.cases]
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "seq", "cases"]
 
 
-class CaseNode(Node, Annotated):
+class CaseNode(NodeBase):
     node_type = "case"
-
-    def __init__(self, pattern, guard, action, **kwargs):
-        self.pattern = pattern
-        self.guard = guard
-        self.action = action
-
-    def as_dict(self):
-        return dict(
-            super(CaseNode, self).as_dict(),
-            pattern=self.pattern,
-            action=self.action,
-            guard=self.guard
-        )
+    node_attributes = ["annotations", "pattern", "guard", "action"]
 
 
-
-class WhileNode(ElseNode, Annotated):
+class WhileNode(NodeBase):
     node_type = "while"
-
-    def __init__(self, assertion, members, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        super(WhileNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(WhileNode, self).as_dict(),
-            members=self.members,
-            assertion=self.assertion
-        )
+    node_attributes = ["else_", "annotations", "assertion", "members",
+                       "else_annotations"]
 
 
-class RepeatNode(ElseNode, Annotated):
+class RepeatNode(NodeBase):
     node_type = "repeat"
-
-    def __init__(self, assertion, members, **kwargs):
-        self.assertion = assertion
-        self.members = members
-        super(RepeatNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(RepeatNode, self).as_dict(),
-            members=self.members,
-            assertion=self.assertion
-        )
+    node_attributes = ["else_", "annotations", "assertion", "members",
+                       "else_annotations"]
 
 
-class ForNode(ElseNode, Annotated):
+class ForNode(NodeBase):
     node_type = "for"
-
-    def __init__(self, ids, sequence, members, **kwargs):
-        self.ids = ids
-        self.sequence = sequence
-        self.members = members
-        super(ForNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(ForNode, self).as_dict(),
-            ids=self.ids,
-            sequence=self.sequence,
-            members=self.members
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "ids", "sequence", "members"]
 
 
-class WithNode(ElseNode, Annotated):
+class WithNode(NodeBase):
     node_type = "with"
-
-    def __init__(self, elems, members, **kwargs):
-        self.elems=elems
-        self.members = members
-        super(WithNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(WithNode, self).as_dict(),
-            elems=self.elems,
-            members=self.members
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "elems", "members"]
 
 
-class TryNode(ElseNode, Annotated):
+class TryNode(NodeBase):
     node_type = "try"
-
-    def __init__(self, members, then, **kwargs):
-        self.members = members
-        self.then = then
-        super(TryNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(TryNode, self).as_dict(),
-            members=self.members,
-            then=self.then
-        )
+    node_attributes = ["annotations", "else_", "else_annotations",
+                       "then", "then_annotations", "members"]
 
 
-class RecoverNode(Node, Annotated):
+class TupleNode(NodeBase):
+    node_type = "tuple"
+    node_attributes = ["members"]
+
+
+class RecoverNode(NodeBase):
     node_type = "recover"
-
-    def __init__(self, capability, members, **kwargs):
-        self.capability = capability
-        self.members = members
-        super(RecoverNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(RecoverNode, self).as_dict(),
-            capability=self.capability,
-            members=self.members
-        )
+    node_attributes = ["annotations", "cap", "members"]
 
 
-class ConsumeNode(Node):
+class ConsumeNode(NodeBase):
     node_type = "consume"
-
-    def __init__(self, capability, term, **kwargs):
-        self.capability = capability
-        self.term = term
-        super(ConsumeNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(ConsumeNode, self).as_dict(),
-            term=self.term,
-            capability=self.capability
-        )
+    node_attributes = ["cap", "term"]
 
 
 class InfixFactory(object):

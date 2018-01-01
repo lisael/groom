@@ -651,7 +651,8 @@ def p_iftype(p):
             annotation=p[2],
             assertion=p[3],
             members=p[5],
-            else_=p[6]
+            else_=p[6][1],
+            else_annotations=p[6][0],
     )
 
 
@@ -667,12 +668,13 @@ def p_elseiftype(p):
     """
     elseiftype : ELSEIF annotation type_assertion THEN rawseq iftype_else
     """
-    p[0] = ast.ElseifTypeNode(
+    p[0] = (None, ast.IftypeNode(
             annotation=p[2],
             assertion=p[3],
             members=p[5],
-            else_=p[6]
-    )
+            else_=p[6][1],
+            else_annotations=p[6][0],
+    ))
 
 
 def p_match(p):
@@ -681,9 +683,10 @@ def p_match(p):
     """
     p[0] = ast.MatchNode(
             annotation=p[2],
-            matchseq=p[3],
+            seq=p[3],
             cases=p[4],
-            else_=p[5]
+            else_=p[5][1],
+            else_annotations=p[5][0]
     )
 
 
@@ -736,7 +739,8 @@ def p_while(p):
             annotation=p[2][0],
             assertion=p[2][1],
             members=p[4],
-            else_=p[5])
+            else_=p[5][1],
+            else_annotations=p[5][0])
 
 
 def p_repeat(p):
@@ -747,7 +751,8 @@ def p_repeat(p):
             annotation=p[4][0],
             assertion=p[4][1],
             members=p[2],
-            else_=p[5])
+            else_=p[5][1],
+            else_annotations=p[5][0])
 
 
 def p_then(p):
@@ -767,22 +772,23 @@ def p_for(p):
             ids=p[3],
             sequence=p[5],
             members=p[7],
-            else_=p[8]
+            else_=p[8][1],
+            else_annotations=p[8][0]
     )
 
 
 def _flatten_idseq(seq):
     result = []
     for item in seq:
-        if isinstance(item, list):
-            if len(item) > 1:
-                item = _flatten_idseq(item)
+        if isinstance(item, nodes.TupleNode):
+            if len(item.members) > 1:
+                item = _flatten_idseq(item.members)
                 result.append(item)
             else:
-                result.append(item[0])
+                result.append(item.members[0])
         else:
             result.append(item)
-    return result
+    return nodes.TupleNode(members=result)
 
 
 def p_idseq(p):
@@ -804,27 +810,28 @@ def p_idseq_list(p):
 
 def p_with(p):
     """
-    with : WITH annotation with_elem_list DO rawseq else END
+    with : WITH annotation withelem_list DO rawseq else END
     """
     p[0] = ast.WithNode(
             annotation=p[2],
             elems=p[3],
             members=p[5],
-            else_=p[6]
+            else_=p[6][1],
+            else_annotations=p[6][0]
     )
 
 
-def p_with_elem_list(p):
+def p_withelem_list(p):
     """
-    with_elem_list : with_elem ',' with_elem_list
-                   | with_elem
+    withelem_list : withelem ',' withelem_list
+                   | withelem
     """
     p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
 
 
-def p_with_elem(p):
+def p_withelem(p):
     """
-    with_elem : idseq '=' rawseq
+    withelem : idseq '=' rawseq
     """
     p[0] = (p[1], p[3])
 
@@ -843,8 +850,10 @@ def p_try(p):
     p[0] = ast.TryNode(
         annotation=p[2],
         members=p[3],
-        else_=p[4][0],
-        then=p[4][1]
+        else_=p[4][0][1],
+        else_annotations=p[4][0][0],
+        then=p[4][1][1],
+        then_annotations=p[4][1][0],
     )
 
 

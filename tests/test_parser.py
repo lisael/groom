@@ -340,11 +340,13 @@ def test_while():
         while true do stuff end
     """
     expected = {
-        'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        # 'else': (None, [((('"hello"', []), None), None)]),
-        'else': None,
-        'members': [((('stuff', []), None), None)],
+        'annotations': None,
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': None,
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -359,14 +361,25 @@ def test_iftype():
         end
     """
     expected = {
-        'annotations': [],
-        'assertion': {
-            'child_type': (('A', [], None), None),
-            'node_type': 'type_assertion',
-            'parent_type': (('U128', [], None), None)
-        },
-        'else': ([], [((('false', []), None), None)]),
-        'members': [((('true', []), None), None)],
+        'annotations': None,
+        'assertion': {'child_type': {'cap': None,
+                                     'cap_modifier': None,
+                                     'id': 'A',
+                                     'node_type': 'nominal',
+                                     'package': None,
+                                     'typeargs': []},
+                      'node_type': 'type_assertion',
+                      'parent_type': {'cap': None,
+                                      'cap_modifier': None,
+                                      'id': 'U128',
+                                      'node_type': 'nominal',
+                                      'package': None,
+                                      'typeargs': []}},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'node_type': 'false', 'value': 'false'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'true', 'value': 'true'}]},
         'node_type': 'iftype'
     }
     parse_code(data, expected, verbose=VERBOSE, start='iftype')
@@ -381,24 +394,42 @@ def test_iftype_elseiftype():
         end
     """
     expected = {
-        'annotations': [],
-        'assertion': {
-            'child_type': (('A', [], None), None),
-            'node_type': 'type_assertion',
-            'parent_type': (('U128', [], None), None)
-        },
-        'else': {
-            'annotations': [],
-            'assertion': {
-                'child_type': (('A', [], None), None),
-                'node_type': 'type_assertion',
-                'parent_type': (('U64', [], None), None)
-            },
-            'else': None,
-            'members': [((('false', []), None), None)],
-            'node_type': 'elseiftype'
-        },
-        'members': [((('true', []), None), None)],
+        'annotations': None,
+        'assertion': {'child_type': {'cap': None,
+                                     'cap_modifier': None,
+                                     'id': 'A',
+                                     'node_type': 'nominal',
+                                     'package': None,
+                                     'typeargs': []},
+                      'node_type': 'type_assertion',
+                      'parent_type': {'cap': None,
+                                      'cap_modifier': None,
+                                      'id': 'U128',
+                                      'node_type': 'nominal',
+                                      'package': None,
+                                      'typeargs': []}},
+        'else_': {'annotations': None,
+                  'assertion': {'child_type': {'cap': None,
+                                               'cap_modifier': None,
+                                               'id': 'A',
+                                               'node_type': 'nominal',
+                                               'package': None,
+                                               'typeargs': []},
+                                'node_type': 'type_assertion',
+                                'parent_type': {'cap': None,
+                                                'cap_modifier': None,
+                                                'id': 'U64',
+                                                'node_type': 'nominal',
+                                                'package': None,
+                                                'typeargs': []}},
+                  'else_': None,
+                  'else_annotations': None,
+                  'members': {'node_type': 'seq',
+                              'seq': [{'node_type': 'false', 'value': 'false'}]},
+                  'node_type': 'iftype'},
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'true', 'value': 'true'}]},
         'node_type': 'iftype'
     }
     parse_code(data, expected, verbose=VERBOSE, start='iftype')
@@ -412,24 +443,23 @@ def test_match():
         end
     """
     expected = {
-        'annotations': [],
-        'cases': [
-            {
-                'action': [((('do_foo', []), None), None)],
-                'guard': None,
-                'node_type': 'case',
-                'pattern': ('foo', [])
-            },
-            {
-                'action': [((('do_bar', []), None), None)],
-                'guard': None,
-                'node_type': 'case',
-                'pattern': ('bar', [])
-            }
-        ],
-        'else': None,
-        'matchseq': [((('stuf', []), None), None)],
-        'node_type': 'match'
+        'annotations': None,
+        'cases': [{'action': {'node_type': 'seq',
+                              'seq': [{'id': 'do_foo', 'node_type': 'reference'}]},
+                   'annotations': None,
+                   'guard': None,
+                   'node_type': 'case',
+                   'pattern': {'id': 'foo', 'node_type': 'reference'}},
+                  {'action': {'node_type': 'seq',
+                              'seq': [{'id': 'do_bar', 'node_type': 'reference'}]},
+                   'annotations': None,
+                   'guard': None,
+                   'node_type': 'case',
+                   'pattern': {'id': 'bar', 'node_type': 'reference'}}],
+        'else_': None,
+        'else_annotations': None,
+        'node_type': 'match',
+        'seq': {'node_type': 'seq', 'seq': [{'id': 'stuf', 'node_type': 'reference'}]}
     }
     parse_code(data, expected, verbose=VERBOSE, start='match')
 
@@ -440,11 +470,15 @@ def test_empty_match():
         end
     """
     expected = {
-        'annotations': [],
+        'annotations': None,
         'cases': [],
-        'else': None,
-        'matchseq': [((('stuf', []), None), None)],
-        'node_type': 'match'
+        'else_': None,
+        'else_annotations': None,
+        'node_type': 'match',
+        'seq': {
+            'node_type': 'seq',
+            'seq': [{'id': 'stuf', 'node_type': 'reference'}]
+        }
     }
     parse_code(data, expected, verbose=VERBOSE, start='match')
 
@@ -454,10 +488,14 @@ def test_while_else():
         while true do stuff else bar end
     """
     expected = {
-        'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        'else': ([], [((('bar', []), None), None)]),
-        'members': [((('stuff', []), None), None)],
+        'annotations': None,
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'id': 'bar', 'node_type': 'reference'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -468,11 +506,13 @@ def test_repeat():
         repeat stuff until true end
     """
     expected = {
-        'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        # 'else': (None, [((('"hello"', []), None), None)]),
-        'else': None,
-        'members': [((('stuff', []), None), None)],
+        'annotations': None,
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': None,
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -483,10 +523,14 @@ def test_repeat_else():
         repeat stuff until true else "hello" end
     """
     expected = {
-        'annotations': [],
-        'assertion': [((('true', []), None), None)],
-        'else': ([], [((('"hello"', []), None), None)]),
-        'members': [((('stuff', []), None), None)],
+        'annotations': None,
+        'assertion': {'node_type': 'seq',
+                      'seq': [{'node_type': 'true', 'value': 'true'}]},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'node_type': 'string', 'value': '"hello"'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -496,25 +540,58 @@ def test_idseq():
     data = """
         a
     """
-    expected = ['a']
+    expected = {
+        'members': [
+            'a'
+        ],
+        'node_type': 'tuple'
+    }
     parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, b)
     """
-    expected = ['a', 'b']
+    expected = {
+        'members': [
+            'a',
+            'b'
+        ],
+        'node_type': 'tuple'
+    }
     parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, (b, c), d)
     """
     expected = ['a', ['b', 'c'], 'd']
+    expected = {
+        'members': [
+            'a',
+            {'members': ['b', 'c'], 'node_type': 'tuple'},
+            'd'
+        ],
+        'node_type': 'tuple'
+    }
     parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
     data = """
         (a, ((b, c), d, (e, f)), g)
     """
-    expected = ['a', [['b', 'c'], 'd', ['e', 'f']], 'g']
+    expected = {
+        'members': [
+            'a',
+            {
+                'members': [
+                    {'members': ['b', 'c'], 'node_type': 'tuple'},
+                    'd',
+                    {'members': ['e', 'f'], 'node_type': 'tuple'}
+                ],
+                'node_type': 'tuple'
+            },
+            'g'
+        ],
+        'node_type': 'tuple'
+    }
     parse_code(data, expected, verbose=VERBOSE, start='idseq')
 
 
@@ -527,12 +604,18 @@ def test_for():
         end
     """
     expected = {
-        'annotations': [],
-        'else': ([], [((('foo', []), None), None)]),
-        'ids': ['i', ['n', '_']],
-        'members': [((('stuff', []), None), None)],
+        'annotations': None,
+        'else_': {'node_type': 'seq',
+                  'seq': [{'id': 'foo', 'node_type': 'reference'}]},
+        'else_annotations': [],
+        'ids': {
+            'members': ['i', {'members': ['n', '_'], 'node_type': 'tuple'}],
+            'node_type': 'tuple'},
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
         'node_type': 'for',
-        'sequence': [((('pairs', []), None), None)]
+        'sequence': {'node_type': 'seq',
+                     'seq': [{'id': 'pairs', 'node_type': 'reference'}]}
     }
     parse_code(data, expected, verbose=VERBOSE, start='for')
 
