@@ -29,6 +29,13 @@ def p_empty(p):
     p[0] = None
 
 
+def p_id(p):
+    """
+    id : ID
+    """
+    p[0] = nodes.IdNode(id=p[1])
+
+
 def p_uses(p):
     """
     uses : use uses
@@ -79,7 +86,7 @@ def p_used(p):
 
 def p_used_id(p):
     """
-    used_id : ID '='
+    used_id : id '='
             | empty
     """
     p[0] = p[1]
@@ -109,7 +116,7 @@ def p_typearglist(p):
 
 def p_id_or_string(p):
     """
-    id_or_string : ID
+    id_or_string : id
                  | STRING
     """
     p[0] = p[1]
@@ -226,8 +233,8 @@ def p_literal(p):
 
 def p_typed_id(p):
     """
-    typed_id : ID
-             | ID ':' type
+    typed_id : id
+             | id ':' type
     """
     if len(p) == 2:
         p[0] = (p[1], None)
@@ -296,7 +303,7 @@ def p_cap_modifier(p):
 
 def p_namespaced(p):
     """
-    namespaced : ID '.' typeargs_id
+    namespaced : id '.' typeargs_id
                | typeargs_id
     """
     if len(p) == 2:
@@ -307,8 +314,8 @@ def p_namespaced(p):
 
 def p_typeargs_id(p):
     """
-    typeargs_id : ID typeargs
-                | ID
+    typeargs_id : id typeargs
+                | id
     """
     if len(p) == 3:
         p[0] = (p[1], p[2])
@@ -353,8 +360,8 @@ def p_infixtype(p):
 
 def p_parametrised_id(p):
     """
-    parametrised_id : ID typeparams
-                    | ID
+    parametrised_id : id typeparams
+                    | id
     """
     if len(p) == 3:
         p[0] = (p[1], p[2])
@@ -420,8 +427,8 @@ def p_annotation(p):
 
 def p_id_list(p):
     """
-    id_list : ID ',' id_list
-            | ID
+    id_list : id ',' id_list
+            | id
     """
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
@@ -460,8 +467,8 @@ field_classes = {
 
 def p_field(p):
     """
-    field : varkw ID ':' type '=' infix
-          | varkw ID ':' type
+    field : varkw id ':' type '=' infix
+          | varkw id ':' type
     """
     # p[0] = p[1]
     if len(p) == 7:
@@ -535,7 +542,7 @@ def p_mabetyped(p):
 
 def p_vardecl(p):
     """
-    vardecl : varkw ID maybe_typed
+    vardecl : varkw id maybe_typed
     """
     p[0] = (p[1], p[2], p[3])
 
@@ -793,7 +800,7 @@ def _flatten_idseq(seq):
 
 def p_idseq(p):
     """
-    idseq : ID
+    idseq : id
           | anylparen idseq_list ')'
     """
     idseq = [p[1]] if len(p) == 2 else p[2]
@@ -884,7 +891,7 @@ def p_consume(p):
 
 def p_nextterm(p):
     """
-    nextterm : ID
+    nextterm : id
              | literal
     """
     # TODO
@@ -1043,7 +1050,7 @@ def p_params(p):
     params : anylparen param_list ')'
            | anylparen ')'
     """
-    p[0] = ast.ParamsNode(p[2]) if len(p) == 4 else ast.ParamsNode([])
+    p[0] = ast.ParamsNode(params=p[2]) if len(p) == 4 else ast.ParamsNode(params=[])
 
 
 def p_param(p):
@@ -1052,7 +1059,10 @@ def p_param(p):
           | param_1 '=' infix
     """
     default = p[3] if len(p) == 4 else None
-    p[0] = ast.ParamNode(id=p[1][0].id, type=p[1][1], default=default)
+    id = p[1][0]
+    if isinstance(id, nodes.ReferenceNode):
+        id = id.id
+    p[0] = ast.ParamNode(id=id, type=p[1][1], default=default)
 
 
 def p_param_1(p):
@@ -1105,7 +1115,7 @@ def p_postfix(p):
     postfix : atom atomsuffix_list
     """
     result = p[1]
-    if not isinstance(result, ast.Node):
+    if isinstance(result, nodes.IdNode):
         result = ast.ReferenceNode(id=result)
     for s in p[2]:
         result = atomsuffix_classes[s[0]](result, *s[1:])
@@ -1139,21 +1149,21 @@ def p_atomsuffix(p):
 
 def p_dot(p):
     """
-    dot : '.' ID
+    dot : '.' id
     """
     p[0] = (p[1], p[2])
 
 
 def p_tilde(p):
     """
-    tilde : '~' ID
+    tilde : '~' id
     """
     p[0] = (p[1], p[2])
 
 
 def p_chain(p):
     """
-    chain : '.' '>' ID
+    chain : '.' '>' id
     """
     p[0] = ('.>', p[3])
 
@@ -1162,8 +1172,8 @@ def p_call(p):
     """
     call : LPAREN  positional named ')' maybe_partial
     """
-    p[0] = ('call', ast.PositionalArgsNode(p[2]),
-            ast.NamedArgsNode(p[3]), p[5])
+    p[0] = ('call', ast.PositionalArgsNode(args=p[2]),
+            ast.NamedArgsNode(args=p[3]), p[5])
 
 
 def p_positional(p):
@@ -1198,7 +1208,7 @@ def p_namedarglist(p):
 
 def p_namedarg(p):
     """
-    namedarg : ID '=' rawseq
+    namedarg : id '=' rawseq
     """
     p[0] = ast.NamedArgNode(id=p[1], value=p[3])
 
@@ -1212,7 +1222,7 @@ def p_this(p):
 
 def p_atom(p):
     """
-    atom : ID
+    atom : id
          | this
          | literal
     """

@@ -296,8 +296,9 @@ class StringNode(LiteralNode):
     node_type = "string"
 
 
-class ReferenceNode(Node, Id):
+class ReferenceNode(NodeBase):
     node_type = "reference"
+    node_attributes = ["id"]
 
 
 class ParamNode(NodeBase):
@@ -305,18 +306,9 @@ class ParamNode(NodeBase):
     node_attributes = ["id", "type", "default"]
 
 
-class ParamsNode(Node):
+class ParamsNode(NodeBase):
     node_type = "params"
-
-    def __init__(self, params, **kwargs):
-        self.params = params
-        super(ParamsNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(ParamsNode, self).as_dict(),
-            params=[a.as_dict() for a in self.params],
-        )
+    node_attributes = ["params"]
 
 
 class ThisNode(Node):
@@ -329,20 +321,14 @@ class IfNode(NodeBase):
                        "assertion", "members"]
 
 
-class DotNode(Node):
+class DotNode(NodeBase):
     node_type = '.'
+    node_attributes = ["first", "second"]
 
     def __init__(self, first, second, **kwargs):
         self.first = first
         self.second = second
-        super(DotNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(DotNode, self).as_dict(),
-            first=self.first.as_dict(),
-            second=self.second
-        )
+        # super(DotNode, self).__init__(**kwargs)
 
 
 class CallNode(Node):
@@ -365,46 +351,19 @@ class CallNode(Node):
         )
 
 
-class PositionalArgsNode(Node):
+class PositionalArgsNode(NodeBase):
     node_type = "positionalargs"
-
-    def __init__(self, args, **kwargs):
-        self.args = args
-        super(PositionalArgsNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(PositionalArgsNode, self).as_dict(),
-            args=[a.as_dict() for a in self.args],
-        )
+    node_attributes = ["args"]
 
 
-class NamedArgsNode(Node):
+class NamedArgsNode(NodeBase):
     node_type = "namedargs"
-
-    def __init__(self, args, **kwargs):
-        self.args = args
-        super(NamedArgsNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(NamedArgsNode, self).as_dict(),
-            args=[a.as_dict() for a in self.args],
-        )
+    node_attributes = ["args"]
 
 
-class NamedArgNode(Node, Id):
+class NamedArgNode(NodeBase):
     node_type = "namedarg"
-
-    def __init__(self, value, **kwargs):
-        self.value = value
-        super(NamedArgNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(NamedArgNode, self).as_dict(),
-            value=self.value.as_dict(),
-        )
+    node_attributes = ["id", "value"]
 
 
 class IfdefNode(NodeBase):
@@ -478,6 +437,16 @@ class RecoverNode(NodeBase):
 class ConsumeNode(NodeBase):
     node_type = "consume"
     node_attributes = ["cap", "term"]
+
+
+class LetNode(NodeBase):
+    node_type = "let"
+    node_attributes = ["id", "value"]
+
+
+class IdNode(NodeBase):
+    node_type = "id"
+    node_attributes = ["id"]
 
 
 class InfixFactory(object):

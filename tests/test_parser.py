@@ -22,15 +22,15 @@ def test_ffidecl():
         @ffifunc[I32](fd: I32)?
     """
     expected = {
-        'id': 'ffifunc',
+        'id': {'id': 'ffifunc', 'node_type': 'id'},
         'node_type': 'ffidecl',
         'params': {'node_type': 'params',
                    'params': [{'default': None,
                                'node_type': 'param',
-                               'id': 'fd',
+                               'id': {'id': 'fd', 'node_type': 'id'},
                                'type': {'cap': None,
                                         'cap_modifier': None,
-                                        'id': 'I32',
+                                        'id': {'id': 'I32', 'node_type': 'id'},
                                         'node_type': 'nominal',
                                         'package': None,
                                         'typeargs': []}}]},
@@ -38,7 +38,7 @@ def test_ffidecl():
         'typeargs': {'node_type': 'typeargs',
                      'typeargs': [{'cap': None,
                                    'cap_modifier': None,
-                                   'id': 'I32',
+                                   'id': {'id': 'I32', 'node_type': 'id'},
                                    'node_type': 'nominal',
                                    'package': None,
                                    'typeargs': []}]}}
@@ -53,13 +53,14 @@ def test_call():
         'fun': {
             'first': {
                 'first': {
-                    'id': 'env', 'node_type': 'reference'
+                    'id': {'id': 'env', 'node_type': 'id'},
+                    'node_type': 'reference'
                 },
                 'node_type': '.',
-                'second': 'out'
+                'second': {'id': 'out', 'node_type': 'id'}
             },
             'node_type': '.',
-            'second': 'print'
+            'second': {'id': 'print', 'node_type': 'id'}
         },
         'is_partial': False,
         'namedargs': {
@@ -92,13 +93,14 @@ def test_call_full():
     """
     expected = {
         'fun': {
-            'id': 'foo', 'node_type': 'reference'
+            'id': {'id': 'foo', 'node_type': 'id'},
+            'node_type': 'reference'
         },
         'is_partial': False,
         'namedargs': {
             'args': [
                 {
-                    'id': 'pos',
+                    'id': {'id': 'pos', 'node_type': 'id'},
                     'node_type': 'namedarg',
                     'value': {
                         'node_type': 'seq',
@@ -146,8 +148,9 @@ def test_use():
     """
     expected = {
         'ffidecl': None,
-        'id': 'myboots',
-        'guard': {'id': 'windows', 'node_type': 'reference'},
+        'id': {'id': 'myboots', 'node_type': 'id'},
+        'guard': {'id': {'id': 'windows', 'node_type': 'id'},
+		  'node_type': 'reference'},
         'node_type': 'use',
         'package': '"boots"'
     }
@@ -159,15 +162,15 @@ def test_use_ffi():
         use mypkg = @ffipkg[I64](fd: I32) if windows
     """
     expected = {
-        'ffidecl': {'id': 'ffipkg',
+        'ffidecl': {'id': {'id': 'ffipkg', 'node_type': 'id'},
                     'node_type': 'ffidecl',
                     'params': {'node_type': 'params',
                                'params': [{'default': None,
                                            'node_type': 'param',
-                                           'id': 'fd',
+                                           'id': {'id': 'fd', 'node_type': 'id'},
                                            'type': {'cap': None,
                                                     'cap_modifier': None,
-                                                    'id': 'I32',
+                                                    'id': {'id': 'I32', 'node_type': 'id'},
                                                     'node_type': 'nominal',
                                                     'package': None,
                                                     'typeargs': []}}]},
@@ -175,12 +178,13 @@ def test_use_ffi():
                     'typeargs': {'node_type': 'typeargs',
                                  'typeargs': [{'cap': None,
                                                'cap_modifier': None,
-                                               'id': 'I64',
+                                               'id': {'id': 'I64', 'node_type': 'id'},
                                                'node_type': 'nominal',
                                                'package': None,
                                                'typeargs': []}]}},
-        'guard': {'id': 'windows', 'node_type': 'reference'},
-        'id': 'mypkg',
+        'guard': {'id': {'id': 'windows', 'node_type': 'id'},
+                  'node_type': 'reference'},
+        'id': {'id': 'mypkg', 'node_type': 'id'},
         'node_type': 'use',
         'package': None
     }
@@ -199,22 +203,22 @@ def test_method():
         'docstring': None,
         'guard': {'node_type': 'seq',
                   'seq': [{'node_type': 'true', 'value': 'true'}]},
-        'id': 'create',
+        'id': {'id': 'create', 'node_type': 'id'},
         'is_partial': True,
         'node_type': 'new',
         'params': {'node_type': 'params',
                    'params': [{'default': None,
-                               'id': 'env',
+                               'id': {'id': 'env', 'node_type': 'id'},
                                'node_type': 'param',
                                'type': {'cap': None,
                                         'cap_modifier': None,
-                                        'id': 'Env',
+                                        'id': {'id': 'Env', 'node_type': 'id'},
                                         'node_type': 'nominal',
                                         'package': None,
                                         'typeargs': []}}]},
         'return_type': {'cap': 'iso',
                         'cap_modifier': '^',
-                        'id': 'String',
+                        'id': {'id': 'String', 'node_type': 'id'},
                         'node_type': 'nominal',
                         'package': None,
                         'typeargs': []},
@@ -228,7 +232,7 @@ def test_if():
         if \likely\ true then false end
     """
     expected = {
-        'annotations': ['likely'],
+        'annotations': [{'id': 'likely', 'node_type': 'id'}],
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': None,
@@ -292,7 +296,8 @@ def test_ifdef():
     """
     expected = {
         'annotations': None,
-        'assertion': {'id': 'os_haiku', 'node_type': 'reference'},
+        'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
+                      'node_type': 'reference'},
         'else_': {'node_type': 'seq',
                   'seq': [{'node_type': 'string', 'value': '"hello"'}]},
         'else_annotations': [],
@@ -315,9 +320,11 @@ def test_ifdef_elseifdef():
     """
     expected = {
         'annotations': None,
-        'assertion': {'id': 'os_haiku', 'node_type': 'reference'},
+        'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
+                      'node_type': 'reference'},
         'else_': {'annotations': None,
-                  'assertion': {'id': 'os_hurd', 'node_type': 'reference'},
+                  'assertion': {'id': {'id': 'os_hurd', 'node_type': 'id'},
+                                'node_type': 'reference'},
                   'else_': {'node_type': 'seq',
                             'seq': [
                                 {'node_type': 'string', 'value': '"dunno"'}
@@ -346,7 +353,8 @@ def test_while():
         'else_': None,
         'else_annotations': None,
         'members': {'node_type': 'seq',
-                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -364,14 +372,14 @@ def test_iftype():
         'annotations': None,
         'assertion': {'child_type': {'cap': None,
                                      'cap_modifier': None,
-                                     'id': 'A',
+                                     'id': {'id': 'A', 'node_type': 'id'},
                                      'node_type': 'nominal',
                                      'package': None,
                                      'typeargs': []},
                       'node_type': 'type_assertion',
                       'parent_type': {'cap': None,
                                       'cap_modifier': None,
-                                      'id': 'U128',
+                                      'id': {'id': 'U128', 'node_type': 'id'},
                                       'node_type': 'nominal',
                                       'package': None,
                                       'typeargs': []}},
@@ -397,28 +405,28 @@ def test_iftype_elseiftype():
         'annotations': None,
         'assertion': {'child_type': {'cap': None,
                                      'cap_modifier': None,
-                                     'id': 'A',
+                                     'id': {'id': 'A', 'node_type': 'id'},
                                      'node_type': 'nominal',
                                      'package': None,
                                      'typeargs': []},
                       'node_type': 'type_assertion',
                       'parent_type': {'cap': None,
                                       'cap_modifier': None,
-                                      'id': 'U128',
+                                      'id': {'id': 'U128', 'node_type': 'id'},
                                       'node_type': 'nominal',
                                       'package': None,
                                       'typeargs': []}},
         'else_': {'annotations': None,
                   'assertion': {'child_type': {'cap': None,
                                                'cap_modifier': None,
-                                               'id': 'A',
+                                               'id': {'id': 'A', 'node_type': 'id'},
                                                'node_type': 'nominal',
                                                'package': None,
                                                'typeargs': []},
                                 'node_type': 'type_assertion',
                                 'parent_type': {'cap': None,
                                                 'cap_modifier': None,
-                                                'id': 'U64',
+                                                'id': {'id': 'U64', 'node_type': 'id'},
                                                 'node_type': 'nominal',
                                                 'package': None,
                                                 'typeargs': []}},
@@ -445,21 +453,26 @@ def test_match():
     expected = {
         'annotations': None,
         'cases': [{'action': {'node_type': 'seq',
-                              'seq': [{'id': 'do_foo', 'node_type': 'reference'}]},
+                              'seq': [{'id': {'id': 'do_foo', 'node_type': 'id'},
+                                       'node_type': 'reference'}]},
                    'annotations': None,
                    'guard': None,
                    'node_type': 'case',
-                   'pattern': {'id': 'foo', 'node_type': 'reference'}},
+                   'pattern': {'id': {'id': 'foo', 'node_type': 'id'},
+                               'node_type': 'reference'}},
                   {'action': {'node_type': 'seq',
-                              'seq': [{'id': 'do_bar', 'node_type': 'reference'}]},
+                              'seq': [{'id': {'id': 'do_bar', 'node_type': 'id'},
+                                       'node_type': 'reference'}]},
                    'annotations': None,
                    'guard': None,
                    'node_type': 'case',
-                   'pattern': {'id': 'bar', 'node_type': 'reference'}}],
+                   'pattern': {'id': {'id': 'bar', 'node_type': 'id'},
+                               'node_type': 'reference'}}],
         'else_': None,
         'else_annotations': None,
         'node_type': 'match',
-        'seq': {'node_type': 'seq', 'seq': [{'id': 'stuf', 'node_type': 'reference'}]}
+        'seq': {'node_type': 'seq', 'seq': [{'id': {'id': 'stuf', 'node_type': 'id'},
+                                             'node_type': 'reference'}]}
     }
     parse_code(data, expected, verbose=VERBOSE, start='match')
 
@@ -477,7 +490,8 @@ def test_empty_match():
         'node_type': 'match',
         'seq': {
             'node_type': 'seq',
-            'seq': [{'id': 'stuf', 'node_type': 'reference'}]
+            'seq': [{'id': {'id': 'stuf', 'node_type': 'id'},
+                     'node_type': 'reference'}]
         }
     }
     parse_code(data, expected, verbose=VERBOSE, start='match')
@@ -492,10 +506,12 @@ def test_while_else():
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': {'node_type': 'seq',
-                  'seq': [{'id': 'bar', 'node_type': 'reference'}]},
+                  'seq': [{'id': {'id': 'bar', 'node_type': 'id'},
+                           'node_type': 'reference'}]},
         'else_annotations': [],
         'members': {'node_type': 'seq',
-                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'while'
     }
     parse_code(data, expected, verbose=VERBOSE, start='while')
@@ -512,7 +528,8 @@ def test_repeat():
         'else_': None,
         'else_annotations': None,
         'members': {'node_type': 'seq',
-                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -530,7 +547,8 @@ def test_repeat_else():
                   'seq': [{'node_type': 'string', 'value': '"hello"'}]},
         'else_annotations': [],
         'members': {'node_type': 'seq',
-                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'repeat'
     }
     parse_code(data, expected, verbose=VERBOSE, start='repeat')
@@ -542,7 +560,7 @@ def test_idseq():
     """
     expected = {
         'members': [
-            'a'
+            {'id': 'a', 'node_type': 'id'}
         ],
         'node_type': 'tuple'
     }
@@ -553,8 +571,8 @@ def test_idseq():
     """
     expected = {
         'members': [
-            'a',
-            'b'
+            {'id': 'a', 'node_type': 'id'},
+            {'id': 'b', 'node_type': 'id'}
         ],
         'node_type': 'tuple'
     }
@@ -566,9 +584,9 @@ def test_idseq():
     expected = ['a', ['b', 'c'], 'd']
     expected = {
         'members': [
-            'a',
-            {'members': ['b', 'c'], 'node_type': 'tuple'},
-            'd'
+            {'id': 'a', 'node_type': 'id'},
+            {'members': [{'id': 'b', 'node_type': 'id'}, {'id': 'c', 'node_type': 'id'}], 'node_type': 'tuple'},
+            {'id': 'd', 'node_type': 'id'}
         ],
         'node_type': 'tuple'
     }
@@ -579,16 +597,28 @@ def test_idseq():
     """
     expected = {
         'members': [
-            'a',
+            {'id': 'a', 'node_type': 'id'},
             {
                 'members': [
-                    {'members': ['b', 'c'], 'node_type': 'tuple'},
-                    'd',
-                    {'members': ['e', 'f'], 'node_type': 'tuple'}
+                    {
+                        'members': [
+                            {'id': 'b', 'node_type': 'id'},
+                            {'id': 'c', 'node_type': 'id'}
+                        ],
+                        'node_type': 'tuple'
+                    },
+                    {'id': 'd', 'node_type': 'id'},
+                    {
+                        'members': [
+                            {'id': 'e', 'node_type': 'id'},
+                            {'id': 'f', 'node_type': 'id'}
+                        ],
+                        'node_type': 'tuple'
+                    }
                 ],
                 'node_type': 'tuple'
             },
-            'g'
+            {'id': 'g', 'node_type': 'id'}
         ],
         'node_type': 'tuple'
     }
@@ -606,16 +636,19 @@ def test_for():
     expected = {
         'annotations': None,
         'else_': {'node_type': 'seq',
-                  'seq': [{'id': 'foo', 'node_type': 'reference'}]},
+                  'seq': [{'id': {'id': 'foo', 'node_type': 'id'},
+                           'node_type': 'reference'}]},
         'else_annotations': [],
         'ids': {
-            'members': ['i', {'members': ['n', '_'], 'node_type': 'tuple'}],
+            'members': [{'id': 'i', 'node_type': 'id'}, {'members': [{'id': 'n', 'node_type': 'id'}, {'id': '_', 'node_type': 'id'}], 'node_type': 'tuple'}],
             'node_type': 'tuple'},
         'members': {'node_type': 'seq',
-                    'seq': [{'id': 'stuff', 'node_type': 'reference'}]},
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'for',
         'sequence': {'node_type': 'seq',
-                     'seq': [{'id': 'pairs', 'node_type': 'reference'}]}
+                     'seq': [{'id': {'id': 'pairs', 'node_type': 'id'},
+                              'node_type': 'reference'}]}
     }
     parse_code(data, expected, verbose=VERBOSE, start='for')
 
@@ -727,7 +760,7 @@ def test_tupletype():
         'annotations': [],
         'capability': None,
         'docstring': None,
-        'id': 'Point',
+        'id': {'id': 'Point', 'node_type': 'id'},
         'is': ([(('I32', [], None), None), (('I32', [], None), None)], None),
         'members': [],
         'node_type': 'type',
@@ -790,7 +823,7 @@ class MultipleParams[Pif, Paf]
                 'annotations': [],
                 'capability': None,
                 'docstring': None,
-                'id': 'Hop',
+                'id': {'id': 'Hop', 'node_type': 'id'},
                 'is': None,
                 'members': [],
                 'node_type': 'type',
@@ -799,26 +832,26 @@ class MultipleParams[Pif, Paf]
                 'node_type': 'class',
                 "annotations": ["packed", "something"],
                 'capability': 'iso',
-                'id': 'Hip',
+                'id': {'id': 'Hip', 'node_type': 'id'},
                 'docstring': '"""class docstring"""',
                 'is': None,
                 'type_params': [('Hop', None, None)],
                 "members": [
                     {
                         'node_type': 'flet',
-                        'id': 'aa',
+                        'id': {'id': 'aa', 'node_type': 'id'},
                         'type': (('String', [], ('iso', None)), None),
                         'default': (('"hello"', []), None)
                     },
                     {
                         'node_type': 'flet',
-                        'id': 'bb',
+                        'id': {'id': 'bb', 'node_type': 'id'},
                         'type': (('Bool', [], None), None),
                         'default': None
                     },
                     {
                         'node_type': 'flet',
-                        'id': 'cc',
+                        'id': {'id': 'cc', 'node_type': 'id'},
                         'type': (('I32', [], None), None),
                         'default': (('40', []), [
                             ('+', ('2', []), False),
@@ -829,7 +862,7 @@ class MultipleParams[Pif, Paf]
                         'annotations': [],
                         'capability': 'val',
                         'docstring': None,
-                        'id': 'create',
+                        'id': {'id': 'create', 'node_type': 'id'},
                         'is_partial': True,
                         'typeparams': [],
                         'node_type': 'new',
@@ -855,7 +888,7 @@ class MultipleParams[Pif, Paf]
                 'node_type': 'class',
                 "annotations": [],
                 'capability': None,
-                'id': 'Simple',
+                'id': {'id': 'Simple', 'node_type': 'id'},
                 'docstring': None,
                 "members": [],
                 "is": None,
@@ -865,7 +898,7 @@ class MultipleParams[Pif, Paf]
                 'annotations': [],
                 'capability': None,
                 'docstring': None,
-                'id': 'Combined',
+                'id': {'id': 'Combined', 'node_type': 'id'},
                 'is': ([(('Foo', [], None), None)], None),
                 'members': [],
                 'node_type': 'type',
@@ -876,7 +909,7 @@ class MultipleParams[Pif, Paf]
                 'node_type': 'class',
                 "annotations": [],
                 'capability': None,
-                'id': 'MultipleParams',
+                'id': {'id': 'MultipleParams', 'node_type': 'id'},
                 'docstring': None,
                 "is": None,
                 'type_params': [('Pif', None, None), ('Paf', None, None)],
@@ -885,7 +918,7 @@ class MultipleParams[Pif, Paf]
                         'annotations': [],
                         'capability': None,
                         'docstring': None,
-                        'id': 'create',
+                        'id': {'id': 'create', 'node_type': 'id'},
                         'is_partial': True,
                         'typeparams': [],
                         'node_type': 'new',
@@ -933,7 +966,7 @@ def test_module_parsing_no_docstring_no_use():
                 'annotations': [],
                 'capability': None,
                 'docstring': None,
-                'id': 'hop',
+                'id': {'id': 'hop', 'node_type': 'id'},
                 'is': None,
                 'members': [],
                 'node_type': 'type',
