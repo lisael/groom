@@ -843,12 +843,25 @@ def test_tupletype():
     """
     expected = {
         'annotations': [],
-        'capability': None,
+        'cap': None,
         'docstring': None,
         'id': {'id': 'Point', 'node_type': 'id'},
-        'is': ([(('I32', [], None), None), (('I32', [], None), None)], None),
         'members': [],
         'node_type': 'type',
+        'provides': {'node_type': 'provides',
+                     'type': {'members': [{'cap': None,
+                                           'cap_modifier': None,
+                                           'id': {'id': 'I32', 'node_type': 'id'},
+                                           'node_type': 'nominal',
+                                           'package': None,
+                                           'typeargs': []},
+                                          {'cap': None,
+                                           'cap_modifier': None,
+                                           'id': {'id': 'I32', 'node_type': 'id'},
+                                           'node_type': 'nominal',
+                                           'package': None,
+                                           'typeargs': []}],
+                              'node_type': 'tupletype'}},
         'type_params': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='class_def')
@@ -859,186 +872,9 @@ def test_unary_minus():
         -2
     """
     expected = {
-        "node_type": "neg",
-        "pattern": ('2', [])
-    }
+        'node_type': 'neg', 'pattern': {'node_type': 'int', 'value': '2'}}
+
     parse_code(data, expected, verbose=VERBOSE, start='pattern')
-
-
-def test_full_module():
-    """
-    Test as much syntax constructs a possible
-
-    Not a real unit test, it's more of a dev tool and
-    a documentation of supported grammar
-    """
-    data = '''"""docstring..."""
-use "plop"
-use "plip"
-
-type Hop
-
-class \packed, something\ iso Hip[Hop]
-    """class docstring"""
-
-    let aa: String iso = "hello"
-    let bb: Bool
-    let cc: I32 = 40 + 2 as I32
-
-    new val create(env: Env): String iso^ ? if true =>
-        let dd: Bool
-        true == true
-        // if true then false end
-        42 +? 2; 44
-        43
-        return "stuff"
-
-class Simple
-
-type Combined is (Foo|Bar)
-
-class MultipleParams[Pif, Paf]
-    new create(env: Env, stuff: String): String ?
-    fun foo()
-
-'''
-    expected = {
-        'class_defs': [
-            {
-                'annotations': [],
-                'capability': None,
-                'docstring': None,
-                'id': {'id': 'Hop', 'node_type': 'id'},
-                'is': None,
-                'members': [],
-                'node_type': 'type',
-                'type_params': []},
-            {
-                'node_type': 'class',
-                "annotations": ["packed", "something"],
-                'capability': 'iso',
-                'id': {'id': 'Hip', 'node_type': 'id'},
-                'docstring': '"""class docstring"""',
-                'is': None,
-                'type_params': [('Hop', None, None)],
-                "members": [
-                    {
-                        'node_type': 'flet',
-                        'id': {'id': 'aa', 'node_type': 'id'},
-                        'type': (('String', [], ('iso', None)), None),
-                        'default': (('"hello"', []), None)
-                    },
-                    {
-                        'node_type': 'flet',
-                        'id': {'id': 'bb', 'node_type': 'id'},
-                        'type': (('Bool', [], None), None),
-                        'default': None
-                    },
-                    {
-                        'node_type': 'flet',
-                        'id': {'id': 'cc', 'node_type': 'id'},
-                        'type': (('I32', [], None), None),
-                        'default': (('40', []), [
-                            ('+', ('2', []), False),
-                            (('I32', [], None), None)
-                        ]),
-                    },
-                    {
-                        'annotations': [],
-                        'capability': 'val',
-                        'docstring': None,
-                        'id': {'id': 'create', 'node_type': 'id'},
-                        'is_partial': True,
-                        'typeparams': [],
-                        'node_type': 'new',
-                        # parameters and return_type are messy at the momment.
-                        # they need their own nodes...
-                        'params': [(('env', []),
-                                        (('Env', [], None), None),
-                                        None)],
-                        'return_type': (('String', [], ('iso', '^')), None),
-                        'guard': [((('true', []), None), None)],
-                        'body': [
-                            ((('let', 'dd', (('Bool', [], None), None)), None), None),
-                            ((('true', []), [('==', ('true', []), False)]), None),
-                            (('42', [('+', ('2', []), True)]), None),
-                            ((('44', []), None), None),
-                            (('43', None), None),
-                            ('return', [((('"stuff"', []),  None), None)])
-                        ],
-                    },
-                ],
-            },
-            {
-                'node_type': 'class',
-                "annotations": [],
-                'capability': None,
-                'id': {'id': 'Simple', 'node_type': 'id'},
-                'docstring': None,
-                "members": [],
-                "is": None,
-                "type_params": [],
-            },
-            {
-                'annotations': [],
-                'capability': None,
-                'docstring': None,
-                'id': {'id': 'Combined', 'node_type': 'id'},
-                'is': ([(('Foo', [], None), None)], None),
-                'members': [],
-                'node_type': 'type',
-                'type_params': []
-            },
-
-            {
-                'node_type': 'class',
-                "annotations": [],
-                'capability': None,
-                'id': {'id': 'MultipleParams', 'node_type': 'id'},
-                'docstring': None,
-                "is": None,
-                'type_params': [('Pif', None, None), ('Paf', None, None)],
-                "members": [
-                    {
-                        'annotations': [],
-                        'capability': None,
-                        'docstring': None,
-                        'id': {'id': 'create', 'node_type': 'id'},
-                        'is_partial': True,
-                        'typeparams': [],
-                        'node_type': 'new',
-                        # parameters and return_type are messy at the momment.
-                        # they need their own nodes...
-                        'params': [
-                            (('env', []), (('Env', [], None), None), None),
-                            (('stuff', []), (('String', [], None), None), None)
-                        ],
-                        'return_type': (('String', [], None), None),
-                        'guard': None,
-                        'body': None,
-                    },
-                ],
-            },
-        ],
-        'docstring': '"""docstring..."""',
-        'name': None,
-        'node_type': 'module',
-        'uses': [
-            {
-                'alias': None,
-                'condition': None,
-                'node_type': 'use',
-                'package': '"plop"'
-            },
-            {
-                'alias': None,
-                'condition': None,
-                'node_type': 'use',
-                'package': '"plip"'
-            }
-        ]
-    }
-    parse_code(data, expected, verbose=VERBOSE)
 
 
 def test_module_parsing_no_docstring_no_use():
@@ -1046,18 +882,14 @@ def test_module_parsing_no_docstring_no_use():
         type hop
     '''
     expected = {
-        'class_defs': [
-            {
-                'annotations': [],
-                'capability': None,
-                'docstring': None,
-                'id': {'id': 'hop', 'node_type': 'id'},
-                'is': None,
-                'members': [],
-                'node_type': 'type',
-                'type_params': []
-            }
-        ],
+        'class_defs': [{'annotations': [],
+                        'cap': None,
+                        'docstring': None,
+                        'id': {'id': 'hop', 'node_type': 'id'},
+                        'members': [],
+                        'node_type': 'type',
+                        'provides': None,
+                        'type_params': []}],
         'docstring': None,
         'name': None,
         'node_type': 'module',

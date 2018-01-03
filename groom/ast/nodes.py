@@ -152,25 +152,9 @@ class SeqNode(Node):
                 )
 
 
-class ClassNodeBase(DocNode, Annotated, Id):
-
-    def __init__(self, members=None, capability=None,
-                 type_params=None, is_=None, **kwargs):
-        self.members = members if members else []
-        self.capability = capability
-        self.is_ = is_
-        self.type_params = type_params
-        super(ClassNodeBase, self).__init__(**kwargs)
-
-    def as_dict(self):
-        d = dict(
-            super(ClassNodeBase, self).as_dict(),
-            capability=self.capability,
-            members=[m.as_dict() for m in self.members],
-            type_params=self.type_params,
-        )
-        d["is"] = self.is_
-        return d
+class ClassNodeBase(NodeBase):
+    node_attributes = ["docstring", "annotations", "id",
+                       "members", "cap", "provides", "type_params"]
 
 
 class ClassNode(ClassNodeBase):
@@ -180,12 +164,15 @@ class ClassNode(ClassNodeBase):
 class TypeNode(ClassNodeBase):
     node_type = "type"
 
-    def __init__(self, **kwargs):
-        if kwargs.get("members"):
-            raise SyntaxError("type class definition doesn't accept members")
-        if kwargs.get("annotation"):
-            raise SyntaxError("type class definition doesn't accept annotations")
-        super(TypeNode, self).__init__(**kwargs)
+
+class TupleTypeNode(NodeBase):
+    node_type = "tupletype"
+    node_attributes = ["members"]
+
+
+class ProvidesNode(NodeBase):
+    node_type = "provides"
+    node_attributes = ["type"]
 
 
 class FieldNode(Node, Id):
@@ -232,16 +219,8 @@ class BeMethod(MethodNode):
     node_type = "be"
 
 
-class PatternModifierNode(Node):
-    def __init__(self, pattern=None, **kwargs):
-        self.pattern = pattern
-        super(PatternModifierNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(PatternModifierNode, self).as_dict(),
-            pattern=self.pattern,
-        )
+class PatternModifierNode(NodeBase):
+    node_attributes = ["pattern"]
 
 
 class NotNode(PatternModifierNode):

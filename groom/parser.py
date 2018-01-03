@@ -329,9 +329,9 @@ def p_combined_types(p):
                    | anylparen infixtype ')'
     """
     if len(p) == 5:
-        p[0] = [p[2]] + p[3]
+        p[0] = nodes.TupleTypeNode(members=[p[2]] + p[3])
     else:
-        p[0] = [p[2]]
+        p[0] = nodes.TupleTypeNode(members[p[2]])
 
 
 def p_tupletype(p):
@@ -377,7 +377,7 @@ def p_class_decl(p):
     if len(p) == 2:
         p[0] = p[1] + (None,)
     else:
-        p[0] = p[1] + (p[3],)
+        p[0] = p[1] + (nodes.ProvidesNode(type=p[3]),)
 
 
 def p_class_decl_1(p):
@@ -409,8 +409,10 @@ def p_class_def(p):
     members = [] if len(p) == 3 else p[3]
     p[0] = class_nodes[p[1][0]](
             annotations=p[1][1],
-            capability=p[1][2], id=p[1][3],
-            type_params=p[1][4], is_=p[1][5],
+            cap=p[1][2],
+            id=p[1][3],
+            type_params=p[1][4],
+            provides=p[1][5],
             docstring=p[2], members=members)
 
 
