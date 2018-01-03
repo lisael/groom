@@ -312,30 +312,15 @@ class DotNode(NodeBase):
     node_type = '.'
     node_attributes = ["first", "second"]
 
-    def __init__(self, first, second, **kwargs):
-        self.first = first
-        self.second = second
-        # super(DotNode, self).__init__(**kwargs)
 
-
-class CallNode(Node):
+class CallNode(NodeBase):
     node_type = "call"
+    node_attributes = ["fun", "positionalargs", "namedargs", "is_partial"]
 
-    def __init__(self, fun, positionalargs, namedargs, is_partial, **kwargs):
-        self.fun = fun
-        self.positionalargs = positionalargs
-        self.namedargs = namedargs
-        self.is_partial = is_partial
-        super(CallNode, self).__init__(**kwargs)
 
-    def as_dict(self):
-        return dict(
-            super(CallNode, self).as_dict(),
-            fun=self.fun.as_dict(),
-            positionalargs=self.positionalargs.as_dict(),
-            namedargs=self.namedargs.as_dict(),
-            is_partial=self.is_partial,
-        )
+class QualifyNode(NodeBase):
+    node_type = "qualify"
+    node_attributes = ["type", "args"]
 
 
 class PositionalArgsNode(NodeBase):

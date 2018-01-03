@@ -250,7 +250,7 @@ def p_type(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = ArrowNode(origin=p[1], trarget=p[3])
+        p[0] = nodes.ArrowNode(origin=p[1], trarget=p[3])
 
 
 def p_atomtype(p):
@@ -1138,7 +1138,13 @@ def p_postfix(p):
     if isinstance(result, nodes.IdNode):
         result = ast.ReferenceNode(id=result)
     for s in p[2]:
-        result = atomsuffix_classes[s[0]](result, *s[1:])
+        if s[0] == '.':
+            result = nodes.DotNode(first=result, second=s[1])
+        elif s[0] == 'call':
+            result = nodes.CallNode(fun=result, positionalargs=s[1],
+                                    namedargs=s[2], is_partial=s[3])
+        elif s[0] == 'qualify':
+            result = nodes.QualifyNode(type=result, args=s[1])
     p[0] = result
 
 
@@ -1161,10 +1167,17 @@ def p_atomsuffix(p):
     atomsuffix : dot
                | tilde
                | chain
-               | typeargs
+               | atom_typeargs
                | call
     """
     p[0] = p[1]
+
+
+def p_atom_typeargs(p):
+    """
+    atom_typeargs : typeargs
+    """
+    p[0] = ("qualify", p[1])
 
 
 def p_dot(p):

@@ -875,9 +875,29 @@ def test_unary_minus():
         -2
     """
     expected = {
-        'node_type': 'neg', 'pattern': {'node_type': 'int', 'value': '2'}}
-
+        'node_type': 'neg', 'pattern': {'node_type': 'int', 'value': '2'}
+    }
     parse_code(data, expected, verbose=VERBOSE, start='pattern')
+
+
+def test_postfix():
+    data = """
+        Array[String]
+    """
+    expected = {
+        'node_type': 'seq',
+        'seq': [{'args': {'node_type': 'typeargs',
+                          'typeargs': [{'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'String', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}]},
+                 'node_type': 'qualify',
+                 'type': {'id': {'id': 'Array', 'node_type': 'id'},
+                          'node_type': 'reference'}}]
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='rawseq')
 
 
 def test_module_parsing_no_docstring_no_use():
