@@ -196,7 +196,7 @@ def test_method():
         new create(env: Env): String iso^ ? if true => "stuff"
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'body': {'node_type': 'seq',
                  'seq': [{'node_type': 'string', 'value': '"stuff"'}]},
         'capability': None,
@@ -295,7 +295,7 @@ def test_ifdef():
         ifdef os_haiku then false else "hello" end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
                       'node_type': 'reference'},
         'else_': {'node_type': 'seq',
@@ -319,10 +319,10 @@ def test_ifdef_elseifdef():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
                       'node_type': 'reference'},
-        'else_': {'annotations': None,
+        'else_': {'annotations': [],
                   'assertion': {'id': {'id': 'os_hurd', 'node_type': 'id'},
                                 'node_type': 'reference'},
                   'else_': {'node_type': 'seq',
@@ -347,7 +347,7 @@ def test_while():
         while true do stuff end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': None,
@@ -369,7 +369,7 @@ def test_iftype():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'child_type': {'cap': None,
                                      'cap_modifier': None,
                                      'id': {'id': 'A', 'node_type': 'id'},
@@ -402,7 +402,7 @@ def test_iftype_elseiftype():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'child_type': {'cap': None,
                                      'cap_modifier': None,
                                      'id': {'id': 'A', 'node_type': 'id'},
@@ -416,7 +416,7 @@ def test_iftype_elseiftype():
                                       'node_type': 'nominal',
                                       'package': None,
                                       'typeargs': []}},
-        'else_': {'annotations': None,
+        'else_': {'annotations': [],
                   'assertion': {'child_type': {'cap': None,
                                                'cap_modifier': None,
                                                'id': {'id': 'A', 'node_type': 'id'},
@@ -451,11 +451,11 @@ def test_match():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'cases': [{'action': {'node_type': 'seq',
                               'seq': [{'id': {'id': 'do_foo', 'node_type': 'id'},
                                        'node_type': 'reference'}]},
-                   'annotations': None,
+                   'annotations': [],
                    'guard': None,
                    'node_type': 'case',
                    'pattern': {'id': {'id': 'foo', 'node_type': 'id'},
@@ -463,7 +463,7 @@ def test_match():
                   {'action': {'node_type': 'seq',
                               'seq': [{'id': {'id': 'do_bar', 'node_type': 'id'},
                                        'node_type': 'reference'}]},
-                   'annotations': None,
+                   'annotations': [],
                    'guard': None,
                    'node_type': 'case',
                    'pattern': {'id': {'id': 'bar', 'node_type': 'id'},
@@ -483,7 +483,7 @@ def test_empty_match():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'cases': [],
         'else_': None,
         'else_annotations': None,
@@ -502,7 +502,7 @@ def test_while_else():
         while true do stuff else bar end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': {'node_type': 'seq',
@@ -522,7 +522,7 @@ def test_repeat():
         repeat stuff until true end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': None,
@@ -540,7 +540,7 @@ def test_repeat_else():
         repeat stuff until true else "hello" end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'assertion': {'node_type': 'seq',
                       'seq': [{'node_type': 'true', 'value': 'true'}]},
         'else_': {'node_type': 'seq',
@@ -560,7 +560,7 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': 'a', 'node_type': 'id'}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
         ],
         'node_type': 'tuple'
     }
@@ -571,8 +571,8 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': 'a', 'node_type': 'id'},
-            {'id': 'b', 'node_type': 'id'}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
         ],
         'node_type': 'tuple'
     }
@@ -584,9 +584,15 @@ def test_idseq():
     expected = ['a', ['b', 'c'], 'd']
     expected = {
         'members': [
-            {'id': 'a', 'node_type': 'id'},
-            {'members': [{'id': 'b', 'node_type': 'id'}, {'id': 'c', 'node_type': 'id'}], 'node_type': 'tuple'},
-            {'id': 'd', 'node_type': 'id'}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {
+                'members': [
+                    {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                    {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                ],
+                'node_type': 'tuple'
+            },
+            {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
         ],
         'node_type': 'tuple'
     }
@@ -597,28 +603,28 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': 'a', 'node_type': 'id'},
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
             {
                 'members': [
                     {
                         'members': [
-                            {'id': 'b', 'node_type': 'id'},
-                            {'id': 'c', 'node_type': 'id'}
+                            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                            {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
                         ],
                         'node_type': 'tuple'
                     },
-                    {'id': 'd', 'node_type': 'id'},
+                    {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
                     {
                         'members': [
-                            {'id': 'e', 'node_type': 'id'},
-                            {'id': 'f', 'node_type': 'id'}
+                            {'id': {'id': 'e', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                            {'id': {'id': 'f', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
                         ],
                         'node_type': 'tuple'
                     }
                 ],
                 'node_type': 'tuple'
             },
-            {'id': 'g', 'node_type': 'id'}
+            {'id': {'id': 'g', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
         ],
         'node_type': 'tuple'
     }
@@ -634,13 +640,18 @@ def test_for():
         end
     """
     expected = {
-        'annotations': None,
+        'annotations': [],
         'else_': {'node_type': 'seq',
                   'seq': [{'id': {'id': 'foo', 'node_type': 'id'},
                            'node_type': 'reference'}]},
         'else_annotations': [],
         'ids': {
-            'members': [{'id': 'i', 'node_type': 'id'}, {'members': [{'id': 'n', 'node_type': 'id'}, {'id': '_', 'node_type': 'id'}], 'node_type': 'tuple'}],
+            'members': [
+                {'id': {'id': 'i', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                {'members': [
+                    {'id': {'id': 'n', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                    {'id': {'id': '_', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                ], 'node_type': 'tuple'}],
             'node_type': 'tuple'},
         'members': {'node_type': 'seq',
                     'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
@@ -663,12 +674,52 @@ def test_with():
     """
     expected = {
         'annotations': [],
-        'elems': [(['file'], [((('myfile', []), None), None)])],
-        'else': ([], [((('other', []), None), None)]),
-        'members': [((('stuff', []), None), None)],
+        'elems': {'node_type': 'seq',
+                  'seq': [{'node_type': 'seq',
+                           'seq': [{'id': {'id': 'file', 'node_type': 'id'},
+                                    'node_type': 'let',
+                                    'value': None},
+                                   {'node_type': 'seq',
+                                    'seq': [{'id': {'id': 'myfile', 'node_type': 'id'},
+                                             'node_type': 'reference'}]}]}]},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'id': {'id': 'other', 'node_type': 'id'},
+                           'node_type': 'reference'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
         'node_type': 'with'
     }
     parse_code(data, expected, verbose=VERBOSE, start='with')
+
+
+def test_binary_op():
+    data = """
+        1 + 2
+    """
+    expected = {
+        'first': {'node_type': 'int', 'value': '1'},
+        'is_partial': False,
+        'node_type': '+',
+        'operator': '+',
+        'second': {'node_type': 'int', 'value': '2'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='infix')
+
+
+def test_binary_partial_op():
+    data = """
+        1 +? 2
+    """
+    expected = {
+        'first': {'node_type': 'int', 'value': '1'},
+        'is_partial': True,
+        'node_type': '+',
+        'operator': '+',
+        'second': {'node_type': 'int', 'value': '2'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='infix')
 
 
 def test_try():
@@ -676,11 +727,18 @@ def test_try():
         try 1 +? 2 end
     """
     expected = {
-        'annotations': [],
-        'else': None,
-        'then': None,
-        'members': [((('1', []), [('+', ('2', []), True)]), None)],
-        'node_type': 'try'
+            'annotations': [],
+ 'else_': None,
+ 'else_annotations': None,
+ 'members': {'node_type': 'seq',
+             'seq': [{'first': {'node_type': 'int', 'value': '1'},
+                      'is_partial': True,
+                      'node_type': '+',
+                      'operator': '+',
+                      'second': {'node_type': 'int', 'value': '2'}}]},
+ 'node_type': 'try',
+ 'then': None,
+ 'then_annotations': None
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
 
@@ -691,10 +749,19 @@ def test_try_else():
     """
     expected = {
         'annotations': [],
-        'else':  ([], [((('hop', []), None), None)]),
+        'else_': {'node_type': 'seq',
+                  'seq': [{'id': {'id': 'hop', 'node_type': 'id'},
+                           'node_type': 'reference'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'first': {'node_type': 'int', 'value': '1'},
+                             'is_partial': True,
+                             'node_type': '+',
+                             'operator': '+',
+                             'second': {'node_type': 'int', 'value': '2'}}]},
+        'node_type': 'try',
         'then': None,
-        'members': [((('1', []), [('+', ('2', []), True)]), None)],
-        'node_type': 'try'
+        'then_annotations': None
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
 
@@ -705,10 +772,17 @@ def test_try_then():
     """
     expected = {
         'annotations': [],
-        'else': None,
-        'then': ([], [((('42', []), None), None)]),
-        'members': [((('1', []), [('+', ('2', []), True)]), None)],
-        'node_type': 'try'
+        'else_': None,
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'first': {'node_type': 'int', 'value': '1'},
+                             'is_partial': True,
+                             'node_type': '+',
+                             'operator': '+',
+                             'second': {'node_type': 'int', 'value': '2'}}]},
+        'node_type': 'try',
+        'then': {'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '42'}]},
+        'then_annotations': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
 
@@ -719,10 +793,19 @@ def test_try_then_else():
     """
     expected = {
         'annotations': [],
-        'else':  ([], [((('hop', []), None), None)]),
-        'then': ([], [((('42', []), None), None)]),
-        'members': [((('1', []), [('+', ('2', []), True)]), None)],
-        'node_type': 'try'
+        'else_': {'node_type': 'seq',
+                  'seq': [{'id': {'id': 'hop', 'node_type': 'id'},
+                           'node_type': 'reference'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'first': {'node_type': 'int', 'value': '1'},
+                             'is_partial': True,
+                             'node_type': '+',
+                             'operator': '+',
+                             'second': {'node_type': 'int', 'value': '2'}}]},
+        'node_type': 'try',
+        'then': {'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '42'}]},
+        'then_annotations': []
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
 
@@ -732,10 +815,12 @@ def test_recover():
         recover iso stuff end
     """
     expected = {
-        'node_type': 'recover',
-        'capability': 'iso',
         'annotations': [],
-        'members': [((('stuff', []), None), None)],
+        'cap': 'iso',
+        'members': {'node_type': 'seq',
+                    'seq': [{'id': {'id': 'stuff', 'node_type': 'id'},
+                             'node_type': 'reference'}]},
+        'node_type': 'recover'
     }
     parse_code(data, expected, verbose=VERBOSE, start='recover')
 
@@ -745,9 +830,9 @@ def test_consume():
         consume stuff
     """
     expected = {
+        'cap': None,
         'node_type': 'consume',
-        'capability': None,
-        'term': ('stuff', [])
+        'term': {'id': {'id': 'stuff', 'node_type': 'id'}, 'node_type': 'reference'}
     }
     parse_code(data, expected, verbose=VERBOSE, start='consume')
 

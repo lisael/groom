@@ -469,15 +469,14 @@ class InfixNode(Node):
         )
 
 
-class AsNode(InfixNode):
+class AsNode(NodeBase):
     node_type = "as"
-    def __init__(self, type, **kwargs):
-        self.type = type
-        super(AsNode, self).__init_(**kwargs)
+    node_attributes = ["term", "type"]
 
-    def as_dict(self):
-        return dict(
-            super(AsNode, self).as_dict(),
-            type=self.term,
-        )
 
+class BinOpNode(NodeBase):
+    node_attributes = ["operator", "first", "second", "is_partial"]
+
+    @property
+    def node_type(self):
+        return self.operator

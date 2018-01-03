@@ -408,7 +408,7 @@ def p_class_def(p):
     """
     members = [] if len(p) == 3 else p[3]
     p[0] = class_nodes[p[1][0]](
-            annotation=p[1][1],
+            annotations=p[1][1],
             capability=p[1][2], id=p[1][3],
             type_params=p[1][4], is_=p[1][5],
             docstring=p[2], members=members)
@@ -519,6 +519,20 @@ def p_op_list(p):
         p[0] = [p[1]] + p[2]
 
 
+class OperatorFactory(object):
+    def __init__(self, operator, term, partial=False):
+        self.operator = operator
+        self.term = term
+        self.partial = partial
+
+    def __call__(self, first):
+        if self.operator == "as":
+            return nodes.AsNode(term=first, type=self.term)
+        else:
+            return nodes.BinOpNode(operator=self.operator, first=first,
+                                   second=self.term, is_partial=self.partial)
+
+
 def p_op(p):
     """
     op : AS type
@@ -527,7 +541,7 @@ def p_op(p):
     """
     # TODO
     if len(p) == 3:
-        p[0] = p[2]
+        p[0] = OperatorFactory("as", p[2])
     else:
         p[0] = p[1]
 
@@ -612,7 +626,7 @@ def p_ifdef(p):
     ifdef : IFDEF annotation infix THEN rawseq ifdef_else END
     """
     p[0] = ast.IfdefNode(
-            annotation=p[2],
+            annotations=p[2],
             assertion=p[3],
             members=p[5],
             else_=p[6][1],
@@ -633,7 +647,7 @@ def p_elseifdef(p):
     elseifdef : ELSEIF annotation infix THEN rawseq ifdef_else
     """
     p[0] = (None, ast.IfdefNode(
-            annotation=p[2],
+            annotations=p[2],
             assertion=p[3],
             members=p[5],
             else_=p[6][1],
@@ -655,7 +669,7 @@ def p_iftype(p):
     iftype : IFTYPE annotation type_assertion THEN rawseq iftype_else END
     """
     p[0] = ast.IftypeNode(
-            annotation=p[2],
+            annotations=p[2],
             assertion=p[3],
             members=p[5],
             else_=p[6][1],
@@ -676,7 +690,7 @@ def p_elseiftype(p):
     elseiftype : ELSEIF annotation type_assertion THEN rawseq iftype_else
     """
     p[0] = (None, ast.IftypeNode(
-            annotation=p[2],
+            annotations=p[2],
             assertion=p[3],
             members=p[5],
             else_=p[6][1],
@@ -689,7 +703,7 @@ def p_match(p):
     match : MATCH annotation rawseq caseexpr_list else END
     """
     p[0] = ast.MatchNode(
-            annotation=p[2],
+            annotations=p[2],
             seq=p[3],
             cases=p[4],
             else_=p[5][1],
@@ -731,7 +745,7 @@ def p_caseexpr(p):
     caseexpr : '|' annotation maybe_pattern guard match_action
     """
     p[0] = ast.CaseNode(
-            annotation=p[2],
+            annotations=p[2],
             pattern=p[3],
             guard=p[4],
             action=p[5]
@@ -743,7 +757,7 @@ def p_while(p):
     while : WHILE annotatedrawseq DO rawseq else END
     """
     p[0] = ast.WhileNode(
-            annotation=p[2][0],
+            annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
             else_=p[5][1],
@@ -755,7 +769,7 @@ def p_repeat(p):
     repeat : REPEAT rawseq UNTIL annotatedrawseq else END
     """
     p[0] = ast.RepeatNode(
-            annotation=p[4][0],
+            annotations=p[4][0],
             assertion=p[4][1],
             members=p[2],
             else_=p[5][1],
@@ -767,7 +781,7 @@ def p_then(p):
     then : THEN annotatedrawseq
          |
     """
-    p[0] = p[2] if len(p) == 3 else None
+    p[0] = p[2] if len(p) == 3 else (None, None)
 
 
 def p_for(p):
@@ -775,7 +789,7 @@ def p_for(p):
     for : FOR annotation idseq IN rawseq DO rawseq else END
     """
     p[0] = ast.ForNode(
-            annotation=p[2],
+            annotations=p[2],
             ids=p[3],
             sequence=p[5],
             members=p[7],
@@ -803,7 +817,7 @@ def p_idseq(p):
     idseq : id
           | anylparen idseq_list ')'
     """
-    idseq = [p[1]] if len(p) == 2 else p[2]
+    idseq = [nodes.LetNode(id=p[1])] if len(p) == 2 else p[2]
     p[0] = _flatten_idseq(idseq)
 
 
@@ -820,8 +834,8 @@ def p_with(p):
     with : WITH annotation withelem_list DO rawseq else END
     """
     p[0] = ast.WithNode(
-            annotation=p[2],
-            elems=p[3],
+            annotations=p[2],
+            elems=nodes.SeqNode(seq=p[3]),
             members=p[5],
             else_=p[6][1],
             else_annotations=p[6][0]
@@ -831,7 +845,7 @@ def p_with(p):
 def p_withelem_list(p):
     """
     withelem_list : withelem ',' withelem_list
-                   | withelem
+                  | withelem
     """
     p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
 
@@ -840,7 +854,11 @@ def p_withelem(p):
     """
     withelem : idseq '=' rawseq
     """
-    p[0] = (p[1], p[3])
+    members = p[1].members
+    idseq = p[1]
+    if len(members) == 1 and isinstance(members[0], nodes.LetNode):
+        idseq = members[0]
+    p[0] = nodes.SeqNode(seq=[idseq, p[3]])
 
 
 def p_else_then(p):
@@ -855,7 +873,7 @@ def p_try(p):
     try : TRY annotation rawseq else_then END
     """
     p[0] = ast.TryNode(
-        annotation=p[2],
+        annotations=p[2],
         members=p[3],
         else_=p[4][0][1],
         else_annotations=p[4][0][0],
@@ -869,8 +887,8 @@ def p_recover(p):
     recover : RECOVER annotation cap rawseq END
     """
     p[0] = ast.RecoverNode(
-            annotation=p[2],
-            capability=p[3],
+            annotations=p[2],
+            cap=p[3],
             members=p[4])
 
 
@@ -886,7 +904,7 @@ def p_consume(p):
     """
     consume : CONSUME cap term
     """
-    p[0] = ast.ConsumeNode(capability=p[2], term=p[3])
+    p[0] = ast.ConsumeNode(cap=p[2], term=p[3])
 
 
 def p_nextterm(p):
@@ -903,8 +921,7 @@ def p_isop(p):
     isop : IS term
          | ISNT term
     """
-    # TODO
-    p[0] = (p[1], p[2])
+    p[0] = OperatorFactory(p[1], p[2])
 
 
 def p_binop(p):
@@ -912,11 +929,10 @@ def p_binop(p):
     binop : binop_op term
           | binop_op '?' term
     """
-    # TODO binop node ??
     if len(p) == 3:
-        p[0] = (p[1], p[2], False)
+        p[0] = OperatorFactory(p[1], p[2], False)
     else:
-        p[0] = (p[1], p[3], True)
+        p[0] = OperatorFactory(p[1], p[3], True)
 
 
 def p_binop_op(p):
@@ -1003,7 +1019,7 @@ def p_method(p):
     """
     method : meth_decl meth_cap parametrised_id params meth_type maybe_partial guard body
     """
-    p[0] = method_kinds[p[1][0]](annotation=p[1][1],
+    p[0] = method_kinds[p[1][0]](annotations=p[1][1],
                                  capability=p[2], id=p[3][0],
                                  typeparams=p[3][1],
                                  params=p[4],
