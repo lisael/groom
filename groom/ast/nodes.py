@@ -165,6 +165,14 @@ class TypeNode(ClassNodeBase):
     node_type = "type"
 
 
+class PrimitiveNode(ClassNodeBase):
+    node_type = "primitive"
+
+
+class ActorNode(ClassNodeBase):
+    node_type = "actor"
+
+
 class TupleTypeNode(NodeBase):
     node_type = "tupletype"
     node_attributes = ["members"]
@@ -290,7 +298,7 @@ class ParamsNode(NodeBase):
     node_attributes = ["params"]
 
 
-class ThisNode(Node):
+class ThisNode(NodeBase):
     node_type = "this"
 
 

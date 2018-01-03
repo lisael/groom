@@ -1,17 +1,20 @@
+import os
 from pprint import pprint
+from unittest import skipIf
 
 from groom.lexer import Lexer
 from groom.parser import Parser
 from groom import ast
-from unittest import skip
+from groom.utils import find_pony_stdlib_path
 
 
-def parse_code(data, expected, verbose=False, **parser_opts):
+def parse_code(data, expected=None, verbose=False, **parser_opts):
     tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
     result = tree.as_dict() if isinstance(tree, ast.Node) else tree
     if verbose:
         pprint(result)
-    assert(result == expected)
+    if expected is not None:
+        assert(result == expected)
 
 
 VERBOSE = True
@@ -913,3 +916,13 @@ a docstring
         'uses': []
     }
     parse_code(data, expected)
+
+
+@skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
+def test_parse_stdlib():
+    path = find_pony_stdlib_path()
+    for root, dirs, files in os.walk(path):
+        for ponysrc in [f for f in files if f.endswith(".pony")]:
+            with open(os.path.join(root, ponysrc)) as src:
+                print(os.path.join(root, ponysrc))
+                parse_code(src.read(), verbose=VERBOSE)

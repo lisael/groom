@@ -331,7 +331,7 @@ def p_combined_types(p):
     if len(p) == 5:
         p[0] = nodes.TupleTypeNode(members=[p[2]] + p[3])
     else:
-        p[0] = nodes.TupleTypeNode(members[p[2]])
+        p[0] = nodes.TupleTypeNode(members=[p[2]])
 
 
 def p_tupletype(p):
@@ -397,7 +397,9 @@ def p_docstring(p):
 
 class_nodes = {
     "type": ast.TypeNode,
-    "class": ast.ClassNode
+    "class": ast.ClassNode,
+    "primitive": nodes.PrimitiveNode,
+    "actor": nodes.ActorNode,
 }
 
 
@@ -1235,7 +1237,7 @@ def p_this(p):
     """
     this : THIS
     """
-    p[0] = ast.ThisNode(p[1])
+    p[0] = ast.ThisNode()
 
 
 def p_atom(p):
