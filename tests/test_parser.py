@@ -727,18 +727,18 @@ def test_try():
         try 1 +? 2 end
     """
     expected = {
-            'annotations': [],
- 'else_': None,
- 'else_annotations': None,
- 'members': {'node_type': 'seq',
-             'seq': [{'first': {'node_type': 'int', 'value': '1'},
-                      'is_partial': True,
-                      'node_type': '+',
-                      'operator': '+',
-                      'second': {'node_type': 'int', 'value': '2'}}]},
- 'node_type': 'try',
- 'then': None,
- 'then_annotations': None
+        'annotations': [],
+        'else_': None,
+        'else_annotations': None,
+        'members': {'node_type': 'seq',
+                    'seq': [{'first': {'node_type': 'int', 'value': '1'},
+                             'is_partial': True,
+                             'node_type': '+',
+                             'operator': '+',
+                             'second': {'node_type': 'int', 'value': '2'}}]},
+        'node_type': 'try',
+        'then': None,
+        'then_annotations': None
     }
     parse_code(data, expected, verbose=VERBOSE, start='try')
 
