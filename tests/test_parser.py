@@ -11,13 +11,15 @@ from groom.utils import find_pony_stdlib_path
 def parse_code(data, expected=None, verbose=False, **parser_opts):
     tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
     result = tree.as_dict() if isinstance(tree, ast.Node) else tree
+    if isinstance(result, list):
+        result = [i.as_dict() for i in result]
     if verbose:
         pprint(result)
     if expected is not None:
         assert(result == expected)
 
 
-VERBOSE = True
+VERBOSE = False
 
 
 def test_ffidecl():
@@ -898,6 +900,32 @@ def test_postfix():
                           'node_type': 'reference'}}]
     }
     parse_code(data, expected, verbose=VERBOSE, start='rawseq')
+
+
+def test_fields():
+    data = """
+        let _notify: ReadlineNotify
+        let _out: OutStream
+    """
+    expected = [{'default': None,
+                 'id': {'id': '_notify', 'node_type': 'id'},
+                 'node_type': 'flet',
+                 'type': {'cap': None,
+                          'cap_modifier': None,
+                          'id': {'id': 'ReadlineNotify', 'node_type': 'id'},
+                          'node_type': 'nominal',
+                          'package': None,
+                          'typeargs': []}},
+                {'default': None,
+                 'id': {'id': '_out', 'node_type': 'id'},
+                 'node_type': 'flet',
+                 'type': {'cap': None,
+                          'cap_modifier': None,
+                          'id': {'id': 'OutStream', 'node_type': 'id'},
+                          'node_type': 'nominal',
+                          'package': None,
+                          'typeargs': []}}]
+    parse_code(data, expected, verbose=VERBOSE, start='fields')
 
 
 def test_module_parsing_no_docstring_no_use():

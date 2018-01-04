@@ -173,6 +173,18 @@ class ActorNode(ClassNodeBase):
     node_type = "actor"
 
 
+class InterfaceNode(ClassNodeBase):
+    node_type = "interface"
+
+
+class StructNode(ClassNodeBase):
+    node_type = "struct"
+
+
+class TraitNode(ClassNodeBase):
+    node_type = "trait"
+
+
 class TupleTypeNode(NodeBase):
     node_type = "tupletype"
     node_attributes = ["members"]
@@ -183,18 +195,8 @@ class ProvidesNode(NodeBase):
     node_attributes = ["type"]
 
 
-class FieldNode(Node, Id):
-
-    def __init__(self, type, default=None):
-        self.type = type
-        self.default = default
-
-    def as_dict(self):
-        return dict(
-                super(FieldNode, self).as_dict(),
-                type=self.type,
-                default=self.default
-                )
+class FieldNode(NodeBase):
+    node_attributes = ["id", "type", "default"]
 
 
 class VarFieldNode(FieldNode):

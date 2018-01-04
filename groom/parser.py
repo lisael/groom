@@ -400,6 +400,9 @@ class_nodes = {
     "class": ast.ClassNode,
     "primitive": nodes.PrimitiveNode,
     "actor": nodes.ActorNode,
+    "interface": nodes.InterfaceNode,
+    "struct": nodes.StructNode,
+    "trait": nodes.TraitNode,
 }
 
 
