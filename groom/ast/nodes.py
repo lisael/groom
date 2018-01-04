@@ -97,7 +97,12 @@ def _maybe_as_dict(obj):
         return obj.as_dict()
     elif isinstance(obj, list):
         return [_maybe_as_dict(i) for i in obj]
-    return obj
+    elif obj is None:
+        return None
+    elif isinstance(obj, (str, bool)):
+        return obj
+    else:
+        raise ValueError(obj)
 
 
 class NodeBase(Node, metaclass=NodeMeta):
@@ -111,6 +116,34 @@ class NodeBase(Node, metaclass=NodeMeta):
             attr = getattr(self, attrname)
             result[attrname] = _maybe_as_dict(attr)
         return result
+
+
+class JumpNode(NodeBase):
+    node_attributes = ["seq"]
+
+
+class ReturnNode(JumpNode):
+    node_type = "return"
+
+
+class BreakNode(JumpNode):
+    node_type = "break"
+
+
+class ContinueNode(JumpNode):
+    node_type = "continue"
+
+
+class ErrorNode(JumpNode):
+    node_type = "error"
+
+
+class CompileIntrinsicNode(JumpNode):
+    node_type = "compile_intrinsic"
+
+
+class CompileErrorNode(JumpNode):
+    node_type = "compile_error"
 
 
 class UseNode(NodeBase):
@@ -138,18 +171,9 @@ class ArrowNode(NodeBase):
     node_attributes = ["origin", "target"]
 
 
-class SeqNode(Node):
+class SeqNode(NodeBase):
     node_type = "seq"
-
-    def __init__(self, seq, **kwargs):
-        self.seq = seq
-        super(SeqNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(SeqNode, self).as_dict(),
-                seq=[s.as_dict() for s in self.seq],
-                )
+    node_attributes = ["seq"]
 
 
 class ClassNodeBase(NodeBase):

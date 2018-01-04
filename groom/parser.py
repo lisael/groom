@@ -1279,9 +1279,9 @@ def p_rawseq(p):
            | jump
     """
     if isinstance(p[1], list):
-        p[0] = ast.SeqNode(p[1])
+        p[0] = ast.SeqNode(seq=p[1])
     else:
-        p[0] = ast.SeqNode([p[1]])
+        p[0] = ast.SeqNode(seq=[p[1]])
 
 
 def p_annotatedrawseq(p):
@@ -1347,23 +1347,64 @@ def p_nextassignment(p):
 
 def p_jump(p):
     """
-    jump : jump_statement
+    jump : jump_statement empty
          | jump_statement rawseq
     """
-    seq = None if len(p) == 2 else p[2]
-    p[0] = [(p[1], seq)]
+    p[0] = p[1](seq=p[2])
 
 
 def p_jump_statement(p):
     """
-    jump_statement : RETURN
-                   | BREAK
-                   | CONTINUE
-                   | ERROR
-                   | COMPILE_INTRINSIC
-                   | COMPILE_ERROR
+    jump_statement : return
+                   | break
+                   | continue
+                   | pony_error
+                   | compile_intrinsic
+                   | compile_error
     """
     p[0] = p[1]
+
+
+def p_return(p):
+    """
+    return : RETURN
+    """
+    p[0] = nodes.ReturnNode
+
+
+def p_break(p):
+    """
+    break : BREAK
+    """
+    p[0] = nodes.BreakNode
+
+
+def p_continue(p):
+    """
+    continue : CONTINUE
+    """
+    p[0] = nodes.ContinueNode
+
+
+def p_pony_error(p):
+    """
+    pony_error : ERROR
+    """
+    p[0] = nodes.ErrorNode
+
+
+def p_compile_intrinsic(p):
+    """
+    compile_intrinsic : COMPILE_INTRINSIC
+    """
+    p[0] = nodes.CompileIntrinsicNode
+
+
+def p_compile_error(p):
+    """
+    compile_error : COMPILE_ERROR
+    """
+    p[0] = nodes.CompileErrorNode
 
 
 # _parser = yacc.yacc()
