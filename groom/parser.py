@@ -148,7 +148,7 @@ def p_typeparams(p):
     """
     typeparams : '[' typeparams_list ']'
     """
-    p[0] = p[2]
+    p[0] = nodes.TypeParamsNode(members=p[2])
 
 
 def p_typeparams_list(p):
@@ -165,12 +165,12 @@ def p_typeparams_list(p):
 def p_typeparam(p):
     """
     typeparam : typed_id
-    typeparam : typed_id '=' typearg
+              | typed_id '=' typearg
     """
     if len(p) == 2:
-        p[0] = (p[1][0], p[1][1], None)
+        p[0] = nodes.TypeParamNode(id=p[1][0], type=p[1][1])
     else:
-        p[0] = (p[1][0], p[1][1], p[3])
+        p[0] = nodes.TypeParamNode(id=p[1][0], type=p[1][1], typearg=p[3])
 
 
 def p_typearg(p):
@@ -535,6 +535,8 @@ class OperatorFactory(object):
     def __call__(self, first):
         if self.operator == "as":
             return nodes.AsNode(term=first, type=self.term)
+        elif self.operator == "=":
+            return nodes.AssignNode(first=first, second=self.term)
         else:
             return nodes.BinOpNode(operator=self.operator, first=first,
                                    second=self.term, is_partial=self.partial)
@@ -935,6 +937,7 @@ def p_binop(p):
     """
     binop : binop_op term
           | binop_op '?' term
+          | '=' infix
     """
     if len(p) == 3:
         p[0] = OperatorFactory(p[1], p[2], False)
@@ -1293,9 +1296,9 @@ def p_annotatedrawseq(p):
 
 def p_exprseq(p):
     """
-    exprseq : assignment
-            | assignment semiexpr
-            | assignment nosemi
+    exprseq : infix
+            | infix semiexpr
+            | infix nosemi
     """
     next_ = [] if len(p) == 2 else p[2]
     p[0] = [p[1]] + next_
@@ -1303,9 +1306,9 @@ def p_exprseq(p):
 
 def p_nextexprseq(p):
     """
-    nextexprseq : nextassignment
-                | nextassignment semiexpr
-                | nextassignment nosemi
+    nextexprseq : nextinfix
+                | nextinfix semiexpr
+                | nextinfix nosemi
     """
     p_exprseq(p)
 
@@ -1324,25 +1327,6 @@ def p_nosemi(p):
            | jump
     """
     p[0] = p[1]
-
-
-def p_assignment(p):
-    """
-    assignment : infix
-               | infix '=' assignment
-    """
-    if len(p) == 4:
-        p[0] = (p[1], p[3])
-    else:
-        p[0] = p[1]
-
-
-def p_nextassignment(p):
-    """
-    nextassignment : nextinfix
-                   | nextinfix '=' assignment
-    """
-    p_assignment(p)
 
 
 def p_jump(p):

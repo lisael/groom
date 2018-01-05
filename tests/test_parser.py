@@ -22,6 +22,14 @@ def parse_code(data, expected=None, verbose=False, **parser_opts):
 VERBOSE = False
 
 
+def test_float():
+    data = """
+        -3.3
+    """
+    expected = {'node_type': 'float', 'value': '3.3'}
+    parse_code(data, expected, verbose=VERBOSE, start="float")
+
+
 def test_ffidecl():
     data = """
         @ffifunc[I32](fd: I32)?
@@ -964,6 +972,47 @@ a docstring
         'uses': []
     }
     parse_code(data, expected)
+
+
+def test_assignment():
+    data = """
+    _iter = iter
+    """
+    expected = {
+        'first': {'id': {'id': '_iter', 'node_type': 'id'}, 'node_type': 'reference'},
+        'node_type': '=',
+        'second': {'id': {'id': 'iter', 'node_type': 'id'}, 'node_type': 'reference'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='infix')
+
+
+def test_typeparams():
+    data = """
+        class _EmptyIter[A]
+    """
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'docstring': None,
+        'id': {'id': '_EmptyIter', 'node_type': 'id'},
+        'members': [],
+        'node_type': 'class',
+        'provides': None,
+        'type_params': {'members': [{'id': {'id': 'A', 'node_type': 'id'},
+                                     'node_type': 'typeparam',
+                                     'type': None,
+                                     'typearg': None}],
+                        'node_type': 'typeparams'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="class_def")
+
+
+def test_parse_file():
+    module = "itertools/iter.pony"
+    print(os.path.join(find_pony_stdlib_path(), module))
+    with open(os.path.join(find_pony_stdlib_path(), module)) as src:
+        parse_code(src.read(), verbose=True)
+
 
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")

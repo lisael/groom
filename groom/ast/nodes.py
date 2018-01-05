@@ -118,6 +118,11 @@ class NodeBase(Node, metaclass=NodeMeta):
         return result
 
 
+class AssignNode(NodeBase):
+    node_type = "="
+    node_attributes = ["first", "second"]
+
+
 class JumpNode(NodeBase):
     node_attributes = ["seq"]
 
@@ -154,6 +159,16 @@ class UseNode(NodeBase):
 class FFIDeclNode(NodeBase):
     node_type = "ffidecl"
     node_attributes = ["id", "typeargs", "params", "partial"]
+
+
+class TypeParamsNode(NodeBase):
+    node_type = "typeparams"
+    node_attributes = ["members"]
+
+
+class TypeParamNode(NodeBase):
+    node_type = "typeparam"
+    node_attributes = ["id", "type", "typearg"]
 
 
 class TypeArgs(NodeBase):
