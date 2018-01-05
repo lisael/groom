@@ -15,6 +15,10 @@ def p_module(p):
         p[0] = ast.ModuleNode(uses=p[1], class_defs=p[2])
 
 
+def p_errord(p):
+    import ipdb; pp=p; ipdb.set_trace()
+
+
 def p_anyparen(p):
     """
     anylparen : LPAREN
@@ -1269,8 +1273,27 @@ def p_atom(p):
     atom : id
          | this
          | literal
+         | tuple
     """
     p[0] = p[1]
+
+
+def p_tuple(p):
+    """
+    tuple : anylparen rawseq tupletail ')'
+    """
+    p[0] = nodes.TupleNode(members=[p[2]] + p[3])
+
+
+def p_tupletail(p):
+    """
+    tupletail : empty
+              | ',' rawseq tupletail
+    """
+    if len(p) == 2:
+        p[0] = []
+    else:
+        p[0] = [p[2]] + p[3]
 
 
 def p_param_list(p):

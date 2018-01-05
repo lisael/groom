@@ -992,6 +992,20 @@ def test_assignment():
     parse_code(data, expected, verbose=VERBOSE, start='infix')
 
 
+def test_tuple():
+    data = """
+        (1, 2, 3)
+    """
+    expected = {
+        'members': [{'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '1'}]},
+                    {'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '2'}]},
+                    {'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '3'}]}],
+        'node_type': 'tuple'
+    }
+    parse_code(data, expected, verbose=True, start="tuple")
+
+
 def test_typeparams():
     data = """
         class _EmptyIter[A]
@@ -1014,7 +1028,7 @@ def test_typeparams():
 
 
 def test_parse_file():
-    module = "builtin/maybe_pointer.pony"
+    module = "backpressure/backpressure.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
         parse_code(src.read(), verbose=True)
