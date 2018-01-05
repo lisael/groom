@@ -1,6 +1,5 @@
 import ply.yacc as yacc
 from groom.lexer import tokens  # noqa needed by yacc.yacc
-from groom import ast
 from groom.ast import nodes
 
 
@@ -10,9 +9,9 @@ def p_module(p):
            | uses class_defs
     """
     if len(p) == 4:
-        p[0] = ast.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
+        p[0] = nodes.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
     else:
-        p[0] = ast.ModuleNode(uses=p[1], class_defs=p[2])
+        p[0] = nodes.ModuleNode(uses=p[1], class_defs=p[2])
 
 
 def p_errord(p):
@@ -58,14 +57,14 @@ def p_use(p):
     """
     use : USE used useif
     """
-    if isinstance(p[2][1], ast.FFIDeclNode):
-        p[0] = ast.UseNode(
+    if isinstance(p[2][1], nodes.FFIDeclNode):
+        p[0] = nodes.UseNode(
                 id=p[2][0],
                 ffidecl=p[2][1],
                 guard=p[3]
                 )
     else:
-        p[0] = ast.UseNode(
+        p[0] = nodes.UseNode(
                 id=p[2][0],
                 package=p[2][1],
                 guard=p[3]
@@ -100,7 +99,7 @@ def p_use_ffi(p):
     """
     use_ffi : '@' id_or_string typeargs params maybe_partial
     """
-    p[0] = ast.FFIDeclNode(id=p[2], typeargs=p[3], params=p[4], partial=p[5])
+    p[0] = nodes.FFIDeclNode(id=p[2], typeargs=p[3], params=p[4], partial=p[5])
 
 
 def p_typeargs(p):
@@ -193,35 +192,35 @@ def p_true(p):
     """
     true : TRUE
     """
-    p[0] = ast.TrueNode(p[1])
+    p[0] = nodes.TrueNode(p[1])
 
 
 def p_false(p):
     """
     false : FALSE
     """
-    p[0] = ast.FalseNode(p[1])
+    p[0] = nodes.FalseNode(p[1])
 
 
 def p_int(p):
     """
     int : INT
     """
-    p[0] = ast.IntNode(p[1])
+    p[0] = nodes.IntNode(p[1])
 
 
 def p_float(p):
     """
     float : FLOAT
     """
-    p[0] = ast.FloatNode(p[1])
+    p[0] = nodes.FloatNode(p[1])
 
 
 def p_string(p):
     """
     string : STRING
     """
-    p[0] = ast.StringNode(p[1])
+    p[0] = nodes.StringNode(p[1])
 
 
 def p_literal(p):
@@ -400,8 +399,8 @@ def p_docstring(p):
 
 
 class_nodes = {
-    "type": ast.TypeNode,
-    "class": ast.ClassNode,
+    "type": nodes.TypeNode,
+    "class": nodes.ClassNode,
     "primitive": nodes.PrimitiveNode,
     "actor": nodes.ActorNode,
     "interface": nodes.InterfaceNode,
@@ -470,9 +469,9 @@ def p_fields(p):
 
 
 field_classes = {
-        "var": ast.VarFieldNode,
-        "let": ast.LetFieldNode,
-        "embed": ast.EmbedFieldNode
+        "var": nodes.VarFieldNode,
+        "let": nodes.LetFieldNode,
+        "embed": nodes.EmbedFieldNode
         }
 
 
@@ -604,14 +603,14 @@ def p_term(p):
          | pattern
     """
     # TODO
-    p[0] = p[1] if isinstance(p[1], ast.Node) else ast.ReferenceNode(id=p[1])
+    p[0] = p[1] if isinstance(p[1], nodes.Node) else nodes.ReferenceNode(id=p[1])
 
 
 def p_if(p):
     """
     if : IF annotatedrawseq THEN rawseq if_else END
     """
-    p[0] = ast.IfNode(
+    p[0] = nodes.IfNode(
             annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
@@ -631,7 +630,7 @@ def p_elseif(p):
     """
     elseif : ELSEIF annotatedrawseq THEN rawseq if_else
     """
-    p[0] = (None, ast.IfNode(
+    p[0] = (None, nodes.IfNode(
             annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
@@ -643,7 +642,7 @@ def p_ifdef(p):
     """
     ifdef : IFDEF annotation infix THEN rawseq ifdef_else END
     """
-    p[0] = ast.IfdefNode(
+    p[0] = nodes.IfdefNode(
             annotations=p[2],
             assertion=p[3],
             members=p[5],
@@ -664,7 +663,7 @@ def p_elseifdef(p):
     """
     elseifdef : ELSEIF annotation infix THEN rawseq ifdef_else
     """
-    p[0] = (None, ast.IfdefNode(
+    p[0] = (None, nodes.IfdefNode(
             annotations=p[2],
             assertion=p[3],
             members=p[5],
@@ -676,7 +675,7 @@ def p_type_assertion(p):
     """
     type_assertion : type IS_SUBTYPE type
     """
-    p[0] = ast.TypeAssertionNode(
+    p[0] = nodes.TypeAssertionNode(
                   child_type=p[1],
                   parent_type=p[3]
     )
@@ -686,7 +685,7 @@ def p_iftype(p):
     """
     iftype : IFTYPE annotation type_assertion THEN rawseq iftype_else END
     """
-    p[0] = ast.IftypeNode(
+    p[0] = nodes.IftypeNode(
             annotations=p[2],
             assertion=p[3],
             members=p[5],
@@ -707,7 +706,7 @@ def p_elseiftype(p):
     """
     elseiftype : ELSEIF annotation type_assertion THEN rawseq iftype_else
     """
-    p[0] = (None, ast.IftypeNode(
+    p[0] = (None, nodes.IftypeNode(
             annotations=p[2],
             assertion=p[3],
             members=p[5],
@@ -720,7 +719,7 @@ def p_match(p):
     """
     match : MATCH annotation rawseq caseexpr_list else END
     """
-    p[0] = ast.MatchNode(
+    p[0] = nodes.MatchNode(
             annotations=p[2],
             seq=p[3],
             cases=p[4],
@@ -762,7 +761,7 @@ def p_caseexpr(p):
     """
     caseexpr : '|' annotation maybe_pattern guard match_action
     """
-    p[0] = ast.CaseNode(
+    p[0] = nodes.CaseNode(
             annotations=p[2],
             pattern=p[3],
             guard=p[4],
@@ -774,7 +773,7 @@ def p_while(p):
     """
     while : WHILE annotatedrawseq DO rawseq else END
     """
-    p[0] = ast.WhileNode(
+    p[0] = nodes.WhileNode(
             annotations=p[2][0],
             assertion=p[2][1],
             members=p[4],
@@ -786,7 +785,7 @@ def p_repeat(p):
     """
     repeat : REPEAT rawseq UNTIL annotatedrawseq else END
     """
-    p[0] = ast.RepeatNode(
+    p[0] = nodes.RepeatNode(
             annotations=p[4][0],
             assertion=p[4][1],
             members=p[2],
@@ -806,7 +805,7 @@ def p_for(p):
     """
     for : FOR annotation idseq IN rawseq DO rawseq else END
     """
-    p[0] = ast.ForNode(
+    p[0] = nodes.ForNode(
             annotations=p[2],
             ids=p[3],
             sequence=p[5],
@@ -851,7 +850,7 @@ def p_with(p):
     """
     with : WITH annotation withelem_list DO rawseq else END
     """
-    p[0] = ast.WithNode(
+    p[0] = nodes.WithNode(
             annotations=p[2],
             elems=nodes.SeqNode(seq=p[3]),
             members=p[5],
@@ -890,7 +889,7 @@ def p_try(p):
     """
     try : TRY annotation rawseq else_then END
     """
-    p[0] = ast.TryNode(
+    p[0] = nodes.TryNode(
         annotations=p[2],
         members=p[3],
         else_=p[4][0][1],
@@ -904,7 +903,7 @@ def p_recover(p):
     """
     recover : RECOVER annotation cap rawseq END
     """
-    p[0] = ast.RecoverNode(
+    p[0] = nodes.RecoverNode(
             annotations=p[2],
             cap=p[3],
             members=p[4])
@@ -922,7 +921,7 @@ def p_consume(p):
     """
     consume : CONSUME cap term
     """
-    p[0] = ast.ConsumeNode(cap=p[2], term=p[3])
+    p[0] = nodes.ConsumeNode(cap=p[2], term=p[3])
 
 
 def p_nextterm(p):
@@ -1021,9 +1020,9 @@ def p_meth_cap(p):
 
 
 method_kinds = {
-    "new": ast.NewMethod,
-    "fun": ast.FunMethod,
-    "be": ast.BeMethod
+    "new": nodes.NewMethod,
+    "fun": nodes.FunMethod,
+    "be": nodes.BeMethod
 }
 
 
@@ -1085,7 +1084,7 @@ def p_params(p):
     params : anylparen param_list ')'
            | anylparen ')'
     """
-    p[0] = ast.ParamsNode(params=p[2]) if len(p) == 4 else ast.ParamsNode(params=[])
+    p[0] = nodes.ParamsNode(params=p[2]) if len(p) == 4 else nodes.ParamsNode(params=[])
 
 
 def p_param(p):
@@ -1097,7 +1096,7 @@ def p_param(p):
     id = p[1][0]
     if isinstance(id, nodes.ReferenceNode):
         id = id.id
-    p[0] = ast.ParamNode(id=id, type=p[1][1], default=default)
+    p[0] = nodes.ParamNode(id=id, type=p[1][1], default=default)
 
 
 def p_param_1(p):
@@ -1118,11 +1117,11 @@ def p_parampattern(p):
 
 
 pattern_prefix_node_constructor = {
-    'not': ast.NotNode,
-    'addressof': ast.AddressofNode,
-    '-': ast.NegNode,
-    '-~': ast.NegUnsafeNode,
-    'digestof': ast.DigestOfNode
+    'not': nodes.NotNode,
+    'addressof': nodes.AddressofNode,
+    '-': nodes.NegNode,
+    '-~': nodes.NegUnsafeNode,
+    'digestof': nodes.DigestOfNode
 }
 
 
@@ -1140,8 +1139,8 @@ def p_parampatternprefix(p):
 
 
 atomsuffix_classes = {
-    '.': ast.DotNode,
-    'call': ast.CallNode,
+    '.': nodes.DotNode,
+    'call': nodes.CallNode,
 }
 
 
@@ -1151,7 +1150,7 @@ def p_postfix(p):
     """
     result = p[1]
     if isinstance(result, nodes.IdNode):
-        result = ast.ReferenceNode(id=result)
+        result = nodes.ReferenceNode(id=result)
     for s in p[2]:
         if s[0] == '.':
             result = nodes.DotNode(first=result, second=s[1])
@@ -1220,8 +1219,8 @@ def p_call(p):
     """
     call : LPAREN  positional named ')' maybe_partial
     """
-    p[0] = ('call', ast.PositionalArgsNode(args=p[2]),
-            ast.NamedArgsNode(args=p[3]), p[5])
+    p[0] = ('call', nodes.PositionalArgsNode(args=p[2]),
+            nodes.NamedArgsNode(args=p[3]), p[5])
 
 
 def p_positional(p):
@@ -1258,14 +1257,14 @@ def p_namedarg(p):
     """
     namedarg : id '=' rawseq
     """
-    p[0] = ast.NamedArgNode(id=p[1], value=p[3])
+    p[0] = nodes.NamedArgNode(id=p[1], value=p[3])
 
 
 def p_this(p):
     """
     this : THIS
     """
-    p[0] = ast.ThisNode()
+    p[0] = nodes.ThisNode()
 
 
 def p_atom(p):
@@ -1310,9 +1309,9 @@ def p_rawseq(p):
            | jump
     """
     if isinstance(p[1], list):
-        p[0] = ast.SeqNode(seq=p[1])
+        p[0] = nodes.SeqNode(seq=p[1])
     else:
-        p[0] = ast.SeqNode(seq=[p[1]])
+        p[0] = nodes.SeqNode(seq=[p[1]])
 
 
 def p_annotatedrawseq(p):

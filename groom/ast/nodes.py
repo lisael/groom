@@ -1,87 +1,3 @@
-class Annotated(object):
-    """
-    Marker class for annotated nodes
-    """
-    pass
-
-
-class Id(object):
-    """
-    Marker class for nodes with an id
-    """
-    pass
-
-
-class Node(object):
-    """
-    AST node base class
-    """
-
-    def __init__(self, **kwargs):
-        if isinstance(self, Annotated):
-            annotations = kwargs.pop("annotation")
-            self.annotations = annotations if annotations else []
-        if isinstance(self, Id):
-            self.id = kwargs.pop("id")
-        if len(kwargs):
-            raise(ValueError("Unkown params {}".format(list(kwargs.keys()))))
-
-    def as_dict(self):
-        d = dict(node_type=self.node_type)
-        if hasattr(self, "annotations"):
-            d["annotations"] = self.annotations
-        if hasattr(self, "id"):
-            d["id"] = self.id
-        return d
-
-
-class DocNode(Node):
-    """a Node that holds a docstring"""
-    def __init__(self, docstring=None, **kwargs):
-        self.docstring = docstring
-        super(DocNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(DocNode, self).as_dict(),
-                docstring=self.docstring
-                )
-
-
-class ElseNode(Node):
-    def __init__(self, else_, **kwargs):
-        self.else_ = else_
-        super(ElseNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        d = dict(
-            super(ElseNode, self).as_dict(),
-        )
-        if isinstance(self.else_, Node):
-            d["else"] = self.else_.as_dict()
-        else:
-            d["else"] = self.else_
-        return d
-
-
-class ModuleNode(DocNode):
-    node_type = "module"
-
-    def __init__(self, name=None, uses=None, class_defs=None, **kwargs):
-        self.name = name
-        self.uses = uses if uses else []
-        self.class_defs = class_defs if class_defs else []
-        super(ModuleNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(ModuleNode, self).as_dict(),
-                name=self.name,
-                uses=[u.as_dict() for u in self.uses],
-                class_defs=[c.as_dict() for c in self.class_defs]
-                )
-
-
 class NodeMeta(type):
 
     def __new__(cls, name, bases, attrs):
@@ -106,7 +22,10 @@ def _maybe_as_dict(obj):
         raise ValueError(obj)
 
 
-class NodeBase(Node, metaclass=NodeMeta):
+class Node(metaclass=NodeMeta):
+    """
+    AST node base class
+    """
     def __init__(self, **kwargs):
         for attrname in self.node_attributes:
             setattr(self, attrname, kwargs.pop(attrname, None))
@@ -118,12 +37,18 @@ class NodeBase(Node, metaclass=NodeMeta):
             result[attrname] = _maybe_as_dict(attr)
         return result
 
-class AssignNode(NodeBase):
+
+class ModuleNode(Node):
+    node_type = "module"
+    node_attributes = ["docstring", "name", "uses", "class_defs"]
+
+
+class AssignNode(Node):
     node_type = "="
     node_attributes = ["first", "second"]
 
 
-class JumpNode(NodeBase):
+class JumpNode(Node):
     node_attributes = ["seq"]
 
 
@@ -151,47 +76,47 @@ class CompileErrorNode(JumpNode):
     node_type = "compile_error"
 
 
-class UseNode(NodeBase):
+class UseNode(Node):
     node_type = "use"
     node_attributes = ["id", "package", "ffidecl", "guard"]
 
 
-class FFIDeclNode(NodeBase):
+class FFIDeclNode(Node):
     node_type = "ffidecl"
     node_attributes = ["id", "typeargs", "params", "partial"]
 
 
-class TypeParamsNode(NodeBase):
+class TypeParamsNode(Node):
     node_type = "typeparams"
     node_attributes = ["members"]
 
 
-class TypeParamNode(NodeBase):
+class TypeParamNode(Node):
     node_type = "typeparam"
     node_attributes = ["id", "type", "typearg"]
 
 
-class TypeArgs(NodeBase):
+class TypeArgs(Node):
     node_type = "typeargs"
     node_attributes = ["typeargs"]
 
 
-class Nominal(NodeBase):
+class Nominal(Node):
     node_type = "nominal"
     node_attributes = ["package", "id", "typeargs", "cap", "cap_modifier"]
 
 
-class ArrowNode(NodeBase):
+class ArrowNode(Node):
     node_type = "->"
     node_attributes = ["origin", "target"]
 
 
-class SeqNode(NodeBase):
+class SeqNode(Node):
     node_type = "seq"
     node_attributes = ["seq"]
 
 
-class ClassNodeBase(NodeBase):
+class ClassNodeBase(Node):
     node_attributes = ["docstring", "annotations", "id",
                        "members", "cap", "provides", "type_params"]
 
@@ -224,17 +149,17 @@ class TraitNode(ClassNodeBase):
     node_type = "trait"
 
 
-class TupleTypeNode(NodeBase):
+class TupleTypeNode(Node):
     node_type = "tupletype"
     node_attributes = ["members"]
 
 
-class ProvidesNode(NodeBase):
+class ProvidesNode(Node):
     node_type = "provides"
     node_attributes = ["type"]
 
 
-class DeclNode(NodeBase):
+class DeclNode(Node):
     node_attributes = ["id", "type"]
 
 
@@ -246,7 +171,7 @@ class LetNode(DeclNode):
     node_type = "let"
 
 
-class FieldNode(NodeBase):
+class FieldNode(Node):
     node_attributes = ["id", "type", "default"]
 
 
@@ -262,7 +187,7 @@ class EmbedFieldNode(FieldNode):
     node_type = "fembed"
 
 
-class MethodNode(NodeBase):
+class MethodNode(Node):
     node_attributes = ["docstring", "annotations", "id", "capability",
             "typeparams", "params", "return_type", "is_partial", "guard",
             "body"]
@@ -280,7 +205,7 @@ class BeMethod(MethodNode):
     node_type = "be"
 
 
-class PatternModifierNode(NodeBase):
+class PatternModifierNode(Node):
     node_attributes = ["pattern"]
 
 
@@ -336,165 +261,145 @@ class StringNode(LiteralNode):
     node_type = "string"
 
 
-class ReferenceNode(NodeBase):
+class ReferenceNode(Node):
     node_type = "reference"
     node_attributes = ["id"]
 
 
-class ParamNode(NodeBase):
+class ParamNode(Node):
     node_type = "param"
     node_attributes = ["id", "type", "default"]
 
 
-class ParamsNode(NodeBase):
+class ParamsNode(Node):
     node_type = "params"
     node_attributes = ["params"]
 
 
-class ThisNode(NodeBase):
+class ThisNode(Node):
     node_type = "this"
 
 
-class IfNode(NodeBase):
+class IfNode(Node):
     node_type = "if"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class DotNode(NodeBase):
+class DotNode(Node):
     node_type = '.'
     node_attributes = ["first", "second"]
 
 
-class CallNode(NodeBase):
+class CallNode(Node):
     node_type = "call"
     node_attributes = ["fun", "positionalargs", "namedargs", "is_partial"]
 
 
-class QualifyNode(NodeBase):
+class QualifyNode(Node):
     node_type = "qualify"
     node_attributes = ["type", "args"]
 
 
-class PositionalArgsNode(NodeBase):
+class PositionalArgsNode(Node):
     node_type = "positionalargs"
     node_attributes = ["args"]
 
 
-class NamedArgsNode(NodeBase):
+class NamedArgsNode(Node):
     node_type = "namedargs"
     node_attributes = ["args"]
 
 
-class NamedArgNode(NodeBase):
+class NamedArgNode(Node):
     node_type = "namedarg"
     node_attributes = ["id", "value"]
 
 
-class IfdefNode(NodeBase):
+class IfdefNode(Node):
     node_type = "ifdef"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class IftypeNode(NodeBase):
+class IftypeNode(Node):
     node_type = "iftype"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class TypeAssertionNode(NodeBase):
+class TypeAssertionNode(Node):
     node_type = "type_assertion"
     node_attributes = ["child_type", "parent_type"]
 
 
-class MatchNode(NodeBase):
+class MatchNode(Node):
     node_type = "match"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "seq", "cases"]
 
 
-class CaseNode(NodeBase):
+class CaseNode(Node):
     node_type = "case"
     node_attributes = ["annotations", "pattern", "guard", "action"]
 
 
-class WhileNode(NodeBase):
+class WhileNode(Node):
     node_type = "while"
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
 
-class RepeatNode(NodeBase):
+class RepeatNode(Node):
     node_type = "repeat"
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
 
-class ForNode(NodeBase):
+class ForNode(Node):
     node_type = "for"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "ids", "sequence", "members"]
 
 
-class WithNode(NodeBase):
+class WithNode(Node):
     node_type = "with"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "elems", "members"]
 
 
-class TryNode(NodeBase):
+class TryNode(Node):
     node_type = "try"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "then", "then_annotations", "members"]
 
 
-class TupleNode(NodeBase):
+class TupleNode(Node):
     node_type = "tuple"
     node_attributes = ["members"]
 
 
-class RecoverNode(NodeBase):
+class RecoverNode(Node):
     node_type = "recover"
     node_attributes = ["annotations", "cap", "members"]
 
 
-class ConsumeNode(NodeBase):
+class ConsumeNode(Node):
     node_type = "consume"
     node_attributes = ["cap", "term"]
 
 
-class IdNode(NodeBase):
+class IdNode(Node):
     node_type = "id"
     node_attributes = ["id"]
 
 
-class InfixFactory(object):
-    def __init__(self, operator_class, **kwargs):
-        self.cls = operator_class
-        self.kwargs = kwargs
-
-    def __call__(self, term):
-        return self.cls(term=term, **self.kwargs)
-
-
-class InfixNode(Node):
-    def __init__(self, term, **kwargs):
-        self.term = term
-
-    def as_dict(self):
-        return dict(
-            super(InfixNode, self).as_dict(),
-            term=self.term,
-        )
-
-
-class AsNode(NodeBase):
+class AsNode(Node):
     node_type = "as"
     node_attributes = ["term", "type"]
 
 
-class BinOpNode(NodeBase):
+class BinOpNode(Node):
     node_attributes = ["operator", "first", "second", "is_partial"]
 
     @property

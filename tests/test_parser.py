@@ -4,13 +4,13 @@ from unittest import skipIf
 
 from groom.lexer import Lexer
 from groom.parser import Parser
-from groom import ast
+from groom.ast import nodes
 from groom.utils import find_pony_stdlib_path
 
 
 def parse_code(data, expected=None, verbose=False, **parser_opts):
     tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
-    result = tree.as_dict() if isinstance(tree, ast.Node) else tree
+    result = tree.as_dict() if isinstance(tree, nodes.Node) else tree
     if isinstance(result, list):
         result = [i.as_dict() for i in result]
     if verbose:
