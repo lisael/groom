@@ -163,7 +163,7 @@ def test_use():
         'ffidecl': None,
         'id': {'id': 'myboots', 'node_type': 'id'},
         'guard': {'id': {'id': 'windows', 'node_type': 'id'},
-		  'node_type': 'reference'},
+                  'node_type': 'reference'},
         'node_type': 'use',
         'package': '"boots"'
     }
@@ -1014,7 +1014,7 @@ def test_typeparams():
 
 
 def test_parse_file():
-    module = "cli/command_parser.pony"
+    module = "builtin/maybe_pointer.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
         parse_code(src.read(), verbose=True)

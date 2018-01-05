@@ -140,7 +140,7 @@ MINUS_TILDE = '-~'
 MINUS_TILDE_NEW = f' {NEWLINE} -~'
 
 t_BIG_ARROW = r'=>'
-t_SMALL_ARROW = r'->'
+SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
 t_PLUS = r'\+'
 t_IS_SUBTYPE = '<:'
@@ -187,6 +187,11 @@ def t_LPAREN_NEW(t):
 
 @TOKEN(LPAREN)
 def t_LPAREN(t):
+    return t
+
+
+@TOKEN(SMALL_ARROW)
+def t_SMALL_ARROW(t):
     return t
 
 

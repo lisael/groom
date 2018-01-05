@@ -1306,6 +1306,8 @@ def p_exprseq(p):
             | infix nosemi
     """
     next_ = [] if len(p) == 2 else p[2]
+    if not isinstance(next_, list):
+        next_ = [next_]
     p[0] = [p[1]] + next_
 
 
