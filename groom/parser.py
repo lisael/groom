@@ -563,11 +563,16 @@ def p_mabetyped(p):
     p[0] = p[2] if len(p) == 3 else None
 
 
+vardecl_classes = {
+        "var": nodes.VarNode,
+        "let": nodes.LetNode,
+        }
+
 def p_vardecl(p):
     """
     vardecl : varkw id maybe_typed
     """
-    p[0] = (p[1], p[2], p[3])
+    p[0] = vardecl_classes[p[1]](id=p[2], type=p[3])
 
 
 def p_pattern(p):

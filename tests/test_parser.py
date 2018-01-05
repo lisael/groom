@@ -460,7 +460,7 @@ def test_match():
     data = """
         match stuf
         | foo => do_foo
-        | bar => do_bar
+        | let bar: Stuff => do_bar
         end
     """
     expected = {
@@ -480,7 +480,13 @@ def test_match():
                    'guard': None,
                    'node_type': 'case',
                    'pattern': {'id': {'id': 'bar', 'node_type': 'id'},
-                               'node_type': 'reference'}}],
+                               'node_type': 'let',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'Stuff', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}}],
         'else_': None,
         'else_annotations': None,
         'node_type': 'match',
@@ -573,7 +579,7 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -584,8 +590,8 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -597,15 +603,15 @@ def test_idseq():
     expected = ['a', ['b', 'c'], 'd']
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
             {
                 'members': [
-                    {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                    {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                    {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                    {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                 ],
                 'node_type': 'tuple'
             },
-            {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -616,28 +622,28 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
             {
                 'members': [
                     {
                         'members': [
-                            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                            {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                            {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                         ],
                         'node_type': 'tuple'
                     },
-                    {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                    {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
                     {
                         'members': [
-                            {'id': {'id': 'e', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                            {'id': {'id': 'f', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                            {'id': {'id': 'e', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                            {'id': {'id': 'f', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                         ],
                         'node_type': 'tuple'
                     }
                 ],
                 'node_type': 'tuple'
             },
-            {'id': {'id': 'g', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'g', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -660,10 +666,10 @@ def test_for():
         'else_annotations': [],
         'ids': {
             'members': [
-                {'id': {'id': 'i', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                {'id': {'id': 'i', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
                 {'members': [
-                    {'id': {'id': 'n', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                    {'id': {'id': '_', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                    {'id': {'id': 'n', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                    {'id': {'id': '_', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                 ], 'node_type': 'tuple'}],
             'node_type': 'tuple'},
         'members': {'node_type': 'seq',
@@ -691,7 +697,7 @@ def test_with():
                   'seq': [{'node_type': 'seq',
                            'seq': [{'id': {'id': 'file', 'node_type': 'id'},
                                     'node_type': 'let',
-                                    'value': None},
+                                    'type': None},
                                    {'node_type': 'seq',
                                     'seq': [{'id': {'id': 'myfile', 'node_type': 'id'},
                                              'node_type': 'reference'}]}]}]},
@@ -1008,7 +1014,7 @@ def test_typeparams():
 
 
 def test_parse_file():
-    module = "itertools/iter.pony"
+    module = "cli/command_parser.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
         parse_code(src.read(), verbose=True)

@@ -102,6 +102,7 @@ def _maybe_as_dict(obj):
     elif isinstance(obj, (str, bool)):
         return obj
     else:
+        # import ipdb; ipdb.set_trace()
         raise ValueError(obj)
 
 
@@ -116,7 +117,6 @@ class NodeBase(Node, metaclass=NodeMeta):
             attr = getattr(self, attrname)
             result[attrname] = _maybe_as_dict(attr)
         return result
-
 
 class AssignNode(NodeBase):
     node_type = "="
@@ -232,6 +232,18 @@ class TupleTypeNode(NodeBase):
 class ProvidesNode(NodeBase):
     node_type = "provides"
     node_attributes = ["type"]
+
+
+class DeclNode(NodeBase):
+    node_attributes = ["id", "type"]
+
+
+class VarNode(DeclNode):
+    node_type = "var"
+
+
+class LetNode(DeclNode):
+    node_type = "let"
 
 
 class FieldNode(NodeBase):
@@ -450,11 +462,6 @@ class RecoverNode(NodeBase):
 class ConsumeNode(NodeBase):
     node_type = "consume"
     node_attributes = ["cap", "term"]
-
-
-class LetNode(NodeBase):
-    node_type = "let"
-    node_attributes = ["id", "value"]
 
 
 class IdNode(NodeBase):
