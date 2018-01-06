@@ -14,8 +14,8 @@ def p_module(p):
         p[0] = nodes.ModuleNode(uses=p[1], class_defs=p[2])
 
 
-def p_errord(p):
-    import ipdb; pp=p; ipdb.set_trace()
+# def p_error(p):
+#     import ipdb; ppp=p; ipdb.set_trace()
 
 
 def p_anyparen(p):

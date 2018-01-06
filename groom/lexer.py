@@ -152,11 +152,11 @@ t_IS_SUBTYPE = '<:'
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
 
-DEC_INT = f"( {DIGIT} ( {DIGIT} | _ )* )"
-HEX_INT = f"(0x[0-9a-zA-Z_]+)"
+DEC_INT = f"({DIGIT}({DIGIT}|_)*(?![.eE]))"
+HEX_INT = f"(0x[0-9a-fA-F_]+)"
 BIN_INT = f"(0b[01_]+)"
-CHAR_INT = f"'{CHAR_CHAR}'"
-INT = f"{CHAR_INT} | {BIN_INT} | {HEX_INT} | {DEC_INT}"
+CHAR_INT = f"('{CHAR_CHAR}')"
+INT = f"{CHAR_INT}|{BIN_INT}|{HEX_INT}|{DEC_INT}"
 
 
 @TOKEN(STRING)
@@ -171,15 +171,13 @@ def t_NESTEDCOMMENT(t):
     return t
 
 
-@TOKEN(FLOAT)
-def t_FLOAT(t):
-    if '.' not in t.value and 'e' not in t.value.lower():
-        t.type = "INT"
+@TOKEN(INT)
+def t_INT(t):
     return t
 
 
-@TOKEN(INT)
-def t_INT(t):
+@TOKEN(FLOAT)
+def t_FLOAT(t):
     return t
 
 
