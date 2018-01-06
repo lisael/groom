@@ -8,12 +8,10 @@ from groom.ast import nodes
 #    - lambdatype
 #    - # postfix (???)
 #    - empty match case
-#    - docstring in unimplemented method
 
 def p_module(p):
     """
-    module : STRING uses class_defs
-           | uses class_defs
+    module : docstring uses class_defs
     """
     if len(p) == 4:
         p[0] = nodes.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
@@ -414,7 +412,7 @@ def p_class_decl_1(p):
 
 def p_docstring(p):
     """
-    docstring : STRING
+    docstring : string
               | empty
     """
     p[0] = p[1]
@@ -1075,7 +1073,7 @@ def p_meth_decl(p):
 
 def p_method(p):
     """
-    method : meth_decl meth_cap parametrised_id params meth_type maybe_partial guard body
+    method : meth_decl meth_cap parametrised_id params meth_type  maybe_partial docstring guard body
     """
     p[0] = method_kinds[p[1][0]](annotations=p[1][1],
                                  capability=p[2], id=p[3][0],
@@ -1083,8 +1081,9 @@ def p_method(p):
                                  params=p[4],
                                  return_type=p[5],
                                  is_partial=p[6],
-                                 guard=p[7],
-                                 body=p[8])
+                                 docstring=p[7],
+                                 guard=p[8],
+                                 body=p[9])
 
 
 def p_body(p):

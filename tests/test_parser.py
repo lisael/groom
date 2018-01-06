@@ -972,7 +972,7 @@ a docstring
     '''
     expected = {
         'class_defs': [],
-        'docstring': '"""\nOnly\na docstring\n"""',
+        'docstring': {'node_type': 'string', 'value': '"""\nOnly\na docstring\n"""'},
         'name': None,
         'node_type': 'module',
         'uses': []
@@ -1028,6 +1028,20 @@ def test_array():
     parse_code(data, expected, verbose=VERBOSE, start="array")
 
 
+def test_object():
+    data = """
+        object is TimerNotify
+          let term: ANSITerm = this
+
+          fun ref apply(): Bool =>
+            term._timeout()
+            false
+        end
+    """
+    expected = {}
+    parse_code(data, expected, verbose=True, start="object")
+
+
 def test_fficall():
     data = """
         @pony_apply_backpressure()
@@ -1060,7 +1074,7 @@ def test_fficall():
                                             'package': None,
                                             'typeargs': []}]}}]
     }
-    parse_code(data, expected, verbose=True, start="rawseq")
+    parse_code(data, expected, verbose=VERBOSE, start="rawseq")
 
 
 def test_typeparams():
@@ -1088,7 +1102,7 @@ def test_parse_file():
     module = "backpressure/backpressure.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
-        parse_code(src.read(), verbose=True)
+        parse_code(src.read(), verbose=VERBOSE)
 
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
