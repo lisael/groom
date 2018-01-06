@@ -997,13 +997,70 @@ def test_tuple():
         (1, 2, 3)
     """
     expected = {
-        'members': [{'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '1'}]},
+        'members': [{'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '1'}]},
                     {'node_type': 'seq', 'seq': [
                         {'node_type': 'int', 'value': '2'}]},
-                    {'node_type': 'seq', 'seq': [{'node_type': 'int', 'value': '3'}]}],
+                    {'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '3'}]}],
         'node_type': 'tuple'
     }
-    parse_code(data, expected, verbose=True, start="tuple")
+    parse_code(data, expected, verbose=VERBOSE, start="tuple")
+
+
+def test_array():
+    data = """
+        [as USize: 1; 2; 3]
+    """
+    expected = {
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'int', 'value': '1'},
+                            {'node_type': 'int', 'value': '2'},
+                            {'node_type': 'int', 'value': '3'}]},
+        'node_type': 'array',
+        'type': {'cap': None,
+                 'cap_modifier': None,
+                 'id': {'id': 'USize', 'node_type': 'id'},
+                 'node_type': 'nominal',
+                 'package': None,
+                 'typeargs': []}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="array")
+
+
+def test_fficall():
+    data = """
+        @pony_apply_backpressure()
+        @"pony_apply_backpressure"[I32](arg where foo=bar)?
+    """
+    expected = {
+        'node_type': 'seq',
+        'seq': [{'id': {'id': 'pony_apply_backpressure', 'node_type': 'id'},
+                 'named': [],
+                 'node_type': 'fficall',
+                 'partial': False,
+                 'positional': [],
+                 'typeargs': None},
+                {'id': {'node_type': 'string', 'value': '"pony_apply_backpressure"'},
+                 'named': [{'id': {'id': 'foo', 'node_type': 'id'},
+                            'node_type': 'namedarg',
+                            'value': {'node_type': 'seq',
+                                      'seq': [{'id': {'id': 'bar', 'node_type': 'id'},
+                                               'node_type': 'reference'}]}}],
+                 'node_type': 'fficall',
+                 'partial': True,
+                 'positional': [{'node_type': 'seq',
+                                 'seq': [{'id': {'id': 'arg', 'node_type': 'id'},
+                                          'node_type': 'reference'}]}],
+                 'typeargs': {'node_type': 'typeargs',
+                              'typeargs': [{'cap': None,
+                                            'cap_modifier': None,
+                                            'id': {'id': 'I32', 'node_type': 'id'},
+                                            'node_type': 'nominal',
+                                            'package': None,
+                                            'typeargs': []}]}}]
+    }
+    parse_code(data, expected, verbose=True, start="rawseq")
 
 
 def test_typeparams():
@@ -1034,12 +1091,14 @@ def test_parse_file():
         parse_code(src.read(), verbose=True)
 
 
-
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():
     path = find_pony_stdlib_path()
+    parser = Parser()
     for root, dirs, files in os.walk(path):
         for ponysrc in [f for f in files if f.endswith(".pony")]:
             with open(os.path.join(root, ponysrc)) as src:
                 print(os.path.join(root, ponysrc))
-                parse_code(src.read(), verbose=VERBOSE)
+                data = src.read()
+                tree = parser.parse(data, lexer=Lexer(), debug=VERBOSE)
+                tree.as_dict()

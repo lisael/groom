@@ -53,6 +53,15 @@ def test_lparen_new():
     (""", 'LPAREN_NEW')
 
 
+def test_lsquare():
+    check_token("[", "LSQUARE")
+
+
+def test_lsquare_new():
+    check_token("""
+    [""", 'LSQUARE_NEW')
+
+
 def test_minus():
     check_token("-", "MINUS")
 

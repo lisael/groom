@@ -379,6 +379,16 @@ class TupleNode(Node):
     node_attributes = ["members"]
 
 
+class ArrayNode(Node):
+    node_type = "array"
+    node_attributes = ["type", "members"]
+
+
+class FFICallNode(Node):
+    node_type = "fficall"
+    node_attributes = ["id", "typeargs", "positional", "named", "partial"]
+
+
 class RecoverNode(Node):
     node_type = "recover"
     node_attributes = ["annotations", "cap", "members"]

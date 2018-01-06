@@ -102,6 +102,8 @@ tokens = [
     "MINUS_NEW",
     "LPAREN",
     "LPAREN_NEW",
+    "LSQUARE",
+    "LSQUARE_NEW",
     "MINUS_TILDE",
     "MINUS_TILDE_NEW",
 ] + list(set(reserved.values()))
@@ -134,6 +136,8 @@ t_LINECOMMENT = r'//[^\n]+'
 
 LPAREN_NEW = f'( {NEWLINE} \\( )'
 LPAREN = r'\('
+LSQUARE_NEW = f'( {NEWLINE} \\[ )'
+LSQUARE = r'\['
 MINUS_NEW = f' {NEWLINE} -'
 MINUS = '-'
 MINUS_TILDE = '-~'
@@ -187,6 +191,17 @@ def t_LPAREN_NEW(t):
 
 @TOKEN(LPAREN)
 def t_LPAREN(t):
+    return t
+
+
+@TOKEN(LSQUARE_NEW)
+def t_LSQUARE_NEW(t):
+    t.lexer.lineno += t.value.count("\n")
+    return t
+
+
+@TOKEN(LSQUARE)
+def t_LSQUARE(t):
     return t
 
 

@@ -25,6 +25,13 @@ def p_anyparen(p):
     """
 
 
+def p_anysquare(p):
+    """
+    anysquare : LSQUARE
+              | LSQUARE_NEW
+    """
+
+
 def p_empty(p):
     """
     empty :
@@ -104,9 +111,17 @@ def p_use_ffi(p):
 
 def p_typeargs(p):
     """
-    typeargs : '[' typearglist ']'
+    typeargs : LSQUARE typearglist ']'
     """
     p[0] = nodes.TypeArgs(typeargs=p[2])
+
+
+def p_maybe_typeargs(p):
+    """
+    maybe_typeargs : typeargs
+                   | empty
+    """
+    p[0] = p[1]
 
 
 def p_typearglist(p):
@@ -120,7 +135,7 @@ def p_typearglist(p):
 def p_id_or_string(p):
     """
     id_or_string : id
-                 | STRING
+                 | string
     """
     p[0] = p[1]
 
@@ -149,7 +164,7 @@ def p_cap(p):
 
 def p_typeparams(p):
     """
-    typeparams : '[' typeparams_list ']'
+    typeparams : LSQUARE typeparams_list ']'
     """
     p[0] = nodes.TypeParamsNode(members=p[2])
 
@@ -571,6 +586,7 @@ vardecl_classes = {
         "let": nodes.LetNode,
         }
 
+
 def p_vardecl(p):
     """
     vardecl : varkw id maybe_typed
@@ -583,7 +599,14 @@ def p_pattern(p):
     pattern : vardecl
             | parampattern
     """
-    # TODO
+    p[0] = p[1]
+
+
+def p_nextpattern(p):
+    """
+    nextpattern : vardecl
+                | nextparampattern
+    """
     p[0] = p[1]
 
 
@@ -604,6 +627,25 @@ def p_term(p):
     """
     # TODO
     p[0] = p[1] if isinstance(p[1], nodes.Node) else nodes.ReferenceNode(id=p[1])
+
+
+def p_nextterm(p):
+    """
+    nextterm : if
+             | ifdef
+             | iftype
+             | match
+             | while
+             | repeat
+             | for
+             | with
+             | try
+             | recover
+             | consume
+             | nextpattern
+    """
+    # TODO
+    p_term(p)
 
 
 def p_if(p):
@@ -924,15 +966,6 @@ def p_consume(p):
     p[0] = nodes.ConsumeNode(cap=p[2], term=p[3])
 
 
-def p_nextterm(p):
-    """
-    nextterm : id
-             | literal
-    """
-    # TODO
-    p[0] = p[1]
-
-
 def p_isop(p):
     """
     isop : IS term
@@ -1066,9 +1099,9 @@ def p_guard(p):
 def p_maybe_partial(p):
     """
     maybe_partial : '?'
-                  |
+                  | empty
     """
-    p[0] = len(p) == 2
+    p[0] = p[1] == '?'
 
 
 def p_meth_type(p):
@@ -1116,6 +1149,14 @@ def p_parampattern(p):
     p[0] = p[1](pattern=p[2]) if len(p) == 3 else p[1]
 
 
+def p_nextparampattern(p):
+    """
+    nextparampattern : nextparampatternprefix parampattern
+                     | nextpostfix
+    """
+    p_parampattern(p)
+
+
 pattern_prefix_node_constructor = {
     'not': nodes.NotNode,
     'addressof': nodes.AddressofNode,
@@ -1134,6 +1175,17 @@ def p_parampatternprefix(p):
                        | MINUS_NEW
                        | MINUS_TILDE_NEW
                        | DIGESTOF
+    """
+    p[0] = pattern_prefix_node_constructor[p[1].strip()]
+
+
+def p_nextparampatternprefix(p):
+    """
+    nextparampatternprefix : NOT
+                           | ADDRESSOF
+                           | MINUS_NEW
+                           | MINUS_TILDE_NEW
+                           | DIGESTOF
     """
     p[0] = pattern_prefix_node_constructor[p[1].strip()]
 
@@ -1160,6 +1212,13 @@ def p_postfix(p):
         elif s[0] == 'qualify':
             result = nodes.QualifyNode(type=result, args=s[1])
     p[0] = result
+
+
+def p_nextpostfix(p):
+    """
+    nextpostfix : nextatom atomsuffix_list
+    """
+    p_postfix(p)
 
 
 def p_atomsuffix_list(p):
@@ -1273,8 +1332,55 @@ def p_atom(p):
          | this
          | literal
          | tuple
+         | array
+         | fficall
     """
     p[0] = p[1]
+
+
+def p_nextatom(p):
+    """
+    nextatom : id
+             | this
+             | literal
+             | nexttuple
+             | nextarray
+             | fficall
+    """
+    p[0] = p[1]
+
+
+def p_array(p):
+    """
+    array : anysquare arraytype rawseq ']'
+    """
+    p[0] = nodes.ArrayNode(type=p[2], members=p[3])
+
+
+def p_nextarray(p):
+    """
+    nextarray : LSQUARE_NEW arraytype rawseq ']'
+    """
+    p_array(p)
+
+
+def p_arraytype(p):
+    """
+    arraytype : AS type ':'
+              | empty
+    """
+    p[0] = None if len(p) == 2 else p[2]
+
+
+def p_fficall(p):
+    """
+    fficall : '@' id_or_string maybe_typeargs anylparen positional named ')' maybe_partial
+    """
+    p[0] = nodes.FFICallNode(id=p[2],
+                             typeargs=p[3],
+                             positional=p[5],
+                             named=p[6],
+                             partial=p[8])
 
 
 def p_tuple(p):
@@ -1282,6 +1388,13 @@ def p_tuple(p):
     tuple : anylparen rawseq tupletail ')'
     """
     p[0] = nodes.TupleNode(members=[p[2]] + p[3])
+
+
+def p_nexttuple(p):
+    """
+    nexttuple : LPAREN_NEW rawseq tupletail ')'
+    """
+    p_tuple(p)
 
 
 def p_tupletail(p):
