@@ -3,6 +3,13 @@ from groom.lexer import tokens  # noqa needed by yacc.yacc
 from groom.ast import nodes
 
 
+# Known missing constructs and bugs
+#    - lambda
+#    - lambdatype
+#    - # postfix (???)
+#    - empty match case
+#    - docstring in unimplemented method
+
 def p_module(p):
     """
     module : STRING uses class_defs
@@ -14,8 +21,8 @@ def p_module(p):
         p[0] = nodes.ModuleNode(uses=p[1], class_defs=p[2])
 
 
-def p_error(p):
-    import ipdb; ppp=p; ipdb.set_trace()
+# def p_error(p):
+#     import ipdb; ppp=p; ipdb.set_trace()
 
 
 def p_anyparen(p):
