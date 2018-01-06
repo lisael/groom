@@ -14,8 +14,8 @@ def p_module(p):
         p[0] = nodes.ModuleNode(uses=p[1], class_defs=p[2])
 
 
-# def p_error(p):
-#     import ipdb; ppp=p; ipdb.set_trace()
+def p_error(p):
+    import ipdb; ppp=p; ipdb.set_trace()
 
 
 def p_anyparen(p):
@@ -1124,7 +1124,11 @@ def p_param(p):
     """
     param : param_1
           | param_1 '=' infix
+          | '.' '.' '.'
     """
+    if p[1] == ".":
+        p[0] = nodes.ElipsisNode()
+        return
     default = p[3] if len(p) == 4 else None
     id = p[1][0]
     if isinstance(id, nodes.ReferenceNode):

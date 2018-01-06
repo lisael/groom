@@ -47,6 +47,7 @@ def test_int():
 def test_float():
     check_token("1.23", "FLOAT")
 
+
 def test_lparen():
     check_token("(", "LPAREN")
 

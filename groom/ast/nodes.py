@@ -394,6 +394,10 @@ class RecoverNode(Node):
     node_attributes = ["annotations", "cap", "members"]
 
 
+class ElipsisNode(Node):
+    node_type = "..."
+
+
 class ConsumeNode(Node):
     node_type = "consume"
     node_attributes = ["cap", "term"]
