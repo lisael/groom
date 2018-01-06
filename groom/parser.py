@@ -797,8 +797,9 @@ def p_maybe_pattern(p):
 def p_match_action(p):
     """
     match_action : BIG_ARROW rawseq
+                 |
     """
-    p[0] = p[2]
+    p[0] = p[2] if len(p) == 3 else None
 
 
 def p_caseexpr(p):
