@@ -392,22 +392,19 @@ def p_parametrised_id(p):
         p[0] = (p[1], [])
 
 
+def p_provides(p):
+    """
+    provides : IS type
+             |
+    """
+    p[0] =  None if len(p) == 1 else p[2]
+
+
 def p_class_decl(p):
     """
-    class_decl : class_decl_1 IS type
-               | class_decl_1
+    class_decl : CLASS_DECL annotations cap parametrised_id provides
     """
-    if len(p) == 2:
-        p[0] = p[1] + (None,)
-    else:
-        p[0] = p[1] + (nodes.ProvidesNode(type=p[3]),)
-
-
-def p_class_decl_1(p):
-    """
-    class_decl_1 : CLASS_DECL annotation cap parametrised_id
-    """
-    p[0] = (p[1], p[2], p[3], p[4][0], p[4][1])
+    p[0] = (p[1], p[2], p[3], p[4][0], p[4][1], p[5])
 
 
 def p_docstring(p):
@@ -444,10 +441,10 @@ def p_class_def(p):
             docstring=p[2], members=members)
 
 
-def p_annotation(p):
+def p_annotations(p):
     r"""
-    annotation : BACKSLASH id_list BACKSLASH
-               |
+    annotations : BACKSLASH id_list BACKSLASH
+                |
     """
     if len(p) == 1:
         p[0] = []
@@ -687,7 +684,7 @@ def p_elseif(p):
 
 def p_ifdef(p):
     """
-    ifdef : IFDEF annotation infix THEN rawseq ifdef_else END
+    ifdef : IFDEF annotations infix THEN rawseq ifdef_else END
     """
     p[0] = nodes.IfdefNode(
             annotations=p[2],
@@ -708,7 +705,7 @@ def p_ifdef_else(p):
 
 def p_elseifdef(p):
     """
-    elseifdef : ELSEIF annotation infix THEN rawseq ifdef_else
+    elseifdef : ELSEIF annotations infix THEN rawseq ifdef_else
     """
     p[0] = (None, nodes.IfdefNode(
             annotations=p[2],
@@ -730,7 +727,7 @@ def p_type_assertion(p):
 
 def p_iftype(p):
     """
-    iftype : IFTYPE annotation type_assertion THEN rawseq iftype_else END
+    iftype : IFTYPE annotations type_assertion THEN rawseq iftype_else END
     """
     p[0] = nodes.IftypeNode(
             annotations=p[2],
@@ -751,7 +748,7 @@ def p_iftype_else(p):
 
 def p_elseiftype(p):
     """
-    elseiftype : ELSEIF annotation type_assertion THEN rawseq iftype_else
+    elseiftype : ELSEIF annotations type_assertion THEN rawseq iftype_else
     """
     p[0] = (None, nodes.IftypeNode(
             annotations=p[2],
@@ -764,7 +761,7 @@ def p_elseiftype(p):
 
 def p_match(p):
     """
-    match : MATCH annotation rawseq caseexpr_list else END
+    match : MATCH annotations rawseq caseexpr_list else END
     """
     p[0] = nodes.MatchNode(
             annotations=p[2],
@@ -806,7 +803,7 @@ def p_match_action(p):
 
 def p_caseexpr(p):
     """
-    caseexpr : '|' annotation maybe_pattern guard match_action
+    caseexpr : '|' annotations maybe_pattern guard match_action
     """
     p[0] = nodes.CaseNode(
             annotations=p[2],
@@ -850,7 +847,7 @@ def p_then(p):
 
 def p_for(p):
     """
-    for : FOR annotation idseq IN rawseq DO rawseq else END
+    for : FOR annotations idseq IN rawseq DO rawseq else END
     """
     p[0] = nodes.ForNode(
             annotations=p[2],
@@ -895,7 +892,7 @@ def p_idseq_list(p):
 
 def p_with(p):
     """
-    with : WITH annotation withelem_list DO rawseq else END
+    with : WITH annotations withelem_list DO rawseq else END
     """
     p[0] = nodes.WithNode(
             annotations=p[2],
@@ -934,7 +931,7 @@ def p_else_then(p):
 
 def p_try(p):
     """
-    try : TRY annotation rawseq else_then END
+    try : TRY annotations rawseq else_then END
     """
     p[0] = nodes.TryNode(
         annotations=p[2],
@@ -948,7 +945,7 @@ def p_try(p):
 
 def p_recover(p):
     """
-    recover : RECOVER annotation cap rawseq END
+    recover : RECOVER annotations cap rawseq END
     """
     p[0] = nodes.RecoverNode(
             annotations=p[2],
@@ -1066,7 +1063,7 @@ method_kinds = {
 
 def p_meth_decl(p):
     """
-    meth_decl : METH_DECL annotation
+    meth_decl : METH_DECL annotations
     """
     p[0] = (p[1], p[2])
 
@@ -1336,6 +1333,16 @@ def p_this(p):
     p[0] = nodes.ThisNode()
 
 
+def p_object(p):
+    """
+    object : OBJECT annotations cap provides members END
+    """
+    p[0] = nodes.ObjectNode(annotations=p[2],
+                            cap=p[3],
+                            provides=p[4],
+                            members=p[5])
+
+
 def p_atom(p):
     """
     atom : id
@@ -1343,6 +1350,7 @@ def p_atom(p):
          | literal
          | tuple
          | array
+         | object
          | fficall
     """
     p[0] = p[1]
@@ -1355,6 +1363,7 @@ def p_nextatom(p):
              | literal
              | nexttuple
              | nextarray
+             | object
              | fficall
     """
     p[0] = p[1]
@@ -1439,7 +1448,7 @@ def p_rawseq(p):
 
 def p_annotatedrawseq(p):
     """
-    annotatedrawseq : annotation rawseq
+    annotatedrawseq : annotations rawseq
     """
     p[0] = (p[1], p[2])
 

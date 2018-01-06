@@ -398,6 +398,11 @@ class ElipsisNode(Node):
     node_type = "..."
 
 
+class ObjectNode(Node):
+    node_type = "object"
+    node_attributes = ["annotations", "cap", "provides", "members"]
+
+
 class ConsumeNode(Node):
     node_type = "consume"
     node_attributes = ["cap", "term"]

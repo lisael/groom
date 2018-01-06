@@ -1038,7 +1038,55 @@ def test_object():
             false
         end
     """
-    expected = {}
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'members': [{'default': {'node_type': 'this'},
+                     'id': {'id': 'term', 'node_type': 'id'},
+                     'node_type': 'flet',
+                     'type': {'cap': None,
+                              'cap_modifier': None,
+                              'id': {'id': 'ANSITerm', 'node_type': 'id'},
+                              'node_type': 'nominal',
+                              'package': None,
+                              'typeargs': []}},
+                    {'annotations': [],
+                     'body': {'node_type': 'seq',
+                              'seq': [{'fun': {'first': {'id': {'id': 'term',
+                                                                'node_type': 'id'},
+                                                         'node_type': 'reference'},
+                                               'node_type': '.',
+                                               'second': {'id': '_timeout',
+                                                          'node_type': 'id'}},
+                                       'is_partial': False,
+                                       'namedargs': {'args': [],
+                                                     'node_type': 'namedargs'},
+                                       'node_type': 'call',
+                                       'positionalargs': {'args': [],
+                                                          'node_type': 'positionalargs'}},
+                                      {'node_type': 'false', 'value': 'false'}]},
+                     'capability': 'ref',
+                     'docstring': None,
+                     'guard': None,
+                     'id': {'id': 'apply', 'node_type': 'id'},
+                     'is_partial': False,
+                     'node_type': 'fun',
+                     'params': {'node_type': 'params', 'params': []},
+                     'return_type': {'cap': None,
+                                     'cap_modifier': None,
+                                     'id': {'id': 'Bool', 'node_type': 'id'},
+                                     'node_type': 'nominal',
+                                     'package': None,
+                                     'typeargs': []},
+                     'typeparams': []}],
+        'node_type': 'object',
+        'provides': {'cap': None,
+                     'cap_modifier': None,
+                     'id': {'id': 'TimerNotify', 'node_type': 'id'},
+                     'node_type': 'nominal',
+                     'package': None,
+                     'typeargs': []}
+    }
     parse_code(data, expected, verbose=True, start="object")
 
 
