@@ -12,13 +12,11 @@ def p_module(p):
     """
     module : docstring uses class_defs
     """
-    if len(p) == 4:
-        p[0] = nodes.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
-    else:
-        p[0] = nodes.ModuleNode(uses=p[1], class_defs=p[2])
+    p[0] = nodes.ModuleNode(docstring=p[1], uses=p[2], class_defs=p[3])
 
 
 # def p_error(p):
+#     raise ValueError((p.value, p.lineno))
 #     import ipdb; ppp=p; ipdb.set_trace()
 
 
@@ -186,13 +184,13 @@ def p_typeparams_list(p):
 
 def p_typeparam(p):
     """
-    typeparam : typed_id
-              | typed_id '=' typearg
+    typeparam : id maybe_typed
+              | id maybe_typed '=' typearg
     """
-    if len(p) == 2:
-        p[0] = nodes.TypeParamNode(id=p[1][0], type=p[1][1])
+    if len(p) == 3:
+        p[0] = nodes.TypeParamNode(id=p[1], type=p[2])
     else:
-        p[0] = nodes.TypeParamNode(id=p[1][0], type=p[1][1], typearg=p[3])
+        p[0] = nodes.TypeParamNode(id=p[1], type=p[2], typearg=p[4])
 
 
 def p_typearg(p):
@@ -251,17 +249,6 @@ def p_literal(p):
             | string
     """
     p[0] = p[1]
-
-
-def p_typed_id(p):
-    """
-    typed_id : id
-             | id ':' type
-    """
-    if len(p) == 2:
-        p[0] = (p[1], None)
-    else:
-        p[0] = (p[1], p[2])
 
 
 def p_type(p):
@@ -574,7 +561,7 @@ def p_op(p):
         p[0] = p[1]
 
 
-def p_mabetyped(p):
+def p_mabe_typed(p):
     """
     maybe_typed : ':' type
                 |
@@ -1351,6 +1338,7 @@ def p_atom(p):
          | tuple
          | array
          | object
+         | lambda
          | fficall
     """
     p[0] = p[1]
@@ -1364,7 +1352,76 @@ def p_nextatom(p):
              | nexttuple
              | nextarray
              | object
+             | lambda
              | fficall
+    """
+    p[0] = p[1]
+
+
+def p_lambda(p):
+    """
+    lambda : '{' annotations cap maybe_id maybe_typeparams params maybe_lambdacaptures maybe_typed maybe_partial BIG_ARROW rawseq '}' cap
+    """
+    p[0] = nodes.LambdaNode(annotations=p[2],
+                            cap=p[3],
+                            id=p[4],
+                            typeparams=p[5],
+                            params=p[6],
+                            lambdacaptures=p[7],
+                            type=p[8],
+                            is_partial=p[9],
+                            body=p[11],
+                            cap2=p[13])
+
+
+def p_maybe_lambdacaptures(p):
+    """
+    maybe_lambdacaptures : lambdacaptures
+                         | empty
+    """
+    p[0] = p[1]
+
+
+def p_lambdacaptures(p):
+    """
+    lambdacaptures : anylparen lambdacapture_list ')'
+    """
+    p[0] = nodes.LambdaCaptures(members=p[2])
+
+
+def p_lambdacapture_list(p):
+    """
+    lambdacapture_list : lambdacapture
+                       | lambdacapture ',' lambdacapture_list
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+
+
+def p_lambdacapture(p):
+    """
+    lambdacapture : this
+                  | id maybe_typed
+                  | id maybe_typed '=' infix
+    """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        value = None if len(p) == 3 else p[4]
+        p[0] = nodes.LambdaCapture(id=p[1], type=p[2], value=value)
+
+
+def p_maybe_typeparams(p):
+    """
+    maybe_typeparams : typeparams
+                     | empty
+    """
+    p[0] = p[1]
+
+
+def p_maybe_id(p):
+    """
+    maybe_id : id
+             | empty
     """
     p[0] = p[1]
 

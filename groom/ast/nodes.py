@@ -384,6 +384,22 @@ class ArrayNode(Node):
     node_attributes = ["type", "members"]
 
 
+class LambdaNode(Node):
+    node_type = "lambda"
+    node_attributes = ["annotations", "cap", "id", "typeparams", "params",
+                       "lambdacaptures", "type", "is_partial", "body", "cap2"]
+
+
+class LambdaCaptures(Node):
+    node_type = "lambdacaptures"
+    node_attributes = ["members"]
+
+
+class LambdaCapture(Node):
+    node_type = "lambdacapture"
+    node_attributes = ["id", "type", "value"]
+
+
 class FFICallNode(Node):
     node_type = "fficall"
     node_attributes = ["id", "typeargs", "positional", "named", "partial"]

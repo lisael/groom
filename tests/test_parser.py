@@ -1154,11 +1154,61 @@ def test_typeparams():
     parse_code(data, expected, verbose=VERBOSE, start="class_def")
 
 
+def test_lambda():
+    data = """
+        {val an_id[I32](a: String)(this, captured): ReturnType ? => foo()? } iso
+    """
+    expected = {
+        'annotations': [],
+        'body': {'node_type': 'seq',
+                 'seq': [{'fun': {'id': {'id': 'foo', 'node_type': 'id'},
+                                  'node_type': 'reference'},
+                          'is_partial': True,
+                          'namedargs': {'args': [], 'node_type': 'namedargs'},
+                          'node_type': 'call',
+                          'positionalargs': {'args': [],
+                                             'node_type': 'positionalargs'}}]},
+        'cap': 'val',
+        'cap2': 'iso',
+        'id': {'id': 'an_id', 'node_type': 'id'},
+        'is_partial': True,
+        'lambdacaptures': {'members': [{'node_type': 'this'},
+                                       {'id': {'id': 'captured', 'node_type': 'id'},
+                                        'node_type': 'lambdacapture',
+                                        'type': None,
+                                        'value': None}],
+                           'node_type': 'lambdacaptures'},
+        'node_type': 'lambda',
+        'params': {'node_type': 'params',
+                   'params': [{'default': None,
+                               'id': {'id': 'a', 'node_type': 'id'},
+                               'node_type': 'param',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'String', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}]},
+        'type': {'cap': None,
+                 'cap_modifier': None,
+                 'id': {'id': 'ReturnType', 'node_type': 'id'},
+                 'node_type': 'nominal',
+                 'package': None,
+                 'typeargs': []},
+        'typeparams': {'members': [{'id': {'id': 'I32', 'node_type': 'id'},
+                                    'node_type': 'typeparam',
+                                    'type': None,
+                                    'typearg': None}],
+                       'node_type': 'typeparams'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="lambda")
+
+
 def test_parse_file():
-    module = "backpressure/backpressure.pony"
+    module = "json/_test.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
-        parse_code(src.read(), verbose=VERBOSE)
+        parse_code(src.read(), verbose=False)
 
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
