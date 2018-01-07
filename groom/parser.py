@@ -7,7 +7,6 @@ from groom.ast import nodes
 #    - lambda
 #    - lambdatype
 #    - # postfix (???)
-#    - empty match case
 
 def p_module(p):
     """
@@ -397,7 +396,7 @@ def p_provides(p):
     provides : IS type
              |
     """
-    p[0] =  None if len(p) == 1 else p[2]
+    p[0] =  None if len(p) == 1 else nodes.ProvidesNode(type=p[2])
 
 
 def p_class_decl(p):

@@ -8,8 +8,15 @@ from groom.ast import nodes
 from groom.utils import find_pony_stdlib_path
 
 
+parsers_cache = {}
+
 def parse_code(data, expected=None, verbose=False, **parser_opts):
-    tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
+    cache_key = tuple(parser_opts.items())
+    parser = parsers_cache.setdefault(
+            cache_key,
+            Parser(**parser_opts)
+            )
+    tree = parser.parse(data, lexer=Lexer(), debug=verbose)
     result = tree.as_dict() if isinstance(tree, nodes.Node) else tree
     if isinstance(result, list):
         result = [i.as_dict() for i in result]
@@ -55,7 +62,7 @@ def test_ffidecl():
                                    'node_type': 'nominal',
                                    'package': None,
                                    'typeargs': []}]}}
-    parse_code(data, expected, verbose=VERBOSE, start="use_ffi")
+    parse_code(data, expected, verbose=True, start="use_ffi")
 
 
 def test_call():
@@ -1080,12 +1087,13 @@ def test_object():
                                      'typeargs': []},
                      'typeparams': []}],
         'node_type': 'object',
-        'provides': {'cap': None,
-                     'cap_modifier': None,
-                     'id': {'id': 'TimerNotify', 'node_type': 'id'},
-                     'node_type': 'nominal',
-                     'package': None,
-                     'typeargs': []}
+        'provides': {'node_type': 'provides',
+                     'type': {'cap': None,
+                              'cap_modifier': None,
+                              'id': {'id': 'TimerNotify', 'node_type': 'id'},
+                              'node_type': 'nominal',
+                              'package': None,
+                              'typeargs': []}}
     }
     parse_code(data, expected, verbose=True, start="object")
 
