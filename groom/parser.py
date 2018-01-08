@@ -1385,6 +1385,22 @@ def p_nextatom(p):
     p[0] = p[1]
 
 
+def p_barelambda(p):
+    """
+    barelambda : '@' lambda
+    """
+    p[0] = nodes.BareLambdaNode(annotations=p[1].annotations,
+                                cap=p[1].cap,
+                                id=p[1].id,
+                                typeparams=p[1].typeparams,
+                                params=p[1].params,
+                                lambdacaptures=p[1].lambdacaptures,
+                                type=p[1].type,
+                                is_partial=p[1].partial,
+                                body=p[1].body,
+                                cap2=p[1].cap2)
+
+
 def p_lambda(p):
     """
     lambda : '{' annotations cap maybe_id maybe_typeparams params maybe_lambdacaptures maybe_typed maybe_partial BIG_ARROW rawseq '}' cap

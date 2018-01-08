@@ -390,6 +390,12 @@ class LambdaNode(Node):
                        "lambdacaptures", "type", "is_partial", "body", "cap"]
 
 
+class BareLambdaNode(Node):
+    node_type = "barelambda"
+    node_attributes = ["annotations", "cap2", "id", "typeparams", "params",
+                       "lambdacaptures", "type", "is_partial", "body", "cap"]
+
+
 class LambdaCaptures(Node):
     node_type = "lambdacaptures"
     node_attributes = ["members"]
