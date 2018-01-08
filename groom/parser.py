@@ -4,8 +4,6 @@ from groom.ast import nodes
 
 
 # Known missing constructs and bugs
-#    - lambda
-#    - lambdatype
 #    - # postfix (???)
 
 def p_module(p):
@@ -16,8 +14,8 @@ def p_module(p):
 
 
 # def p_error(p):
-#     raise ValueError((p.value, p.lineno))
 #     import ipdb; ppp=p; ipdb.set_trace()
+#     raise ValueError((p.value, p.lineno))
 
 
 def p_anyparen(p):
@@ -268,11 +266,33 @@ def p_atomtype(p):
              | CAP
              | combined_types
              | nominal
+             | lambdatype
     """
     # TODO
-    # atomtype : lambdatype
     # atomtype : barelambdatype
     p[0] = p[1]
+
+
+def p_lambdatype(p):
+    """
+    lambdatype : '{' cap maybe_id maybe_typeparams anylparen type_list ')' maybe_typed maybe_partial '}' typecap
+    """
+    p[0] = nodes.LambdaType(cap2=p[2],
+                            id=p[3],
+                            typeparams=nodes.ParamsNode(members=p[4]),
+                            params=p[6],
+                            return_type=p[8],
+                            is_partial=p[9],
+                            cap=p[11][0],
+                            cap_modifier=p[11][1])
+
+
+def p_type_list(p):
+    """
+    type_list : type
+              | type ',' type_list
+    """
+    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
 
 
 def p_nominal(p):
@@ -292,6 +312,7 @@ def p_typecap(p):
     """
     typecap : CAP cap_modifier
             | GENCAP cap_modifier
+            | empty cap_modifier
             | CAP
             | GENCAP
             | empty

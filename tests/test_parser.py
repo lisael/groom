@@ -1204,11 +1204,39 @@ def test_lambda():
     parse_code(data, expected, verbose=VERBOSE, start="lambda")
 
 
+def test_lambdatype():
+    data = """
+        {ref(A!): B ?} iso^
+    """
+    expected = {
+        'cap': 'iso',
+        'cap2': 'ref',
+        'cap_modifier': '^',
+        'id': None,
+        'is_partial': True,
+        'node_type': 'lambdatype',
+        'params': [{'cap': None,
+                    'cap_modifier': '!',
+                    'id': {'id': 'A', 'node_type': 'id'},
+                    'node_type': 'nominal',
+                    'package': None,
+                    'typeargs': []}],
+        'return_type': {'cap': None,
+                        'cap_modifier': None,
+                        'id': {'id': 'B', 'node_type': 'id'},
+                        'node_type': 'nominal',
+                        'package': None,
+                        'typeargs': []},
+        'typeparams': {'node_type': 'params', 'params': None}
+    }
+    parse_code(data, expected, verbose=True, start="lambdatype")
+
+
 def test_parse_file():
-    module = "json/_test.pony"
+    module = "ponybench/_bench_async.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
-        parse_code(src.read(), verbose=False)
+        parse_code(src.read(), verbose=True)
 
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
