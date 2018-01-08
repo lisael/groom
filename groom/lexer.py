@@ -78,16 +78,12 @@ reserved = {
     "tag": "CAP",
     "true": "TRUE",
     "false": "FALSE",
-    '#read': "GENCAP",
-    '#send': "GENCAP",
-    '#share': "GENCAP",
-    '#alias': "GENCAP",
-    '#any': "GENCAP",
 }
 
 tokens = [
     "STRING",
     "WS",
+    "GENCAP",
     "ID",
     "LINECOMMENT",
     "NESTEDCOMMENT",
@@ -157,6 +153,8 @@ HEX_INT = f"(0x[0-9a-fA-F_]+)"
 BIN_INT = f"(0b[01_]+)"
 CHAR_INT = f"('{CHAR_CHAR}')"
 INT = f"{CHAR_INT}|{BIN_INT}|{HEX_INT}|{DEC_INT}"
+
+t_GENCAP = "(\\#{})".format(")|(\\#".join(["read", "send", "share", "alias", "any"]))
 
 
 @TOKEN(STRING)
