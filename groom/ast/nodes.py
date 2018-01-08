@@ -417,6 +417,12 @@ class LambdaType(Node):
                        "is_partial", "cap", "cap_modifier"]
 
 
+class BareLambdaType(Node):
+    node_type = "barelambdatype"
+    node_attributes = ["cap2", "id", "typeparams", "params", "return_type",
+                       "is_partial", "cap", "cap_modifier"]
+
+
 class RecoverNode(Node):
     node_type = "recover"
     node_attributes = ["annotations", "cap", "members"]

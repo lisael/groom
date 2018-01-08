@@ -267,10 +267,23 @@ def p_atomtype(p):
              | combined_types
              | nominal
              | lambdatype
+             | barelambdatype
     """
-    # TODO
-    # atomtype : barelambdatype
     p[0] = p[1]
+
+
+def p_barelambdatype(p):
+    """
+    barelambdatype : '@' lambdatype
+    """
+    p[0] = nodes.BareLambdaType(cap2=p[2].cap2,
+                            id=p[2].id,
+                            typeparams=p[2].typeparams,
+                            params=p[2].params,
+                            return_type=p[2].return_type,
+                            is_partial=p[2].is_partial,
+                            cap=p[2][0].cap,
+                            cap_modifier=p[2].cap_modifier)
 
 
 def p_lambdatype(p):
@@ -1366,6 +1379,7 @@ def p_atom(p):
          | array
          | object
          | lambda
+         | barelambda
          | fficall
     """
     p[0] = p[1]
@@ -1380,6 +1394,7 @@ def p_nextatom(p):
              | nextarray
              | object
              | lambda
+             | barelambda
              | fficall
     """
     p[0] = p[1]
@@ -1389,16 +1404,16 @@ def p_barelambda(p):
     """
     barelambda : '@' lambda
     """
-    p[0] = nodes.BareLambdaNode(annotations=p[1].annotations,
-                                cap=p[1].cap,
-                                id=p[1].id,
-                                typeparams=p[1].typeparams,
-                                params=p[1].params,
-                                lambdacaptures=p[1].lambdacaptures,
-                                type=p[1].type,
-                                is_partial=p[1].partial,
-                                body=p[1].body,
-                                cap2=p[1].cap2)
+    p[0] = nodes.BareLambdaNode(annotations=p[2].annotations,
+                                cap=p[2].cap,
+                                id=p[2].id,
+                                typeparams=p[2].typeparams,
+                                params=p[2].params,
+                                lambdacaptures=p[2].lambdacaptures,
+                                type=p[2].type,
+                                is_partial=p[2].is_partial,
+                                body=p[2].body,
+                                cap2=p[2].cap2)
 
 
 def p_lambda(p):
