@@ -1,20 +1,40 @@
+import os
 from pprint import pprint
+from unittest import skipIf
 
 from groom.lexer import Lexer
 from groom.parser import Parser
-from groom import ast
-from unittest import skip
+from groom.ast import nodes
+from groom.utils import find_pony_stdlib_path
 
 
-def parse_code(data, expected, verbose=False, **parser_opts):
-    tree = Parser(**parser_opts).parse(data, lexer=Lexer(), debug=verbose)
-    result = tree.as_dict() if isinstance(tree, ast.Node) else tree
+parsers_cache = {}
+
+def parse_code(data, expected=None, verbose=False, **parser_opts):
+    cache_key = tuple(parser_opts.items())
+    parser = parsers_cache.setdefault(
+            cache_key,
+            Parser(**parser_opts)
+            )
+    tree = parser.parse(data, lexer=Lexer(), debug=verbose)
+    result = tree.as_dict() if isinstance(tree, nodes.Node) else tree
+    if isinstance(result, list):
+        result = [i.as_dict() for i in result]
     if verbose:
         pprint(result)
-    assert(result == expected)
+    if expected is not None:
+        assert(result == expected)
 
 
-VERBOSE = True
+VERBOSE = False
+
+
+def test_float():
+    data = """
+        -3.3
+    """
+    expected = {'node_type': 'float', 'value': '3.3'}
+    parse_code(data, expected, verbose=VERBOSE, start="float")
 
 
 def test_ffidecl():
@@ -42,7 +62,7 @@ def test_ffidecl():
                                    'node_type': 'nominal',
                                    'package': None,
                                    'typeargs': []}]}}
-    parse_code(data, expected, verbose=VERBOSE, start="use_ffi")
+    parse_code(data, expected, verbose=True, start="use_ffi")
 
 
 def test_call():
@@ -150,7 +170,7 @@ def test_use():
         'ffidecl': None,
         'id': {'id': 'myboots', 'node_type': 'id'},
         'guard': {'id': {'id': 'windows', 'node_type': 'id'},
-		  'node_type': 'reference'},
+                  'node_type': 'reference'},
         'node_type': 'use',
         'package': '"boots"'
     }
@@ -447,7 +467,7 @@ def test_match():
     data = """
         match stuf
         | foo => do_foo
-        | bar => do_bar
+        | let bar: Stuff => do_bar
         end
     """
     expected = {
@@ -467,7 +487,13 @@ def test_match():
                    'guard': None,
                    'node_type': 'case',
                    'pattern': {'id': {'id': 'bar', 'node_type': 'id'},
-                               'node_type': 'reference'}}],
+                               'node_type': 'let',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'Stuff', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}}],
         'else_': None,
         'else_annotations': None,
         'node_type': 'match',
@@ -560,7 +586,7 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -571,8 +597,8 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -584,15 +610,15 @@ def test_idseq():
     expected = ['a', ['b', 'c'], 'd']
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
             {
                 'members': [
-                    {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                    {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                    {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                    {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                 ],
                 'node_type': 'tuple'
             },
-            {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -603,28 +629,28 @@ def test_idseq():
     """
     expected = {
         'members': [
-            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+            {'id': {'id': 'a', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
             {
                 'members': [
                     {
                         'members': [
-                            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                            {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                            {'id': {'id': 'b', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                            {'id': {'id': 'c', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                         ],
                         'node_type': 'tuple'
                     },
-                    {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                    {'id': {'id': 'd', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
                     {
                         'members': [
-                            {'id': {'id': 'e', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                            {'id': {'id': 'f', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                            {'id': {'id': 'e', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                            {'id': {'id': 'f', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                         ],
                         'node_type': 'tuple'
                     }
                 ],
                 'node_type': 'tuple'
             },
-            {'id': {'id': 'g', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+            {'id': {'id': 'g', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
         ],
         'node_type': 'tuple'
     }
@@ -647,10 +673,10 @@ def test_for():
         'else_annotations': [],
         'ids': {
             'members': [
-                {'id': {'id': 'i', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
+                {'id': {'id': 'i', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
                 {'members': [
-                    {'id': {'id': 'n', 'node_type': 'id'}, 'node_type': 'let', 'value': None},
-                    {'id': {'id': '_', 'node_type': 'id'}, 'node_type': 'let', 'value': None}
+                    {'id': {'id': 'n', 'node_type': 'id'}, 'node_type': 'let', 'type': None},
+                    {'id': {'id': '_', 'node_type': 'id'}, 'node_type': 'let', 'type': None}
                 ], 'node_type': 'tuple'}],
             'node_type': 'tuple'},
         'members': {'node_type': 'seq',
@@ -678,7 +704,7 @@ def test_with():
                   'seq': [{'node_type': 'seq',
                            'seq': [{'id': {'id': 'file', 'node_type': 'id'},
                                     'node_type': 'let',
-                                    'value': None},
+                                    'type': None},
                                    {'node_type': 'seq',
                                     'seq': [{'id': {'id': 'myfile', 'node_type': 'id'},
                                              'node_type': 'reference'}]}]}]},
@@ -872,9 +898,55 @@ def test_unary_minus():
         -2
     """
     expected = {
-        'node_type': 'neg', 'pattern': {'node_type': 'int', 'value': '2'}}
-
+        'node_type': 'neg', 'pattern': {'node_type': 'int', 'value': '2'}
+    }
     parse_code(data, expected, verbose=VERBOSE, start='pattern')
+
+
+def test_postfix():
+    data = """
+        Array[String]
+    """
+    expected = {
+        'node_type': 'seq',
+        'seq': [{'args': {'node_type': 'typeargs',
+                          'typeargs': [{'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'String', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}]},
+                 'node_type': 'qualify',
+                 'type': {'id': {'id': 'Array', 'node_type': 'id'},
+                          'node_type': 'reference'}}]
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='rawseq')
+
+
+def test_fields():
+    data = """
+        let _notify: ReadlineNotify
+        let _out: OutStream
+    """
+    expected = [{'default': None,
+                 'id': {'id': '_notify', 'node_type': 'id'},
+                 'node_type': 'flet',
+                 'type': {'cap': None,
+                          'cap_modifier': None,
+                          'id': {'id': 'ReadlineNotify', 'node_type': 'id'},
+                          'node_type': 'nominal',
+                          'package': None,
+                          'typeargs': []}},
+                {'default': None,
+                 'id': {'id': '_out', 'node_type': 'id'},
+                 'node_type': 'flet',
+                 'type': {'cap': None,
+                          'cap_modifier': None,
+                          'id': {'id': 'OutStream', 'node_type': 'id'},
+                          'node_type': 'nominal',
+                          'package': None,
+                          'typeargs': []}}]
+    parse_code(data, expected, verbose=VERBOSE, start='fields')
 
 
 def test_module_parsing_no_docstring_no_use():
@@ -907,9 +979,324 @@ a docstring
     '''
     expected = {
         'class_defs': [],
-        'docstring': '"""\nOnly\na docstring\n"""',
+        'docstring': {'node_type': 'string', 'value': '"""\nOnly\na docstring\n"""'},
         'name': None,
         'node_type': 'module',
         'uses': []
     }
     parse_code(data, expected)
+
+
+def test_assignment():
+    data = """
+    _iter = iter
+    """
+    expected = {
+        'first': {'id': {'id': '_iter', 'node_type': 'id'}, 'node_type': 'reference'},
+        'node_type': '=',
+        'second': {'id': {'id': 'iter', 'node_type': 'id'}, 'node_type': 'reference'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start='infix')
+
+
+def test_tuple():
+    data = """
+        (1, 2, 3)
+    """
+    expected = {
+        'members': [{'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '1'}]},
+                    {'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '2'}]},
+                    {'node_type': 'seq', 'seq': [
+                        {'node_type': 'int', 'value': '3'}]}],
+        'node_type': 'tuple'
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="tuple")
+
+
+def test_array():
+    data = """
+        [as USize: 1; 2; 3]
+    """
+    expected = {
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'int', 'value': '1'},
+                            {'node_type': 'int', 'value': '2'},
+                            {'node_type': 'int', 'value': '3'}]},
+        'node_type': 'array',
+        'type': {'cap': None,
+                 'cap_modifier': None,
+                 'id': {'id': 'USize', 'node_type': 'id'},
+                 'node_type': 'nominal',
+                 'package': None,
+                 'typeargs': []}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="array")
+
+
+def test_object():
+    data = """
+        object is TimerNotify
+          let term: ANSITerm = this
+
+          fun ref apply(): Bool =>
+            term._timeout()
+            false
+        end
+    """
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'members': [{'default': {'node_type': 'this'},
+                     'id': {'id': 'term', 'node_type': 'id'},
+                     'node_type': 'flet',
+                     'type': {'cap': None,
+                              'cap_modifier': None,
+                              'id': {'id': 'ANSITerm', 'node_type': 'id'},
+                              'node_type': 'nominal',
+                              'package': None,
+                              'typeargs': []}},
+                    {'annotations': [],
+                     'body': {'node_type': 'seq',
+                              'seq': [{'fun': {'first': {'id': {'id': 'term',
+                                                                'node_type': 'id'},
+                                                         'node_type': 'reference'},
+                                               'node_type': '.',
+                                               'second': {'id': '_timeout',
+                                                          'node_type': 'id'}},
+                                       'is_partial': False,
+                                       'namedargs': {'args': [],
+                                                     'node_type': 'namedargs'},
+                                       'node_type': 'call',
+                                       'positionalargs': {'args': [],
+                                                          'node_type': 'positionalargs'}},
+                                      {'node_type': 'false', 'value': 'false'}]},
+                     'capability': 'ref',
+                     'docstring': None,
+                     'guard': None,
+                     'id': {'id': 'apply', 'node_type': 'id'},
+                     'is_partial': False,
+                     'node_type': 'fun',
+                     'params': {'node_type': 'params', 'params': []},
+                     'return_type': {'cap': None,
+                                     'cap_modifier': None,
+                                     'id': {'id': 'Bool', 'node_type': 'id'},
+                                     'node_type': 'nominal',
+                                     'package': None,
+                                     'typeargs': []},
+                     'typeparams': []}],
+        'node_type': 'object',
+        'provides': {'node_type': 'provides',
+                     'type': {'cap': None,
+                              'cap_modifier': None,
+                              'id': {'id': 'TimerNotify', 'node_type': 'id'},
+                              'node_type': 'nominal',
+                              'package': None,
+                              'typeargs': []}}
+    }
+    parse_code(data, expected, verbose=True, start="object")
+
+
+def test_fficall():
+    data = """
+        @pony_apply_backpressure()
+        @"pony_apply_backpressure"[I32](arg where foo=bar)?
+    """
+    expected = {
+        'node_type': 'seq',
+        'seq': [{'id': {'id': 'pony_apply_backpressure', 'node_type': 'id'},
+                 'named': [],
+                 'node_type': 'fficall',
+                 'partial': False,
+                 'positional': [],
+                 'typeargs': None},
+                {'id': {'node_type': 'string', 'value': '"pony_apply_backpressure"'},
+                 'named': [{'id': {'id': 'foo', 'node_type': 'id'},
+                            'node_type': 'namedarg',
+                            'value': {'node_type': 'seq',
+                                      'seq': [{'id': {'id': 'bar', 'node_type': 'id'},
+                                               'node_type': 'reference'}]}}],
+                 'node_type': 'fficall',
+                 'partial': True,
+                 'positional': [{'node_type': 'seq',
+                                 'seq': [{'id': {'id': 'arg', 'node_type': 'id'},
+                                          'node_type': 'reference'}]}],
+                 'typeargs': {'node_type': 'typeargs',
+                              'typeargs': [{'cap': None,
+                                            'cap_modifier': None,
+                                            'id': {'id': 'I32', 'node_type': 'id'},
+                                            'node_type': 'nominal',
+                                            'package': None,
+                                            'typeargs': []}]}}]
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="rawseq")
+
+
+def test_typeparams():
+    data = """
+        class _EmptyIter[A]
+    """
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'docstring': None,
+        'id': {'id': '_EmptyIter', 'node_type': 'id'},
+        'members': [],
+        'node_type': 'class',
+        'provides': None,
+        'type_params': {'members': [{'id': {'id': 'A', 'node_type': 'id'},
+                                     'node_type': 'typeparam',
+                                     'type': None,
+                                     'typearg': None}],
+                        'node_type': 'typeparams'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="class_def")
+
+
+def test_lambda():
+    data = """
+        {val an_id[I32](a: String)(this, captured): ReturnType ? => foo()? } iso
+    """
+    expected = {
+        'annotations': [],
+        'body': {'node_type': 'seq',
+                 'seq': [{'fun': {'id': {'id': 'foo', 'node_type': 'id'},
+                                  'node_type': 'reference'},
+                          'is_partial': True,
+                          'namedargs': {'args': [], 'node_type': 'namedargs'},
+                          'node_type': 'call',
+                          'positionalargs': {'args': [],
+                                             'node_type': 'positionalargs'}}]},
+        'cap': 'val',
+        'cap2': 'iso',
+        'id': {'id': 'an_id', 'node_type': 'id'},
+        'is_partial': True,
+        'lambdacaptures': {'members': [{'node_type': 'this'},
+                                       {'id': {'id': 'captured', 'node_type': 'id'},
+                                        'node_type': 'lambdacapture',
+                                        'type': None,
+                                        'value': None}],
+                           'node_type': 'lambdacaptures'},
+        'node_type': 'lambda',
+        'params': {'node_type': 'params',
+                   'params': [{'default': None,
+                               'id': {'id': 'a', 'node_type': 'id'},
+                               'node_type': 'param',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'String', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}]},
+        'type': {'cap': None,
+                 'cap_modifier': None,
+                 'id': {'id': 'ReturnType', 'node_type': 'id'},
+                 'node_type': 'nominal',
+                 'package': None,
+                 'typeargs': []},
+        'typeparams': {'members': [{'id': {'id': 'I32', 'node_type': 'id'},
+                                    'node_type': 'typeparam',
+                                    'type': None,
+                                    'typearg': None}],
+                       'node_type': 'typeparams'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="lambda")
+
+
+def test_barelambda():
+    data = """
+        @{val an_id[I32](a: String)(this, captured): ReturnType ? => foo()? } iso
+    """
+    expected = {
+        'annotations': [],
+        'body': {'node_type': 'seq',
+                 'seq': [{'fun': {'id': {'id': 'foo', 'node_type': 'id'},
+                                  'node_type': 'reference'},
+                          'is_partial': True,
+                          'namedargs': {'args': [], 'node_type': 'namedargs'},
+                          'node_type': 'call',
+                          'positionalargs': {'args': [],
+                                             'node_type': 'positionalargs'}}]},
+        'cap': 'val',
+        'cap2': 'iso',
+        'id': {'id': 'an_id', 'node_type': 'id'},
+        'is_partial': True,
+        'lambdacaptures': {'members': [{'node_type': 'this'},
+                                       {'id': {'id': 'captured', 'node_type': 'id'},
+                                        'node_type': 'lambdacapture',
+                                        'type': None,
+                                        'value': None}],
+                           'node_type': 'lambdacaptures'},
+        'node_type': 'barelambda',
+        'params': {'node_type': 'params',
+                   'params': [{'default': None,
+                               'id': {'id': 'a', 'node_type': 'id'},
+                               'node_type': 'param',
+                               'type': {'cap': None,
+                                        'cap_modifier': None,
+                                        'id': {'id': 'String', 'node_type': 'id'},
+                                        'node_type': 'nominal',
+                                        'package': None,
+                                        'typeargs': []}}]},
+        'type': {'cap': None,
+                 'cap_modifier': None,
+                 'id': {'id': 'ReturnType', 'node_type': 'id'},
+                 'node_type': 'nominal',
+                 'package': None,
+                 'typeargs': []},
+        'typeparams': {'members': [{'id': {'id': 'I32', 'node_type': 'id'},
+                                    'node_type': 'typeparam',
+                                    'type': None,
+                                    'typearg': None}],
+                       'node_type': 'typeparams'}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="barelambda")
+
+
+def test_lambdatype():
+    data = """
+        {ref(A!): B ?} iso^
+    """
+    expected = {
+        'cap': 'iso',
+        'cap2': 'ref',
+        'cap_modifier': '^',
+        'id': None,
+        'is_partial': True,
+        'node_type': 'lambdatype',
+        'params': [{'cap': None,
+                    'cap_modifier': '!',
+                    'id': {'id': 'A', 'node_type': 'id'},
+                    'node_type': 'nominal',
+                    'package': None,
+                    'typeargs': []}],
+        'return_type': {'cap': None,
+                        'cap_modifier': None,
+                        'id': {'id': 'B', 'node_type': 'id'},
+                        'node_type': 'nominal',
+                        'package': None,
+                        'typeargs': []},
+        'typeparams': {'node_type': 'params', 'params': None}
+    }
+    parse_code(data, expected, verbose=VERBOSE, start="lambdatype")
+
+
+def test_parse_file():
+    module = "ponybench/_bench_async.pony"
+    print(os.path.join(find_pony_stdlib_path(), module))
+    with open(os.path.join(find_pony_stdlib_path(), module)) as src:
+        parse_code(src.read(), verbose=True)
+
+
+@skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
+def test_parse_stdlib():
+    path = find_pony_stdlib_path()
+    parser = Parser()
+    for root, dirs, files in os.walk(path):
+        for ponysrc in [f for f in files if f.endswith(".pony")]:
+            with open(os.path.join(root, ponysrc)) as src:
+                print(os.path.join(root, ponysrc))
+                data = src.read()
+                tree = parser.parse(data, lexer=Lexer(), debug=VERBOSE)
+                tree.as_dict()

@@ -1,87 +1,3 @@
-class Annotated(object):
-    """
-    Marker class for annotated nodes
-    """
-    pass
-
-
-class Id(object):
-    """
-    Marker class for nodes with an id
-    """
-    pass
-
-
-class Node(object):
-    """
-    AST node base class
-    """
-
-    def __init__(self, **kwargs):
-        if isinstance(self, Annotated):
-            annotations = kwargs.pop("annotation")
-            self.annotations = annotations if annotations else []
-        if isinstance(self, Id):
-            self.id = kwargs.pop("id")
-        if len(kwargs):
-            raise(ValueError("Unkown params {}".format(list(kwargs.keys()))))
-
-    def as_dict(self):
-        d = dict(node_type=self.node_type)
-        if hasattr(self, "annotations"):
-            d["annotations"] = self.annotations
-        if hasattr(self, "id"):
-            d["id"] = self.id
-        return d
-
-
-class DocNode(Node):
-    """a Node that holds a docstring"""
-    def __init__(self, docstring=None, **kwargs):
-        self.docstring = docstring
-        super(DocNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(DocNode, self).as_dict(),
-                docstring=self.docstring
-                )
-
-
-class ElseNode(Node):
-    def __init__(self, else_, **kwargs):
-        self.else_ = else_
-        super(ElseNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        d = dict(
-            super(ElseNode, self).as_dict(),
-        )
-        if isinstance(self.else_, Node):
-            d["else"] = self.else_.as_dict()
-        else:
-            d["else"] = self.else_
-        return d
-
-
-class ModuleNode(DocNode):
-    node_type = "module"
-
-    def __init__(self, name=None, uses=None, class_defs=None, **kwargs):
-        self.name = name
-        self.uses = uses if uses else []
-        self.class_defs = class_defs if class_defs else []
-        super(ModuleNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(ModuleNode, self).as_dict(),
-                name=self.name,
-                uses=[u.as_dict() for u in self.uses],
-                class_defs=[c.as_dict() for c in self.class_defs]
-                )
-
-
 class NodeMeta(type):
 
     def __new__(cls, name, bases, attrs):
@@ -97,10 +13,19 @@ def _maybe_as_dict(obj):
         return obj.as_dict()
     elif isinstance(obj, list):
         return [_maybe_as_dict(i) for i in obj]
-    return obj
+    elif obj is None:
+        return None
+    elif isinstance(obj, (str, bool)):
+        return obj
+    else:
+        # import ipdb; ipdb.set_trace()
+        raise ValueError(obj)
 
 
-class NodeBase(Node, metaclass=NodeMeta):
+class Node(metaclass=NodeMeta):
+    """
+    AST node base class
+    """
     def __init__(self, **kwargs):
         for attrname in self.node_attributes:
             setattr(self, attrname, kwargs.pop(attrname, None))
@@ -113,46 +38,85 @@ class NodeBase(Node, metaclass=NodeMeta):
         return result
 
 
-class UseNode(NodeBase):
+class ModuleNode(Node):
+    node_type = "module"
+    node_attributes = ["docstring", "name", "uses", "class_defs"]
+
+
+class AssignNode(Node):
+    node_type = "="
+    node_attributes = ["first", "second"]
+
+
+class JumpNode(Node):
+    node_attributes = ["seq"]
+
+
+class ReturnNode(JumpNode):
+    node_type = "return"
+
+
+class BreakNode(JumpNode):
+    node_type = "break"
+
+
+class ContinueNode(JumpNode):
+    node_type = "continue"
+
+
+class ErrorNode(JumpNode):
+    node_type = "error"
+
+
+class CompileIntrinsicNode(JumpNode):
+    node_type = "compile_intrinsic"
+
+
+class CompileErrorNode(JumpNode):
+    node_type = "compile_error"
+
+
+class UseNode(Node):
     node_type = "use"
     node_attributes = ["id", "package", "ffidecl", "guard"]
 
 
-class FFIDeclNode(NodeBase):
+class FFIDeclNode(Node):
     node_type = "ffidecl"
     node_attributes = ["id", "typeargs", "params", "partial"]
 
 
-class TypeArgs(NodeBase):
+class TypeParamsNode(Node):
+    node_type = "typeparams"
+    node_attributes = ["members"]
+
+
+class TypeParamNode(Node):
+    node_type = "typeparam"
+    node_attributes = ["id", "type", "typearg"]
+
+
+class TypeArgs(Node):
     node_type = "typeargs"
     node_attributes = ["typeargs"]
 
 
-class Nominal(NodeBase):
+class Nominal(Node):
     node_type = "nominal"
     node_attributes = ["package", "id", "typeargs", "cap", "cap_modifier"]
 
 
-class ArrowNode(NodeBase):
+class ArrowNode(Node):
     node_type = "->"
     node_attributes = ["origin", "target"]
 
 
 class SeqNode(Node):
     node_type = "seq"
-
-    def __init__(self, seq, **kwargs):
-        self.seq = seq
-        super(SeqNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-                super(SeqNode, self).as_dict(),
-                seq=[s.as_dict() for s in self.seq],
-                )
+    node_attributes = ["seq"]
 
 
-class ClassNodeBase(NodeBase):
+class ClassNodeBase(Node):
     node_attributes = ["docstring", "annotations", "id",
                        "members", "cap", "provides", "type_params"]
 
@@ -165,28 +129,50 @@ class TypeNode(ClassNodeBase):
     node_type = "type"
 
 
-class TupleTypeNode(NodeBase):
+class PrimitiveNode(ClassNodeBase):
+    node_type = "primitive"
+
+
+class ActorNode(ClassNodeBase):
+    node_type = "actor"
+
+
+class InterfaceNode(ClassNodeBase):
+    node_type = "interface"
+
+
+class StructNode(ClassNodeBase):
+    node_type = "struct"
+
+
+class TraitNode(ClassNodeBase):
+    node_type = "trait"
+
+
+class TupleTypeNode(Node):
     node_type = "tupletype"
     node_attributes = ["members"]
 
 
-class ProvidesNode(NodeBase):
+class ProvidesNode(Node):
     node_type = "provides"
     node_attributes = ["type"]
 
 
-class FieldNode(Node, Id):
+class DeclNode(Node):
+    node_attributes = ["id", "type"]
 
-    def __init__(self, type, default=None):
-        self.type = type
-        self.default = default
 
-    def as_dict(self):
-        return dict(
-                super(FieldNode, self).as_dict(),
-                type=self.type,
-                default=self.default
-                )
+class VarNode(DeclNode):
+    node_type = "var"
+
+
+class LetNode(DeclNode):
+    node_type = "let"
+
+
+class FieldNode(Node):
+    node_attributes = ["id", "type", "default"]
 
 
 class VarFieldNode(FieldNode):
@@ -201,7 +187,7 @@ class EmbedFieldNode(FieldNode):
     node_type = "fembed"
 
 
-class MethodNode(NodeBase):
+class MethodNode(Node):
     node_attributes = ["docstring", "annotations", "id", "capability",
             "typeparams", "params", "return_type", "is_partial", "guard",
             "body"]
@@ -219,7 +205,7 @@ class BeMethod(MethodNode):
     node_type = "be"
 
 
-class PatternModifierNode(NodeBase):
+class PatternModifierNode(Node):
     node_attributes = ["pattern"]
 
 
@@ -275,17 +261,17 @@ class StringNode(LiteralNode):
     node_type = "string"
 
 
-class ReferenceNode(NodeBase):
+class ReferenceNode(Node):
     node_type = "reference"
     node_attributes = ["id"]
 
 
-class ParamNode(NodeBase):
+class ParamNode(Node):
     node_type = "param"
     node_attributes = ["id", "type", "default"]
 
 
-class ParamsNode(NodeBase):
+class ParamsNode(Node):
     node_type = "params"
     node_attributes = ["params"]
 
@@ -294,166 +280,179 @@ class ThisNode(Node):
     node_type = "this"
 
 
-class IfNode(NodeBase):
+class IfNode(Node):
     node_type = "if"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class DotNode(NodeBase):
+class DotNode(Node):
     node_type = '.'
     node_attributes = ["first", "second"]
-
-    def __init__(self, first, second, **kwargs):
-        self.first = first
-        self.second = second
-        # super(DotNode, self).__init__(**kwargs)
 
 
 class CallNode(Node):
     node_type = "call"
-
-    def __init__(self, fun, positionalargs, namedargs, is_partial, **kwargs):
-        self.fun = fun
-        self.positionalargs = positionalargs
-        self.namedargs = namedargs
-        self.is_partial = is_partial
-        super(CallNode, self).__init__(**kwargs)
-
-    def as_dict(self):
-        return dict(
-            super(CallNode, self).as_dict(),
-            fun=self.fun.as_dict(),
-            positionalargs=self.positionalargs.as_dict(),
-            namedargs=self.namedargs.as_dict(),
-            is_partial=self.is_partial,
-        )
+    node_attributes = ["fun", "positionalargs", "namedargs", "is_partial"]
 
 
-class PositionalArgsNode(NodeBase):
+class QualifyNode(Node):
+    node_type = "qualify"
+    node_attributes = ["type", "args"]
+
+
+class PositionalArgsNode(Node):
     node_type = "positionalargs"
     node_attributes = ["args"]
 
 
-class NamedArgsNode(NodeBase):
+class NamedArgsNode(Node):
     node_type = "namedargs"
     node_attributes = ["args"]
 
 
-class NamedArgNode(NodeBase):
+class NamedArgNode(Node):
     node_type = "namedarg"
     node_attributes = ["id", "value"]
 
 
-class IfdefNode(NodeBase):
+class IfdefNode(Node):
     node_type = "ifdef"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class IftypeNode(NodeBase):
+class IftypeNode(Node):
     node_type = "iftype"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
 
-class TypeAssertionNode(NodeBase):
+class TypeAssertionNode(Node):
     node_type = "type_assertion"
     node_attributes = ["child_type", "parent_type"]
 
 
-class MatchNode(NodeBase):
+class MatchNode(Node):
     node_type = "match"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "seq", "cases"]
 
 
-class CaseNode(NodeBase):
+class CaseNode(Node):
     node_type = "case"
     node_attributes = ["annotations", "pattern", "guard", "action"]
 
 
-class WhileNode(NodeBase):
+class WhileNode(Node):
     node_type = "while"
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
 
-class RepeatNode(NodeBase):
+class RepeatNode(Node):
     node_type = "repeat"
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
 
-class ForNode(NodeBase):
+class ForNode(Node):
     node_type = "for"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "ids", "sequence", "members"]
 
 
-class WithNode(NodeBase):
+class WithNode(Node):
     node_type = "with"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "elems", "members"]
 
 
-class TryNode(NodeBase):
+class TryNode(Node):
     node_type = "try"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "then", "then_annotations", "members"]
 
 
-class TupleNode(NodeBase):
+class TupleNode(Node):
     node_type = "tuple"
     node_attributes = ["members"]
 
 
-class RecoverNode(NodeBase):
+class ArrayNode(Node):
+    node_type = "array"
+    node_attributes = ["type", "members"]
+
+
+class LambdaNode(Node):
+    node_type = "lambda"
+    node_attributes = ["annotations", "cap2", "id", "typeparams", "params",
+                       "lambdacaptures", "type", "is_partial", "body", "cap"]
+
+
+class BareLambdaNode(Node):
+    node_type = "barelambda"
+    node_attributes = ["annotations", "cap2", "id", "typeparams", "params",
+                       "lambdacaptures", "type", "is_partial", "body", "cap"]
+
+
+class LambdaCaptures(Node):
+    node_type = "lambdacaptures"
+    node_attributes = ["members"]
+
+
+class LambdaCapture(Node):
+    node_type = "lambdacapture"
+    node_attributes = ["id", "type", "value"]
+
+
+class FFICallNode(Node):
+    node_type = "fficall"
+    node_attributes = ["id", "typeargs", "positional", "named", "partial"]
+
+
+class LambdaType(Node):
+    node_type = "lambdatype"
+    node_attributes = ["cap2", "id", "typeparams", "params", "return_type",
+                       "is_partial", "cap", "cap_modifier"]
+
+
+class BareLambdaType(Node):
+    node_type = "barelambdatype"
+    node_attributes = ["cap2", "id", "typeparams", "params", "return_type",
+                       "is_partial", "cap", "cap_modifier"]
+
+
+class RecoverNode(Node):
     node_type = "recover"
     node_attributes = ["annotations", "cap", "members"]
 
 
-class ConsumeNode(NodeBase):
+class ElipsisNode(Node):
+    node_type = "..."
+
+
+class ObjectNode(Node):
+    node_type = "object"
+    node_attributes = ["annotations", "cap", "provides", "members"]
+
+
+class ConsumeNode(Node):
     node_type = "consume"
     node_attributes = ["cap", "term"]
 
 
-class LetNode(NodeBase):
-    node_type = "let"
-    node_attributes = ["id", "value"]
-
-
-class IdNode(NodeBase):
+class IdNode(Node):
     node_type = "id"
     node_attributes = ["id"]
 
 
-class InfixFactory(object):
-    def __init__(self, operator_class, **kwargs):
-        self.cls = operator_class
-        self.kwargs = kwargs
-
-    def __call__(self, term):
-        return self.cls(term=term, **self.kwargs)
-
-
-class InfixNode(Node):
-    def __init__(self, term, **kwargs):
-        self.term = term
-
-    def as_dict(self):
-        return dict(
-            super(InfixNode, self).as_dict(),
-            term=self.term,
-        )
-
-
-class AsNode(NodeBase):
+class AsNode(Node):
     node_type = "as"
     node_attributes = ["term", "type"]
 
 
-class BinOpNode(NodeBase):
+class BinOpNode(Node):
     node_attributes = ["operator", "first", "second", "is_partial"]
 
     @property

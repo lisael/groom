@@ -78,16 +78,12 @@ reserved = {
     "tag": "CAP",
     "true": "TRUE",
     "false": "FALSE",
-    '#read': "GENCAP",
-    '#send': "GENCAP",
-    '#share': "GENCAP",
-    '#alias': "GENCAP",
-    '#any': "GENCAP",
 }
 
 tokens = [
     "STRING",
     "WS",
+    "GENCAP",
     "ID",
     "LINECOMMENT",
     "NESTEDCOMMENT",
@@ -102,6 +98,8 @@ tokens = [
     "MINUS_NEW",
     "LPAREN",
     "LPAREN_NEW",
+    "LSQUARE",
+    "LSQUARE_NEW",
     "MINUS_TILDE",
     "MINUS_TILDE_NEW",
 ] + list(set(reserved.values()))
@@ -134,13 +132,15 @@ t_LINECOMMENT = r'//[^\n]+'
 
 LPAREN_NEW = f'( {NEWLINE} \\( )'
 LPAREN = r'\('
+LSQUARE_NEW = f'( {NEWLINE} \\[ )'
+LSQUARE = r'\['
 MINUS_NEW = f' {NEWLINE} -'
 MINUS = '-'
 MINUS_TILDE = '-~'
 MINUS_TILDE_NEW = f' {NEWLINE} -~'
 
 t_BIG_ARROW = r'=>'
-t_SMALL_ARROW = r'->'
+SMALL_ARROW = r'->'
 t_BACKSLASH = r'\\'
 t_PLUS = r'\+'
 t_IS_SUBTYPE = '<:'
@@ -148,11 +148,13 @@ t_IS_SUBTYPE = '<:'
 EXP = f'(e|E)(\\+|-)?({DIGIT}|_)+'
 FLOAT = f'{DIGIT}({DIGIT}|_)*(\.{DIGIT}({DIGIT}|_)*)?({EXP})?'
 
-DEC_INT = f"( {DIGIT} ( {DIGIT} | _ )* )"
-HEX_INT = f"(0x[0-9a-zA-Z_]+)"
+DEC_INT = f"({DIGIT}({DIGIT}|_)*(?![.eE]))"
+HEX_INT = f"(0x[0-9a-fA-F_]+)"
 BIN_INT = f"(0b[01_]+)"
-CHAR_INT = f"'{CHAR_CHAR}'"
-INT = f"{CHAR_INT} | {BIN_INT} | {HEX_INT} | {DEC_INT}"
+CHAR_INT = f"('{CHAR_CHAR}')"
+INT = f"{CHAR_INT}|{BIN_INT}|{HEX_INT}|{DEC_INT}"
+
+t_GENCAP = "(\\#{})".format(")|(\\#".join(["read", "send", "share", "alias", "any"]))
 
 
 @TOKEN(STRING)
@@ -167,15 +169,13 @@ def t_NESTEDCOMMENT(t):
     return t
 
 
-@TOKEN(FLOAT)
-def t_FLOAT(t):
-    if '.' not in t.value and 'e' not in t.value.lower():
-        t.type = "INT"
+@TOKEN(INT)
+def t_INT(t):
     return t
 
 
-@TOKEN(INT)
-def t_INT(t):
+@TOKEN(FLOAT)
+def t_FLOAT(t):
     return t
 
 
@@ -187,6 +187,22 @@ def t_LPAREN_NEW(t):
 
 @TOKEN(LPAREN)
 def t_LPAREN(t):
+    return t
+
+
+@TOKEN(LSQUARE_NEW)
+def t_LSQUARE_NEW(t):
+    t.lexer.lineno += t.value.count("\n")
+    return t
+
+
+@TOKEN(LSQUARE)
+def t_LSQUARE(t):
+    return t
+
+
+@TOKEN(SMALL_ARROW)
+def t_SMALL_ARROW(t):
     return t
 
 

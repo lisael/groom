@@ -36,12 +36,16 @@ def test_lex():
     check_token("coucou", "ID")
 
 
+def test_int():
+    check_token('12', 'INT')
+    check_token('0xab_3b', 'INT')
+    check_token('123_456', 'INT')
+    check_token('0b01_0001', 'INT')
+    check_token("'a'", 'INT')
+
+
 def test_float():
     check_token("1.23", "FLOAT")
-
-
-def test_int():
-    check_token("2", "INT")
 
 
 def test_lparen():
@@ -51,6 +55,15 @@ def test_lparen():
 def test_lparen_new():
     check_token("""
     (""", 'LPAREN_NEW')
+
+
+def test_lsquare():
+    check_token("[", "LSQUARE")
+
+
+def test_lsquare_new():
+    check_token("""
+    [""", 'LSQUARE_NEW')
 
 
 def test_minus():
