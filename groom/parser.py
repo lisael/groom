@@ -291,8 +291,14 @@ def p_type_list(p):
     """
     type_list : type
               | type ',' type_list
+              |
     """
-    p[0] = [p[1]] if len(p) == 2 else [p[1]] + p[3]
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = None
 
 
 def p_nominal(p):

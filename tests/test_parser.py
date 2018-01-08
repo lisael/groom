@@ -1229,7 +1229,7 @@ def test_lambdatype():
                         'typeargs': []},
         'typeparams': {'node_type': 'params', 'params': None}
     }
-    parse_code(data, expected, verbose=True, start="lambdatype")
+    parse_code(data, expected, verbose=VERBOSE, start="lambdatype")
 
 
 def test_parse_file():
