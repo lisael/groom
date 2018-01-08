@@ -1447,9 +1447,17 @@ def p_maybe_id(p):
     p[0] = p[1]
 
 
+def p_maybe_rawseq(p):
+    """
+    maybe_rawseq : rawseq
+                 | empty
+    """
+    p[0] = p[1]
+
+
 def p_array(p):
     """
-    array : anysquare arraytype rawseq ']'
+    array : anysquare arraytype maybe_rawseq ']'
     """
     p[0] = nodes.ArrayNode(type=p[2], members=p[3])
 
