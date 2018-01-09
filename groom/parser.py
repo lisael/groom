@@ -1677,13 +1677,20 @@ def p_compile_error(p):
 
 # _parser = yacc.yacc()
 
-
 class Parser(object):
     def __init__(self, *args, **kwargs):
         self._parser = yacc.yacc(*args, **kwargs)
 
     def parse(self, *args, **kwargs):
         return self._parser.parse(*args, **kwargs)
+
+
+_parser_cache = {}
+
+
+def get_parser(*args, **kwargs):
+    p = _parser_cache.setdefault(args + tuple(kwargs.items()), Parser(*args, **kwargs))
+    return p
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import os
 
 from groom.utils import find_pony_stdlib_path
+from groom.parser import get_parser
+from groom.lexer import Lexer
 
 
 class Loader:
@@ -51,5 +53,8 @@ def complete(src, pos, path=None, ponypath=None):
     """
     Generate suggestions based on current source and position
     """
+    p = get_parser()
+    module = p.parse(src, lexer=Lexer())
+    import ipdb; ipdb.set_trace()
     loader = Loader()
 
