@@ -1,8 +1,7 @@
 import os
 
 from groom.utils import find_pony_stdlib_path
-from groom.parser import get_parser
-from groom.lexer import Lexer
+from .parser import get_parser
 
 
 class Loader:
@@ -14,7 +13,7 @@ class Loader:
         self.set_ponypath(ponypath)
         self.uses = uses if uses is not None else []
 
-    def get_ponypath(self, ponypath):
+    def set_ponypath(self, ponypath):
         stdlib = None
         # normalize to a list of path
         if ponypath is not None:
@@ -43,7 +42,7 @@ class Loader:
             except FileNotFoundError:
                 pass
 
-        if path is not None:
+        if self.path is not None:
             self.ponypath.append(os.path.dirname(path))
         self.ponypath = ponypath
         self.stdlib_path = stdlib
@@ -54,7 +53,8 @@ def complete(src, pos, path=None, ponypath=None):
     Generate suggestions based on current source and position
     """
     p = get_parser()
-    module = p.parse(src, lexer=Lexer())
-    import ipdb; ipdb.set_trace()
+    module = p.parse(src, pos)
     loader = Loader()
+    start, sugs = p.complete
+    return [s for s in sugs if sugs.startswith(start)]
 
