@@ -33,10 +33,7 @@ def recover(tok):
 
 
 def p_error(tok):
-    import ipdb; ipdb.set_trace()
     parser = tok.parser
-    print(tok.type)
-    print("########################")
     if tok.type == "COMPLETE":
         expected_types = parser.action[parser.statestack[-1]]
         sugs = []
@@ -54,10 +51,15 @@ def p_error(tok):
 class _Parser(object):
     def __init__(self, *args, **kwargs):
         self._parser = yacc.yacc(*args, **kwargs)
+        self.complete = None
 
     def parse(self, src, pos, **kwargs):
-        print(Lexer)
-        return self._parser.parse(src, lexer=Lexer(pos), **kwargs)
+        self.complete = None
+        result = self._parser.parse(src, lexer=Lexer(pos), **kwargs)
+        if hasattr(self._parser, "complete"):
+            self.complete = self._parser.complete
+            del self._parser.complete
+        return result
 
 
 _completer_parser_cache = {}

@@ -56,5 +56,5 @@ def complete(src, pos, path=None, ponypath=None):
     module = p.parse(src, pos)
     loader = Loader()
     start, sugs = p.complete
-    return [s for s in sugs if sugs.startswith(start)]
+    return [s for s in sugs if s.startswith(start)]
 
