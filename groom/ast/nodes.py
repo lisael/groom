@@ -22,6 +22,21 @@ def _maybe_as_dict(obj):
         raise ValueError(obj)
 
 
+def pretty_pony(data):
+    indent = 0
+    lines = data.splitlines()
+    result = []
+    for line in lines:
+        if len(line) and line[0] == '\x08':
+            indent += 1
+            line = line[1:]
+        if len(line) and line[0] == '\x15':
+            indent -= 1
+            line = line[1:]
+        result.append("%s%s" % ("  " * indent, line))
+    return "\n".join(result)
+
+
 class Node(metaclass=NodeMeta):
     """
     AST node base class
@@ -37,10 +52,24 @@ class Node(metaclass=NodeMeta):
             result[attrname] = _maybe_as_dict(attr)
         return result
 
+    def pretty_pony(self):
+        if hasattr(self, "_as_pony"):
+            return pretty_pony(self._as_pony())
+        return self.as_pony()
+
+    def as_pony(self):
+        return self._as_pony().replace("\x08", "").replace("\x15", "")
+
 
 class ModuleNode(Node):
     node_type = "module"
     node_attributes = ["docstring", "name", "uses", "class_defs"]
+
+    def _as_pony(self):
+        docstring = self.docstring._as_pony() if self.docstring else ""
+        uses = "\n".join([u._as_pony() for u in self.uses])
+        class_defs = "\n\n".join([c._as_pony() for c in self.class_defs])
+        return "%s%s\n\n%s" % (docstring, uses, class_defs)
 
 
 class AssignNode(Node):
@@ -80,6 +109,13 @@ class UseNode(Node):
     node_type = "use"
     node_attributes = ["id", "package", "ffidecl", "guard"]
 
+    def _as_pony(self):
+        quard = " " + self.guard._as_pony() if self.guard else ""
+        if not self.ffidecl:
+            if self.id:
+                return "%s = %s%s" % (self.id._as_pony(), self.package, guard)
+        return "TODO"
+
 
 class FFIDeclNode(Node):
     node_type = "ffidecl"
@@ -105,6 +141,12 @@ class Nominal(Node):
     node_type = "nominal"
     node_attributes = ["package", "id", "typeargs", "cap", "cap_modifier"]
 
+    def _as_pony(self):
+        package = "%s." % self.package._as_pony() if self.package else ""
+        args = self.typeargs._as_pony() if self.typeargs else ""
+        cap = " %s%s" % (self.cap, self.cap_modifier) if self.cap else ""
+        return "%s%s%s%s" % (package, self.id._as_pony(), args, cap)
+
 
 class ArrowNode(Node):
     node_type = "->"
@@ -115,10 +157,22 @@ class SeqNode(Node):
     node_type = "seq"
     node_attributes = ["seq"]
 
+    def _as_pony(self):
+        return "\n".join([s._as_pony() for s in self.seq])
+
 
 class ClassNodeBase(Node):
     node_attributes = ["docstring", "annotations", "id",
                        "members", "cap", "provides", "type_params"]
+
+    def _as_pony(self):
+        decl = self.node_type
+        annotations = pony_annotations(self.annotations)
+        members = "\n".join([m._as_pony() for m in self.members])
+        cap = " " + self.cap._as_pony() if self.cap else ""
+        provides = " " + self.provides._as_pony() if self.provides else ""
+        params = self.type_params._as_pony() if self.type_params else ""
+        return "%s%s%s %s%s%s" % (decl, annotations, cap, self.id._as_pony(), params, provides)
 
 
 class ClassNode(ClassNodeBase):
@@ -153,10 +207,16 @@ class TupleTypeNode(Node):
     node_type = "tupletype"
     node_attributes = ["members"]
 
+    def _as_pony(self):
+        return "(%s)" % ", ".join([m._as_pony() for m in self.members])
+
 
 class ProvidesNode(Node):
     node_type = "provides"
     node_attributes = ["type"]
+
+    def _as_pony(self):
+        return "is " + self.type._as_pony()
 
 
 class DeclNode(Node):
@@ -191,6 +251,19 @@ class MethodNode(Node):
     node_attributes = ["docstring", "annotations", "id", "capability",
             "typeparams", "params", "return_type", "is_partial", "guard",
             "body"]
+
+    def _as_pony(self):
+        decl = self.node_type
+        annotations = pony_annotations(self.annotations)
+        cap = " " + self.capability if self.capability else ""
+        typeparams = self.typeparams._as_pony() if self.typeparams else ""
+        params = self.params._as_pony()
+        return_type = ": " + self.return_type._as_pony if self.return_type else ""
+        is_partial = "?" if self.is_partial else ""
+        guard = self.guard._as_pony() if self.guard else ""
+        body = "=>\n\x08" + self.body._as_pony() + "\n\x15" if self.body else ""
+        return "%s%s %s%s%s%s%s%s%s" % (decl, annotations, cap, typeparams, params, return_type, is_partial, guard, body)
+
 
 
 class NewMethod(MethodNode):
@@ -240,6 +313,9 @@ class LiteralNode(Node):
             value=self.value,
         )
 
+    def _as_pony(self):
+        return self.value
+
 
 class TrueNode(LiteralNode):
     node_type = "true"
@@ -265,35 +341,75 @@ class ReferenceNode(Node):
     node_type = "reference"
     node_attributes = ["id"]
 
+    def _as_pony(self):
+        return self.id._as_pony()
+
 
 class ParamNode(Node):
     node_type = "param"
     node_attributes = ["id", "type", "default"]
+
+    def _as_pony(self):
+        default = "=%s" % self.default._as_pony() if self.default else ""
+        return "%s: %s%s" % (self.id._as_pony(), self.type._as_pony(), default)
 
 
 class ParamsNode(Node):
     node_type = "params"
     node_attributes = ["params"]
 
+    def _as_pony(self):
+        return "(%s)" % ", ".join([p._as_pony() for p in self.params])
+
 
 class ThisNode(Node):
     node_type = "this"
 
+
+def pony_annotations(lst):
+    if not lst:
+        return ""
+    return " \\%s\\" % ", ".join([i._as_pony() for i in lst])
 
 class IfNode(Node):
     node_type = "if"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
+    def _as_pony(self):
+        if self.else_:
+            else_ = "\n\x15else{}\n\x08{}".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+        return "if{} {} then\n\x08{}{}\n\x15end".format(
+            pony_annotations(self.annotations),
+            self.assertion._as_pony(),
+            self.members._as_pony(),
+            else_
+            )
+
 
 class DotNode(Node):
     node_type = '.'
     node_attributes = ["first", "second"]
 
+    def _as_pony(self):
+        return "%s.%s" % (self.first._as_pony(), self.second._as_pony())
+
 
 class CallNode(Node):
     node_type = "call"
     node_attributes = ["fun", "positionalargs", "namedargs", "is_partial"]
+
+    def _as_pony(self):
+        fun = self.fun._as_pony()
+        pos = self.positionalargs._as_pony()
+        named = self.namedargs._as_pony()
+        is_partial = "?" if self.is_partial else ""
+        return "{}({}){}".format(fun, " where ".join(list(filter(bool, [pos, named]))), is_partial)
 
 
 class QualifyNode(Node):
@@ -305,15 +421,24 @@ class PositionalArgsNode(Node):
     node_type = "positionalargs"
     node_attributes = ["args"]
 
+    def _as_pony(self):
+        return ", ".join([a._as_pony() for a in self.args])
+
 
 class NamedArgsNode(Node):
     node_type = "namedargs"
     node_attributes = ["args"]
 
+    def _as_pony(self):
+        return ", ".join([a._as_pony() for a in self.args])
+
 
 class NamedArgNode(Node):
     node_type = "namedarg"
     node_attributes = ["id", "value"]
+
+    def _as_pony(self):
+        return "%s=%s" % (self.id._as_pony(), self.value._as_pony())
 
 
 class IfdefNode(Node):
@@ -410,6 +535,9 @@ class FFICallNode(Node):
     node_type = "fficall"
     node_attributes = ["id", "typeargs", "positional", "named", "partial"]
 
+    def _as_pony(self):
+        return "TODOFFI"
+
 
 class LambdaType(Node):
     node_type = "lambdatype"
@@ -445,6 +573,9 @@ class ConsumeNode(Node):
 class IdNode(Node):
     node_type = "id"
     node_attributes = ["id"]
+
+    def _as_pony(self):
+        return self.id
 
 
 class AsNode(Node):
