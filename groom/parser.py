@@ -397,14 +397,24 @@ def p_tupletype(p):
 def p_infixtype(p):
     """
     infixtype : type
-              | type '&' infixtype
-              | type '|' infixtype
+              | intersectiontype
+              | uniontype
     """
-    if len(p) == 2:
-        p[0] = p[1]
-    else:
-        # TODO
-        p[0] = p[1]
+    p[0] = p[1]
+
+
+def p_intersectiontype(p):
+    """
+    intersectiontype : type '&' infixtype
+    """
+    p[0] = nodes.IntersectionNode(first=p[1], second=p[3])
+
+
+def p_uniontype(p):
+    """
+    uniontype : type '|' infixtype
+    """
+    p[0] = nodes.UnionNode(first=p[1], second=p[3])
 
 
 def p_parametrised_id(p):
@@ -1520,8 +1530,8 @@ def p_fficall(p):
     """
     p[0] = nodes.FFICallNode(id=p[2],
                              typeargs=p[3],
-                             positional=p[5],
-                             named=p[6],
+                             positional=nodes.PositionalArgsNode(args=p[5]),
+                             named=nodes.NamedArgsNode(args=p[6]),
                              partial=p[8])
 
 

@@ -66,7 +66,7 @@ class ModuleNode(Node):
     node_attributes = ["docstring", "name", "uses", "class_defs"]
 
     def _as_pony(self):
-        docstring = self.docstring._as_pony() if self.docstring else ""
+        docstring = self.docstring._as_pony() + "\n" if self.docstring else ""
         uses = "\n".join([u._as_pony() for u in self.uses])
         class_defs = "\n\n".join([c._as_pony() for c in self.class_defs])
         return "%s%s\n\n%s" % (docstring, uses, class_defs)
@@ -76,6 +76,9 @@ class AssignNode(Node):
     node_type = "="
     node_attributes = ["first", "second"]
 
+    def _as_pony(self):
+        return "%s = %s" % (self.first._as_pony(), self.second._as_pony())
+
 
 class JumpNode(Node):
     node_attributes = ["seq"]
@@ -84,9 +87,15 @@ class JumpNode(Node):
 class ReturnNode(JumpNode):
     node_type = "return"
 
+    def _as_pony(self):
+        return "return"
+
 
 class BreakNode(JumpNode):
     node_type = "break"
+
+    def _as_pony(self):
+        return "break"
 
 
 class ContinueNode(JumpNode):
@@ -110,16 +119,19 @@ class UseNode(Node):
     node_attributes = ["id", "package", "ffidecl", "guard"]
 
     def _as_pony(self):
-        quard = " " + self.guard._as_pony() if self.guard else ""
-        if not self.ffidecl:
-            if self.id:
-                return "%s = %s%s" % (self.id._as_pony(), self.package, guard)
-        return "TODO"
+        id = self.id + " = " if self.id else ""
+        package = self.package if self.package else self.ffidecl._as_pony()
+        guard = " " + self.guard._as_pony() if self.guard else ""
+        return "use %s%s%s" % (id, package, guard)
 
 
 class FFIDeclNode(Node):
     node_type = "ffidecl"
     node_attributes = ["id", "typeargs", "params", "partial"]
+
+    def _as_pony(self):
+        return "@%s%s%s%s" % (self.id._as_pony(), self.typeargs._as_pony(),
+            self.params._as_pony(), "?" if self.partial else "")
 
 
 class TypeParamsNode(Node):
@@ -136,6 +148,9 @@ class TypeArgs(Node):
     node_type = "typeargs"
     node_attributes = ["typeargs"]
 
+    def _as_pony(self):
+        return "[%s]" % ", ".join([a._as_pony() for a in self.typeargs])
+
 
 class Nominal(Node):
     node_type = "nominal"
@@ -146,6 +161,22 @@ class Nominal(Node):
         args = self.typeargs._as_pony() if self.typeargs else ""
         cap = " %s%s" % (self.cap, self.cap_modifier) if self.cap else ""
         return "%s%s%s%s" % (package, self.id._as_pony(), args, cap)
+
+
+class UnionNode(Node):
+    node_type = "uniontype"
+    node_attributes = ["first", "second"]
+
+    def _as_pony(self):
+        return "%s | %s" % (self.first._as_pony(), self.second._as_pony())
+
+
+class IntersectionNode(Node):
+    node_type = "&"
+    node_attributes = ["first", "second"]
+
+    def _as_pony(self):
+        return "%s & %s" % (self.first._as_pony(), self.second._as_pony())
 
 
 class ArrowNode(Node):
@@ -169,10 +200,11 @@ class ClassNodeBase(Node):
         decl = self.node_type
         annotations = pony_annotations(self.annotations)
         members = "\n".join([m._as_pony() for m in self.members])
-        cap = " " + self.cap._as_pony() if self.cap else ""
+        cap = " " + self.cap if self.cap else ""
         provides = " " + self.provides._as_pony() if self.provides else ""
         params = self.type_params._as_pony() if self.type_params else ""
-        return "%s%s%s %s%s%s" % (decl, annotations, cap, self.id._as_pony(), params, provides)
+        docstring = "%s\n" % self.docstring._as_pony() if self.docstring else ""
+        return "%s%s%s %s%s%s\n\x08%s%s\n\x15" % (decl, annotations, cap, self.id._as_pony(), params, provides, docstring, members)
 
 
 class ClassNode(ClassNodeBase):
@@ -222,6 +254,10 @@ class ProvidesNode(Node):
 class DeclNode(Node):
     node_attributes = ["id", "type"]
 
+    def _as_pony(self):
+        type_ = ": %s" % self.type._as_pony() if self.type else ""
+        return "%s %s%s" % (self.node_type, self.id._as_pony(), type_)
+
 
 class VarNode(DeclNode):
     node_type = "var"
@@ -258,11 +294,11 @@ class MethodNode(Node):
         cap = " " + self.capability if self.capability else ""
         typeparams = self.typeparams._as_pony() if self.typeparams else ""
         params = self.params._as_pony()
-        return_type = ": " + self.return_type._as_pony if self.return_type else ""
+        return_type = ": " + self.return_type._as_pony() if self.return_type else ""
         is_partial = "?" if self.is_partial else ""
         guard = self.guard._as_pony() if self.guard else ""
-        body = "=>\n\x08" + self.body._as_pony() + "\n\x15" if self.body else ""
-        return "%s%s %s%s%s%s%s%s%s" % (decl, annotations, cap, typeparams, params, return_type, is_partial, guard, body)
+        body = " =>\n\x08%s\n\x15" % self.body._as_pony()  if self.body else ""
+        return "%s%s%s %s%s%s%s%s%s%s" % (decl, annotations, cap, self.id._as_pony(), typeparams, params, return_type, is_partial, guard, body)
 
 
 
@@ -365,6 +401,9 @@ class ParamsNode(Node):
 class ThisNode(Node):
     node_type = "this"
 
+    def _as_pony(self):
+        return "this"
+
 
 def pony_annotations(lst):
     if not lst:
@@ -415,6 +454,9 @@ class CallNode(Node):
 class QualifyNode(Node):
     node_type = "qualify"
     node_attributes = ["type", "args"]
+
+    def _as_pony(self):
+        return "%s%s" % (self.type._as_pony(), self.args._as_pony())
 
 
 class PositionalArgsNode(Node):
@@ -474,6 +516,21 @@ class WhileNode(Node):
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
+    def _as_pony(self):
+        if self.else_:
+            else_ = "\n\x15else{}\n\x08{}".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+        return "while{} {} do\n\x08{}{}\n\x15end".format(
+            pony_annotations(self.annotations),
+            self.assertion._as_pony(),
+            self.members._as_pony(),
+            else_
+            )
+
 
 class RepeatNode(Node):
     node_type = "repeat"
@@ -485,6 +542,22 @@ class ForNode(Node):
     node_type = "for"
     node_attributes = ["annotations", "else_", "else_annotations",
                        "ids", "sequence", "members"]
+
+    def _as_pony(self):
+        if self.else_:
+            else_ = "\n\x15else{}\n\x08{}".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+        return "for{} {} in {} do\n\x08{}{}\n\x15end".format(
+            pony_annotations(self.annotations),
+            self.ids._as_pony(),
+            self.sequence._as_pony(),
+            self.members._as_pony(),
+            else_
+            )
 
 
 class WithNode(Node):
@@ -498,15 +571,36 @@ class TryNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "then", "then_annotations", "members"]
 
+    def _as_pony(self):
+        if self.else_:
+            else_ = "\n\x15else{}\n\x08{}".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+        return "try{}\n\x08{}{}\n\x15end".format(
+            pony_annotations(self.annotations),
+            self.members._as_pony(),
+            else_
+            )
+
 
 class TupleNode(Node):
     node_type = "tuple"
     node_attributes = ["members"]
 
+    def _as_pony(self):
+        return "(%s)" % ", ".join([m._as_pony() for m in self.members])
+
 
 class ArrayNode(Node):
     node_type = "array"
     node_attributes = ["type", "members"]
+
+    def _as_pony(self):
+        type_ = "as %s:" % self.type._as_pony() if self.type else ""
+        return "[%s%s]" % (type_, self.members._as_pony())
 
 
 class LambdaNode(Node):
@@ -536,7 +630,15 @@ class FFICallNode(Node):
     node_attributes = ["id", "typeargs", "positional", "named", "partial"]
 
     def _as_pony(self):
-        return "TODOFFI"
+        """
+        '@' (ID | STRING) typeargs? ('(' | LPAREN_NEW) positional? named? ')' '?'?
+        """
+        typeargs = self.typeargs._as_pony() if self.typeargs else ""
+        pos = self.positional._as_pony()
+        named = self.named._as_pony()
+        partial = self.partial and "?" or ""
+        return "@%s%s(%s%s)%s" % (self.id._as_pony(), typeargs, pos, named, partial)
+
 
 
 class LambdaType(Node):
@@ -589,3 +691,8 @@ class BinOpNode(Node):
     @property
     def node_type(self):
         return self.operator
+
+
+    def _as_pony(self):
+        return "%s %s%s %s" % (self.first._as_pony(
+        ), self.operator, "?" if self.is_partial else "", self.second._as_pony())

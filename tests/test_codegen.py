@@ -53,6 +53,13 @@ def test_if_else():
     parse_code(data, start='if')
 
 
+def test_uniontype():
+    data = '''
+    type BackpressureAuth is (AmbientAuth | ApplyReleaseBackpressureAuth)
+    '''
+    parse_code(data, start="class_def")
+
+
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():
     path = find_pony_stdlib_path()

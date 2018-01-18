@@ -1282,8 +1282,40 @@ def test_lambdatype():
     parse_code(data, expected, verbose=VERBOSE, start="lambdatype")
 
 
+def test_uniontype():
+    data = '''
+    type BackpressureAuth is (AmbientAuth | ApplyReleaseBackpressureAuth)
+    '''
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'docstring': None,
+        'id': {'id': 'BackpressureAuth', 'node_type': 'id'},
+        'members': [],
+        'node_type': 'type',
+        'provides': {'node_type': 'provides',
+                     'type': {'members': [{'first': {'cap': None,
+                                                     'cap_modifier': None,
+                                                     'id': {'id': 'AmbientAuth',
+                                                            'node_type': 'id'},
+                                                     'node_type': 'nominal',
+                                                     'package': None,
+                                                     'typeargs': []},
+                                           'node_type': 'uniontype',
+                                           'second': {'cap': None,
+                                                      'cap_modifier': None,
+                                                      'id': {'id': 'ApplyReleaseBackpressureAuth',
+                                                             'node_type': 'id'},
+                                                      'node_type': 'nominal',
+                                                      'package': None,
+                                                      'typeargs': []}}],
+                              'node_type': 'tupletype'}},
+        'type_params': []}
+    parse_code(data, expected, verbose=True, start="class_def")
+
+
 def test_parse_file():
-    module = "ponybench/_bench_async.pony"
+    module = "backpressure/backpressure.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
         parse_code(src.read(), verbose=True)
