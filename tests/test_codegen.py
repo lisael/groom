@@ -59,6 +59,36 @@ def test_uniontype():
     '''
     parse_code(data, start="class_def")
 
+def test_ifdef():
+    data = """
+        ifdef os_haiku then false else "hello" end
+    """
+    expected = {
+        'annotations': [],
+        'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
+                      'node_type': 'reference'},
+        'else_': {'node_type': 'seq',
+                  'seq': [{'node_type': 'string', 'value': '"hello"'}]},
+        'else_annotations': [],
+        'members': {'node_type': 'seq',
+                    'seq': [{'node_type': 'false', 'value': 'false'}]},
+        'node_type': 'ifdef'
+    }
+    parse_code(data, start='ifdef')
+
+
+# def test_ifdef_elseifdef():
+#     data = """
+#         ifdef os_haiku then
+#             "lol"
+#         elseif os_hurd then
+#             "dont do drugs"
+#         else
+#             "dunno"
+#         end
+#     """
+#     parse_code(data, start='ifdef')
+
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():

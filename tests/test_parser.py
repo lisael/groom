@@ -338,6 +338,7 @@ def test_ifdef_elseifdef():
             "dunno"
         end
     """
+    raise ValueError("TODO: else_ should be a seq...")
     expected = {
         'annotations': [],
         'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},

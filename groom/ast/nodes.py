@@ -61,6 +61,17 @@ class Node(metaclass=NodeMeta):
         return self._as_pony().replace("\x08", "").replace("\x15", "")
 
 
+    def _pony_attr(self, name, tmpl="%s"):
+        attr = getattr(self, name, None)
+        if not attr:
+            return ""
+        if name in ("annotations", "else_annotations"):
+            return pony_annotations(attr)
+        if isinstance(attr, Node):
+            attr = attr._as_pony()
+        return tmpl % attr
+
+
 class ModuleNode(Node):
     node_type = "module"
     node_attributes = ["docstring", "name", "uses", "class_defs"]
@@ -82,20 +93,19 @@ class AssignNode(Node):
 
 class JumpNode(Node):
     node_attributes = ["seq"]
+    def _as_pony(self):
+        return "%s%s" % (
+                self.node_type,
+                self._pony_attr("seq", " %s")
+                )
 
 
 class ReturnNode(JumpNode):
     node_type = "return"
 
-    def _as_pony(self):
-        return "return"
-
 
 class BreakNode(JumpNode):
     node_type = "break"
-
-    def _as_pony(self):
-        return "break"
 
 
 class ContinueNode(JumpNode):
@@ -121,8 +131,11 @@ class UseNode(Node):
     def _as_pony(self):
         id = self.id + " = " if self.id else ""
         package = self.package if self.package else self.ffidecl._as_pony()
-        guard = " " + self.guard._as_pony() if self.guard else ""
-        return "use %s%s%s" % (id, package, guard)
+        return "use %s%s%s" % (
+                id,
+                package,
+                self._pony_attr("guard", " if %s")
+                )
 
 
 class FFIDeclNode(Node):
@@ -159,7 +172,9 @@ class Nominal(Node):
     def _as_pony(self):
         package = "%s." % self.package._as_pony() if self.package else ""
         args = self.typeargs._as_pony() if self.typeargs else ""
-        cap = " %s%s" % (self.cap, self.cap_modifier) if self.cap else ""
+        cap_modifier = self._pony_attr("cap_modifier")
+        cap = " %s%s" % (self.cap, cap_modifier) if self.cap else ""
+        cap = self._pony_attr("cap", " %%s%s" % cap_modifier)
         return "%s%s%s%s" % (package, self.id._as_pony(), args, cap)
 
 
@@ -269,6 +284,14 @@ class LetNode(DeclNode):
 
 class FieldNode(Node):
     node_attributes = ["id", "type", "default"]
+
+    def _as_pony(self):
+        return "%s %s: %s%s" % (
+                self.node_type[1:],
+                self.id._as_pony(),
+                self.type._as_pony(),
+                self._pony_attr("default", " = %s")
+        )
 
 
 class VarFieldNode(FieldNode):
@@ -488,6 +511,14 @@ class IfdefNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
+    def _as_pony(self):
+        args = {}
+        args["annotations"] = self._pony_attr("annotations")
+        args["assertion"] = self.assertion._as_pony()
+        args["members"] = self.members._as_pony()
+        args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
+        return "ifdef%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s\n\x15end" % args
+
 
 class IftypeNode(Node):
     node_type = "iftype"
@@ -505,11 +536,26 @@ class MatchNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "seq", "cases"]
 
+    def _as_pony(self):
+        args = {}
+        args["annotations"] = self._pony_attr("annotations")
+        args["seq"] = self._pony_attr("seq")
+        args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s\n\x15'.format(self._pony_attr("else_annotations")))
+        args["cases"] = '\n'.join([c._as_pony() for c in self.cases])
+        return "match %(seq)s\n%(cases)s%(else_)s\nend" % args
+
 
 class CaseNode(Node):
     node_type = "case"
     node_attributes = ["annotations", "pattern", "guard", "action"]
 
+    def _as_pony(self):
+        args = {}
+        args["annotations"] = self._pony_attr("annotations")
+        args["pattern"] = self._pony_attr("pattern")
+        args["guard"] = self._pony_attr("guard")
+        args["action"] = self._pony_attr("action")
+        return "| %(annotations)s%(pattern)s%(guard)s => %(action)s" % args
 
 class WhileNode(Node):
     node_type = "while"
@@ -553,7 +599,7 @@ class ForNode(Node):
             else_ = ""
         return "for{} {} in {} do\n\x08{}{}\n\x15end".format(
             pony_annotations(self.annotations),
-            self.ids._as_pony(),
+            self.ids._as_pony().replace("let ", ""),
             self.sequence._as_pony(),
             self.members._as_pony(),
             else_
@@ -646,6 +692,9 @@ class LambdaType(Node):
     node_attributes = ["cap2", "id", "typeparams", "params", "return_type",
                        "is_partial", "cap", "cap_modifier"]
 
+    def _as_pony(self):
+        return
+
 
 class BareLambdaType(Node):
     node_type = "barelambdatype"
@@ -657,6 +706,12 @@ class RecoverNode(Node):
     node_type = "recover"
     node_attributes = ["annotations", "cap", "members"]
 
+    def _as_pony(self):
+        args = {}
+        args["annotations"] = self._pony_attr("annotations")
+        args["cap"] = self._pony_attr("cap", " %s")
+        args["members"] = self.members._as_pony()
+        return "recover%(cap)s\n\x08%(members)s\n\x15end" % args
 
 class ElipsisNode(Node):
     node_type = "..."
@@ -670,6 +725,12 @@ class ObjectNode(Node):
 class ConsumeNode(Node):
     node_type = "consume"
     node_attributes = ["cap", "term"]
+
+    def _as_pony(self):
+        return "consume%s %s" % (
+                self._pony_attr("cap", " %s"),
+                self.term._as_pony()
+        )
 
 
 class IdNode(Node):
