@@ -61,7 +61,7 @@ class Node(metaclass=NodeMeta):
         return self._as_pony().replace("\x08", "").replace("\x15", "")
 
 
-    def _pony_attr(self, name, tmpl="%s"):
+    def _pony_attr(self, name, tmpl="%s", separator=", "):
         attr = getattr(self, name, None)
         if not attr:
             return ""
@@ -69,6 +69,8 @@ class Node(metaclass=NodeMeta):
             return pony_annotations(attr)
         if isinstance(attr, Node):
             attr = attr._as_pony()
+        elif isinstance(attr, list):
+            attr = separator.join([i._as_pony() for i in attr])
         return tmpl % attr
 
 
@@ -359,9 +361,15 @@ class DigestOfNode(PatternModifierNode):
 class NegNode(PatternModifierNode):
     node_type = "neg"
 
+    def _as_pony(self):
+        return self._pony_attr("pattern", "-%s")
+
 
 class NegUnsafeNode(PatternModifierNode):
     node_type = "neg_unsafe"
+
+    def _as_pony(self):
+        return self._pony_attr("pattern", "-~%s")
 
 
 class LiteralNode(Node):
@@ -514,13 +522,18 @@ class IfdefNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
-    def _as_pony(self):
+    def _as_pony(self, elseif=False):
         args = {}
+        args["keyword"] = "elseif" if elseif else "ifdef"
         args["annotations"] = self._pony_attr("annotations")
         args["assertion"] = self.assertion._as_pony()
         args["members"] = self.members._as_pony()
-        args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
-        return "ifdef%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s\n\x15end" % args
+        args["end"] = "" if elseif else "end"
+        if isinstance(self.else_, IfdefNode):
+            args["else_"] = "\n\x15%s" % self.else_._as_pony(elseif=True)
+        else:
+            args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
+        return "%(keyword)s%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s\n\x15%(end)s" % args
 
 
 class IftypeNode(Node):
@@ -543,7 +556,7 @@ class MatchNode(Node):
         args = {}
         args["annotations"] = self._pony_attr("annotations")
         args["seq"] = self._pony_attr("seq")
-        args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s\n\x15'.format(self._pony_attr("else_annotations")))
+        args["else_"] = self._pony_attr("else_", '\nelse{}\n\x08%s\n\x15'.format(self._pony_attr("else_annotations")))
         args["cases"] = '\n'.join([c._as_pony() for c in self.cases])
         return "match %(seq)s\n%(cases)s%(else_)s\nend" % args
 
@@ -556,9 +569,9 @@ class CaseNode(Node):
         args = {}
         args["annotations"] = self._pony_attr("annotations")
         args["pattern"] = self._pony_attr("pattern")
-        args["guard"] = self._pony_attr("guard", "if %s")
-        args["action"] = self._pony_attr("action")
-        return "| %(annotations)s%(pattern)s%(guard)s => %(action)s" % args
+        args["guard"] = self._pony_attr("guard", " if %s")
+        args["action"] = self._pony_attr("action", " => %s")
+        return "| %(annotations)s%(pattern)s%(guard)s%(action)s" % args
 
 class WhileNode(Node):
     node_type = "while"
@@ -757,6 +770,14 @@ class ElipsisNode(Node):
 class ObjectNode(Node):
     node_type = "object"
     node_attributes = ["annotations", "cap", "provides", "members"]
+
+    def _as_pony(self):
+        return "object%s%s%s\n\x08%s\n\x15end" % (
+                self._pony_attr("annotations"),
+                self._pony_attr("cap", " %s"),
+                self._pony_attr("provides", " %s"),
+                self._pony_attr("members", separator="\n")
+                )
 
 
 class ConsumeNode(Node):

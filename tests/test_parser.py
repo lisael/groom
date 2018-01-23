@@ -338,7 +338,7 @@ def test_ifdef_elseifdef():
             "dunno"
         end
     """
-    raise ValueError("TODO: else_ should be a seq...")
+    #raise ValueError("TODO: else_ should be a seq...")
     expected = {
         'annotations': [],
         'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
@@ -360,7 +360,7 @@ def test_ifdef_elseifdef():
                     'seq': [{'node_type': 'string', 'value': '"lol"'}]},
         'node_type': 'ifdef'
     }
-    parse_code(data, expected, verbose=VERBOSE, start='ifdef')
+    parse_code(data, expected, verbose=True, start='ifdef')
 
 
 def test_while():

@@ -20,7 +20,8 @@ def parse_code(data, **parser_opts):
         )
     expected = parser.parse(data, lexer=Lexer())
     generated = expected.as_pony()
-    print(expected.pretty_pony())
+    for (lineno, line) in enumerate(expected.pretty_pony().splitlines()):
+        print("{:4}".format(lineno + 1) + " " + line.rstrip())
     result = parser.parse(generated, lexer=Lexer())
     assert(result.as_dict() == expected.as_dict())
 
@@ -90,12 +91,16 @@ def test_ifdef():
 #     parse_code(data, start='ifdef')
 
 
+PONY_FILE=None
+
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():
     path = find_pony_stdlib_path()
     for root, _, files in os.walk(path):
         for ponysrc in [f for f in files if f.endswith(".pony")]:
-            with open(os.path.join(root, ponysrc)) as src:
-                print(os.path.join(root, ponysrc))
-                data = src.read()
-                parse_code(data)
+            fname = os.path.join(root, ponysrc)
+            if PONY_FILE is None or fname == PONY_FILE:
+                with open(fname) as src:
+                    print(fname)
+                    data = src.read()
+                    parse_code(data)
