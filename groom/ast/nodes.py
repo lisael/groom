@@ -129,7 +129,7 @@ class UseNode(Node):
     node_attributes = ["id", "package", "ffidecl", "guard"]
 
     def _as_pony(self):
-        id = self.id + " = " if self.id else ""
+        id = self._pony_attr("id", "%s = ")
         package = self.package if self.package else self.ffidecl._as_pony()
         return "use %s%s%s" % (
                 id,
@@ -203,8 +203,8 @@ class SeqNode(Node):
     node_type = "seq"
     node_attributes = ["seq"]
 
-    def _as_pony(self):
-        return "\n".join([s._as_pony() for s in self.seq])
+    def _as_pony(self, sep="\n"):
+        return sep.join([s._as_pony() for s in self.seq])
 
 
 class ClassNodeBase(Node):
@@ -339,6 +339,9 @@ class BeMethod(MethodNode):
 
 class PatternModifierNode(Node):
     node_attributes = ["pattern"]
+
+    def _as_pony(self):
+        return self._pony_attr("pattern", "%s %%s" % self.node_type)
 
 
 class NotNode(PatternModifierNode):
@@ -553,7 +556,7 @@ class CaseNode(Node):
         args = {}
         args["annotations"] = self._pony_attr("annotations")
         args["pattern"] = self._pony_attr("pattern")
-        args["guard"] = self._pony_attr("guard")
+        args["guard"] = self._pony_attr("guard", "if %s")
         args["action"] = self._pony_attr("action")
         return "| %(annotations)s%(pattern)s%(guard)s => %(action)s" % args
 
@@ -583,6 +586,21 @@ class RepeatNode(Node):
     node_attributes = ["else_", "annotations", "assertion", "members",
                        "else_annotations"]
 
+    def _as_pony(self):
+        if self.else_:
+            else_ = "else{}\n\x08{}\n\x15".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+        return "repeat%s\n\x08%s\n\x15until %s\n%send" % (
+                self._pony_attr("annotations"),
+                self._pony_attr("members"),
+                self._pony_attr("assertion"),
+                else_
+        )
+
 
 class ForNode(Node):
     node_type = "for"
@@ -599,7 +617,7 @@ class ForNode(Node):
             else_ = ""
         return "for{} {} in {} do\n\x08{}{}\n\x15end".format(
             pony_annotations(self.annotations),
-            self.ids._as_pony().replace("let ", ""),
+            self.ids._as_pony().replace("let ", ""),  # TODO: use re
             self.sequence._as_pony(),
             self.members._as_pony(),
             else_
@@ -611,6 +629,22 @@ class WithNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "elems", "members"]
 
+    def _as_pony(self):
+        if self.else_:
+            else_ = "\n\x15else{}\n\x08{}".format(
+                pony_annotations(self.else_annotations),
+                self.else_._as_pony()
+                )
+        else:
+            else_ = ""
+
+        elems = ", ".join([s._as_pony(" = ") for s in self.elems.seq])
+        return "with%s %s do\n\x08%s%s\n\x15end" % (
+                self._pony_attr("annotations"),
+                elems.replace("let ", ""),  # TODO: use re
+                self._pony_attr("members"),
+                else_,
+                )
 
 class TryNode(Node):
     node_type = "try"
@@ -716,6 +750,9 @@ class RecoverNode(Node):
 class ElipsisNode(Node):
     node_type = "..."
 
+    def _as_pony(self):
+        return "..."
+
 
 class ObjectNode(Node):
     node_type = "object"
@@ -744,6 +781,12 @@ class IdNode(Node):
 class AsNode(Node):
     node_type = "as"
     node_attributes = ["term", "type"]
+
+    def _as_pony(self):
+        return "%s as %s" % (
+                self._pony_attr("term"),
+                self._pony_attr("type")
+                )
 
 
 class BinOpNode(Node):
