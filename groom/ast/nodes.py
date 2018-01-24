@@ -67,6 +67,8 @@ class Node(metaclass=NodeMeta):
             return ""
         if name in ("annotations", "else_annotations"):
             return pony_annotations(attr)
+        elif name == "is_partial":
+            return self.is_partial and "?" or ""
         if isinstance(attr, Node):
             attr = attr._as_pony()
         elif isinstance(attr, list):
@@ -199,6 +201,9 @@ class IntersectionNode(Node):
 class ArrowNode(Node):
     node_type = "->"
     node_attributes = ["origin", "target"]
+
+    def _as_pony(self):
+        return "%s -> %s" % (self._pony_attr("origin"), self._pony_attr("target"))
 
 
 class SeqNode(Node):
@@ -449,20 +454,18 @@ class IfNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
-    def _as_pony(self):
-        if self.else_:
-            else_ = "\n\x15else{}\n\x08{}".format(
-                pony_annotations(self.else_annotations),
-                self.else_._as_pony()
-                )
+    def _as_pony(self, elseif=False):
+        args = {}
+        args["keyword"] = "elseif" if elseif else "if"
+        args["annotations"] = self._pony_attr("annotations")
+        args["assertion"] = self.assertion._as_pony()
+        args["members"] = self.members._as_pony()
+        args["end"] = "" if elseif else "\n\x15end"
+        if isinstance(self.else_, IfNode):
+            args["else_"] = "\n\x15%s" % self.else_._as_pony(elseif=True)
         else:
-            else_ = ""
-        return "if{} {} then\n\x08{}{}\n\x15end".format(
-            pony_annotations(self.annotations),
-            self.assertion._as_pony(),
-            self.members._as_pony(),
-            else_
-            )
+            args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
+        return "%(keyword)s%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s%(end)s" % args
 
 
 class DotNode(Node):
@@ -528,12 +531,13 @@ class IfdefNode(Node):
         args["annotations"] = self._pony_attr("annotations")
         args["assertion"] = self.assertion._as_pony()
         args["members"] = self.members._as_pony()
-        args["end"] = "" if elseif else "end"
+        args["end"] = "" if elseif else "\n\x15end"
         if isinstance(self.else_, IfdefNode):
             args["else_"] = "\n\x15%s" % self.else_._as_pony(elseif=True)
         else:
-            args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
-        return "%(keyword)s%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s\n\x15%(end)s" % args
+            args["else_"] = self._pony_attr("else_",
+                    '\n\x15else%s\n\x08%%s' % self._pony_attr("else_annotations"))
+        return "%(keyword)s%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s%(end)s" % args
 
 
 class IftypeNode(Node):
@@ -701,6 +705,20 @@ class LambdaNode(Node):
     node_attributes = ["annotations", "cap2", "id", "typeparams", "params",
                        "lambdacaptures", "type", "is_partial", "body", "cap"]
 
+    def _as_pony(self):
+        return "{%s%s%s%s%s%s%s%s => %s}%s" % (
+                self._pony_attr("annotations"),
+                self._pony_attr("cap2", " %s"),
+                self._pony_attr("id"),
+                self._pony_attr("typeparams", "[]"),
+                self._pony_attr("params"),
+                self._pony_attr("lambdacaptures"),
+                self._pony_attr("type", ": "),
+                self._pony_attr("is_partial"),
+                self._pony_attr("body"),
+                self._pony_attr("cap", " %s"),
+                )
+
 
 class BareLambdaNode(Node):
     node_type = "barelambda"
@@ -731,7 +749,6 @@ class FFICallNode(Node):
         named = self.named._as_pony()
         partial = self.partial and "?" or ""
         return "@%s%s(%s%s)%s" % (self.id._as_pony(), typeargs, pos, named, partial)
-
 
 
 class LambdaType(Node):

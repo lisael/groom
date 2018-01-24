@@ -91,7 +91,7 @@ def test_ifdef():
 #     parse_code(data, start='ifdef')
 
 
-PONY_FILE=None
+PONY_FILE="/usr/local/lib/pony/0.20.0-0c08eba3/packages/ponybench/_bench_async.pony"
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():

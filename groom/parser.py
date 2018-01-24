@@ -257,7 +257,7 @@ def p_type(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = nodes.ArrowNode(origin=p[1], trarget=p[3])
+        p[0] = nodes.ArrowNode(origin=p[1], target=p[3])
 
 
 def p_atomtype(p):
