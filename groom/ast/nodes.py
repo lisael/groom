@@ -187,9 +187,8 @@ class Nominal(Node):
         package = "%s." % self.package._as_pony() if self.package else ""
         args = self.typeargs._as_pony() if self.typeargs else ""
         cap_modifier = self._pony_attr("cap_modifier")
-        cap = " %s%s" % (self.cap, cap_modifier) if self.cap else ""
-        cap = self._pony_attr("cap", " %%s%s" % cap_modifier)
-        return "%s%s%s%s" % (package, self.id._as_pony(), args, cap)
+        cap = self._pony_attr("cap", " %s")
+        return "%s%s%s%s%s" % (package, self.id._as_pony(), args, cap, cap_modifier)
 
 
 class UnionNode(Node):

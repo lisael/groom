@@ -19,7 +19,7 @@ def parse_code(data, **parser_opts):
         Parser(**parser_opts)
         )
     expected = parser.parse(data, lexer=Lexer())
-    pprint(expected.as_dict())
+    # pprint(expected.as_dict())
     generated = expected.as_pony()
     for (lineno, line) in enumerate(expected.pretty_pony().splitlines()):
         print("{:4}".format(lineno + 1) + " " + line.rstrip())
@@ -92,7 +92,7 @@ def test_ifdef():
 #     parse_code(data, start='ifdef')
 
 
-PONY_FILE="/usr/local/lib/pony/0.20.0-0c08eba3/packages/ponybench/_bench_async.pony"
+PONY_FILE=None
 
 @skipIf(os.environ.get("SHORT_TESTS", 0), "perform short tests")
 def test_parse_stdlib():
