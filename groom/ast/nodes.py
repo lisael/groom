@@ -327,16 +327,19 @@ class MethodNode(Node):
             "body"]
 
     def _as_pony(self):
-        decl = self.node_type
-        annotations = pony_annotations(self.annotations)
-        cap = " " + self.capability if self.capability else ""
-        typeparams = self.typeparams._as_pony() if self.typeparams else ""
-        params = self.params._as_pony()
-        return_type = ": " + self.return_type._as_pony() if self.return_type else ""
-        is_partial = "?" if self.is_partial else ""
-        guard = self.guard._as_pony() if self.guard else ""
-        body = " =>\n\x08%s\n\x15" % self.body._as_pony()  if self.body else ""
-        return "%s%s%s %s%s%s%s%s%s%s" % (decl, annotations, cap, self.id._as_pony(), typeparams, params, return_type, is_partial, guard, body)
+        return "%s%s%s %s%s%s%s%s%s%s%s" % (
+                self.node_type,
+                self._pony_attr("annotations"),
+                self._pony_attr("capability", " %s"),
+                self.id._as_pony(),
+                self._pony_attr("typeparams"),
+                self.params._as_pony(),
+                self._pony_attr("return_type", ": %s"),
+                self._pony_attr("is_partial"),
+                self._pony_attr("guard"),
+                self._pony_attr("body", " =>\n\x08%s\n\x15"),
+                self._pony_attr("docstring", "\n\x08%s\n\x15")
+                )
 
 
 
