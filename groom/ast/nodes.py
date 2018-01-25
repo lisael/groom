@@ -18,7 +18,6 @@ def _maybe_as_dict(obj):
     elif isinstance(obj, (str, bool)):
         return obj
     else:
-        # import ipdb; ipdb.set_trace()
         raise ValueError(obj)
 
 
@@ -727,8 +726,10 @@ class ArrayNode(Node):
     node_attributes = ["type", "members"]
 
     def _as_pony(self):
-        type_ = "as %s:" % self.type._as_pony() if self.type else ""
-        return "[%s%s]" % (type_, self.members._as_pony())
+        return "[%s%s]" % (
+                self._pony_attr("type", "as %s: "),
+                self._pony_attr("members")
+        )
 
 
 class LambdaNode(Node):
