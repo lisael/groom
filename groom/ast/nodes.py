@@ -709,10 +709,18 @@ class TryNode(Node):
                 )
         else:
             else_ = ""
-        return "try{}\n\x08{}{}\n\x15end".format(
+        if self.then:
+            then = "\n\x15then{}\n\x08{}".format(
+                pony_annotations(self.then_annotations),
+                self.then._as_pony()
+                )
+        else:
+            then = ""
+        return "try{}\n\x08{}{}{}\n\x15end".format(
             pony_annotations(self.annotations),
             self.members._as_pony(),
-            else_
+            else_,
+            then
             )
 
 
