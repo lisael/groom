@@ -557,10 +557,29 @@ class IftypeNode(Node):
     node_attributes = ["annotations", "else_", "else_annotations",
                        "assertion", "members"]
 
+    def _as_pony(self, elseif=False):
+        args = {}
+        args["keyword"] = "elseif" if elseif else "iftype"
+        args["annotations"] = self._pony_attr("annotations")
+        args["assertion"] = self.assertion._as_pony()
+        args["members"] = self.members._as_pony()
+        args["end"] = "" if elseif else "\n\x15end"
+        if isinstance(self.else_, IftypeNode):
+            args["else_"] = "\n\x15%s" % self.else_._as_pony(elseif=True)
+        else:
+            args["else_"] = self._pony_attr("else_", '\n\x15else{}\n\x08%s'.format(self._pony_attr("else_annotations")))
+        return "%(keyword)s%(annotations)s %(assertion)s then\n\x08%(members)s%(else_)s%(end)s" % args
+
 
 class TypeAssertionNode(Node):
     node_type = "type_assertion"
     node_attributes = ["child_type", "parent_type"]
+
+    def _as_pony(self):
+        return "%s <: %s" % (
+                self._pony_attr("child_type"),
+                self._pony_attr("parent_type")
+        )
 
 
 class MatchNode(Node):
