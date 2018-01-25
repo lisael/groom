@@ -290,9 +290,10 @@ def p_lambdatype(p):
     """
     lambdatype : '{' cap maybe_id maybe_typeparams anylparen type_list ')' maybe_typed maybe_partial '}' typecap
     """
+    typeparams = nodes.ParamsNode(members=p[4]) if p[4] is not None else None
     p[0] = nodes.LambdaType(cap2=p[2],
                             id=p[3],
-                            typeparams=nodes.ParamsNode(members=p[4]),
+                            typeparams=typeparams,
                             params=p[6],
                             return_type=p[8],
                             is_partial=p[9],

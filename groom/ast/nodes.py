@@ -61,14 +61,14 @@ class Node(metaclass=NodeMeta):
         return self._as_pony().replace("\x08", "").replace("\x15", "")
 
 
-    def _pony_attr(self, name, tmpl="%s", separator=", "):
+    def _pony_attr(self, name, tmpl="%s", separator=", ", default=""):
         attr = getattr(self, name, None)
         if not attr:
-            return ""
+            return default
         if name in ("annotations", "else_annotations"):
             return pony_annotations(attr)
         elif name == "is_partial":
-            return self.is_partial and "?" or ""
+            return self.is_partial and "?" or default
         if isinstance(attr, Node):
             attr = attr._as_pony()
         elif isinstance(attr, list):
@@ -155,10 +155,20 @@ class TypeParamsNode(Node):
     node_type = "typeparams"
     node_attributes = ["members"]
 
+    def _as_pony(self):
+        return "[%s]" % ", ".join([p._as_pony() for p in self.members])
+
 
 class TypeParamNode(Node):
     node_type = "typeparam"
     node_attributes = ["id", "type", "typearg"]
+
+    def _as_pony(self):
+        return "%s%s%s" % (
+                self.id._as_pony(),
+                self._pony_attr("type", ": %s"),
+                self._pony_attr("typearg", "=%s")
+        )
 
 
 class TypeArgs(Node):
@@ -425,8 +435,11 @@ class ParamNode(Node):
     node_attributes = ["id", "type", "default"]
 
     def _as_pony(self):
-        default = "=%s" % self.default._as_pony() if self.default else ""
-        return "%s: %s%s" % (self.id._as_pony(), self.type._as_pony(), default)
+        return "%s%s%s" % (
+                self.id._as_pony(),
+                self._pony_attr("type", ": %s"),
+                self._pony_attr("default", "=%s")
+        )
 
 
 class ParamsNode(Node):
@@ -710,10 +723,10 @@ class LambdaNode(Node):
                 self._pony_attr("annotations"),
                 self._pony_attr("cap2", " %s"),
                 self._pony_attr("id"),
-                self._pony_attr("typeparams", "[]"),
-                self._pony_attr("params"),
+                self._pony_attr("typeparams", "[%s]"),
+                self._pony_attr("params", default="()"),
                 self._pony_attr("lambdacaptures"),
-                self._pony_attr("type", ": "),
+                self._pony_attr("type", ": %s"),
                 self._pony_attr("is_partial"),
                 self._pony_attr("body"),
                 self._pony_attr("cap", " %s"),
@@ -757,7 +770,16 @@ class LambdaType(Node):
                        "is_partial", "cap", "cap_modifier"]
 
     def _as_pony(self):
-        return
+        return "{%s%s%s%s%s%s}%s" % (
+                self._pony_attr("cap2", " %s"),
+                self._pony_attr("id"),
+                self._pony_attr("typeparams", "[%s]"),
+                self._pony_attr("params", default="()"),
+                self._pony_attr("return_type", ": %s"),
+                self._pony_attr("is_partial"),
+                self._pony_attr("cap", " %s"),
+                )
+
 
 
 class BareLambdaType(Node):

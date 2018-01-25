@@ -19,6 +19,7 @@ def parse_code(data, **parser_opts):
         Parser(**parser_opts)
         )
     expected = parser.parse(data, lexer=Lexer())
+    pprint(expected.as_dict())
     generated = expected.as_pony()
     for (lineno, line) in enumerate(expected.pretty_pony().splitlines()):
         print("{:4}".format(lineno + 1) + " " + line.rstrip())
