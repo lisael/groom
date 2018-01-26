@@ -14,10 +14,9 @@ parsers_cache = {}
 def parse_code(data, **parser_opts):
     "parse the code and check that the generated pony code is the same."
     cache_key = tuple(parser_opts.items())
-    parser = parsers_cache.setdefault(
-        cache_key,
-        Parser(**parser_opts)
-        )
+    if cache_key not in parsers_cache:
+        parsers_cache[cache_key] = Parser(**parser_opts)
+    parser = parsers_cache[cache_key]
     expected = parser.parse(data, lexer=Lexer())
     # pprint(expected.as_dict())
     generated = expected.as_pony()
@@ -60,6 +59,21 @@ def test_uniontype():
     type BackpressureAuth is (AmbientAuth | ApplyReleaseBackpressureAuth)
     '''
     parse_code(data, start="class_def")
+
+
+def test_lambdatype():
+    data = """
+        {ref(A!): B ?} iso^
+    """
+    parse_code(data, start="lambdatype")
+
+
+def test_lambdatype_2():
+    data = '''
+    {(A): String}
+    '''
+    parse_code(data, start="lambdatype")
+
 
 def test_ifdef():
     data = """
