@@ -1096,7 +1096,7 @@ def test_object():
                               'package': None,
                               'typeargs': []}}
     }
-    parse_code(data, expected, verbose=True, start="object")
+    parse_code(data, expected, verbose=VERBOSE, start="object")
 
 
 def test_fficall():
@@ -1107,22 +1107,26 @@ def test_fficall():
     expected = {
         'node_type': 'seq',
         'seq': [{'id': {'id': 'pony_apply_backpressure', 'node_type': 'id'},
-                 'named': [],
+                 'named': {'args': [], 'node_type': 'namedargs'},
                  'node_type': 'fficall',
                  'partial': False,
-                 'positional': [],
+                 'positional': {'args': [], 'node_type': 'positionalargs'},
                  'typeargs': None},
                 {'id': {'node_type': 'string', 'value': '"pony_apply_backpressure"'},
-                 'named': [{'id': {'id': 'foo', 'node_type': 'id'},
-                            'node_type': 'namedarg',
-                            'value': {'node_type': 'seq',
-                                      'seq': [{'id': {'id': 'bar', 'node_type': 'id'},
-                                               'node_type': 'reference'}]}}],
+                 'named': {'args': [{'id': {'id': 'foo', 'node_type': 'id'},
+                                     'node_type': 'namedarg',
+                                     'value': {'node_type': 'seq',
+                                               'seq': [{'id': {'id': 'bar',
+                                                               'node_type': 'id'},
+                                                        'node_type': 'reference'}]}}],
+                           'node_type': 'namedargs'},
                  'node_type': 'fficall',
                  'partial': True,
-                 'positional': [{'node_type': 'seq',
-                                 'seq': [{'id': {'id': 'arg', 'node_type': 'id'},
-                                          'node_type': 'reference'}]}],
+                 'positional': {'args': [{'node_type': 'seq',
+                                          'seq': [{'id': {'id': 'arg',
+                                                          'node_type': 'id'},
+                                                   'node_type': 'reference'}]}],
+                                'node_type': 'positionalargs'},
                  'typeargs': {'node_type': 'typeargs',
                               'typeargs': [{'cap': None,
                                             'cap_modifier': None,
@@ -1278,7 +1282,7 @@ def test_lambdatype():
                         'node_type': 'nominal',
                         'package': None,
                         'typeargs': []},
-        'typeparams': {'node_type': 'params', 'params': None}
+        'typeparams': None
     }
     parse_code(data, expected, verbose=VERBOSE, start="lambdatype")
 
