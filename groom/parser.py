@@ -257,7 +257,7 @@ def p_type(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = nodes.ArrowNode(origin=p[1], trarget=p[3])
+        p[0] = nodes.ArrowNode(origin=p[1], target=p[3])
 
 
 def p_atomtype(p):
@@ -290,9 +290,10 @@ def p_lambdatype(p):
     """
     lambdatype : '{' cap maybe_id maybe_typeparams anylparen type_list ')' maybe_typed maybe_partial '}' typecap
     """
+    typeparams = nodes.ParamsNode(members=p[4]) if p[4] is not None else None
     p[0] = nodes.LambdaType(cap2=p[2],
                             id=p[3],
-                            typeparams=nodes.ParamsNode(members=p[4]),
+                            typeparams=typeparams,
                             params=p[6],
                             return_type=p[8],
                             is_partial=p[9],
@@ -397,14 +398,24 @@ def p_tupletype(p):
 def p_infixtype(p):
     """
     infixtype : type
-              | type '&' infixtype
-              | type '|' infixtype
+              | intersectiontype
+              | uniontype
     """
-    if len(p) == 2:
-        p[0] = p[1]
-    else:
-        # TODO
-        p[0] = p[1]
+    p[0] = p[1]
+
+
+def p_intersectiontype(p):
+    """
+    intersectiontype : type '&' infixtype
+    """
+    p[0] = nodes.IntersectionNode(first=p[1], second=p[3])
+
+
+def p_uniontype(p):
+    """
+    uniontype : type '|' infixtype
+    """
+    p[0] = nodes.UnionNode(first=p[1], second=p[3])
 
 
 def p_parametrised_id(p):
@@ -1520,8 +1531,8 @@ def p_fficall(p):
     """
     p[0] = nodes.FFICallNode(id=p[2],
                              typeargs=p[3],
-                             positional=p[5],
-                             named=p[6],
+                             positional=nodes.PositionalArgsNode(args=p[5]),
+                             named=nodes.NamedArgsNode(args=p[6]),
                              partial=p[8])
 
 

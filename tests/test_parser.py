@@ -338,6 +338,7 @@ def test_ifdef_elseifdef():
             "dunno"
         end
     """
+    #raise ValueError("TODO: else_ should be a seq...")
     expected = {
         'annotations': [],
         'assertion': {'id': {'id': 'os_haiku', 'node_type': 'id'},
@@ -359,7 +360,7 @@ def test_ifdef_elseifdef():
                     'seq': [{'node_type': 'string', 'value': '"lol"'}]},
         'node_type': 'ifdef'
     }
-    parse_code(data, expected, verbose=VERBOSE, start='ifdef')
+    parse_code(data, expected, verbose=True, start='ifdef')
 
 
 def test_while():
@@ -1095,7 +1096,7 @@ def test_object():
                               'package': None,
                               'typeargs': []}}
     }
-    parse_code(data, expected, verbose=True, start="object")
+    parse_code(data, expected, verbose=VERBOSE, start="object")
 
 
 def test_fficall():
@@ -1106,22 +1107,26 @@ def test_fficall():
     expected = {
         'node_type': 'seq',
         'seq': [{'id': {'id': 'pony_apply_backpressure', 'node_type': 'id'},
-                 'named': [],
+                 'named': {'args': [], 'node_type': 'namedargs'},
                  'node_type': 'fficall',
                  'partial': False,
-                 'positional': [],
+                 'positional': {'args': [], 'node_type': 'positionalargs'},
                  'typeargs': None},
                 {'id': {'node_type': 'string', 'value': '"pony_apply_backpressure"'},
-                 'named': [{'id': {'id': 'foo', 'node_type': 'id'},
-                            'node_type': 'namedarg',
-                            'value': {'node_type': 'seq',
-                                      'seq': [{'id': {'id': 'bar', 'node_type': 'id'},
-                                               'node_type': 'reference'}]}}],
+                 'named': {'args': [{'id': {'id': 'foo', 'node_type': 'id'},
+                                     'node_type': 'namedarg',
+                                     'value': {'node_type': 'seq',
+                                               'seq': [{'id': {'id': 'bar',
+                                                               'node_type': 'id'},
+                                                        'node_type': 'reference'}]}}],
+                           'node_type': 'namedargs'},
                  'node_type': 'fficall',
                  'partial': True,
-                 'positional': [{'node_type': 'seq',
-                                 'seq': [{'id': {'id': 'arg', 'node_type': 'id'},
-                                          'node_type': 'reference'}]}],
+                 'positional': {'args': [{'node_type': 'seq',
+                                          'seq': [{'id': {'id': 'arg',
+                                                          'node_type': 'id'},
+                                                   'node_type': 'reference'}]}],
+                                'node_type': 'positionalargs'},
                  'typeargs': {'node_type': 'typeargs',
                               'typeargs': [{'cap': None,
                                             'cap_modifier': None,
@@ -1277,13 +1282,45 @@ def test_lambdatype():
                         'node_type': 'nominal',
                         'package': None,
                         'typeargs': []},
-        'typeparams': {'node_type': 'params', 'params': None}
+        'typeparams': None
     }
     parse_code(data, expected, verbose=VERBOSE, start="lambdatype")
 
 
+def test_uniontype():
+    data = '''
+    type BackpressureAuth is (AmbientAuth | ApplyReleaseBackpressureAuth)
+    '''
+    expected = {
+        'annotations': [],
+        'cap': None,
+        'docstring': None,
+        'id': {'id': 'BackpressureAuth', 'node_type': 'id'},
+        'members': [],
+        'node_type': 'type',
+        'provides': {'node_type': 'provides',
+                     'type': {'members': [{'first': {'cap': None,
+                                                     'cap_modifier': None,
+                                                     'id': {'id': 'AmbientAuth',
+                                                            'node_type': 'id'},
+                                                     'node_type': 'nominal',
+                                                     'package': None,
+                                                     'typeargs': []},
+                                           'node_type': 'uniontype',
+                                           'second': {'cap': None,
+                                                      'cap_modifier': None,
+                                                      'id': {'id': 'ApplyReleaseBackpressureAuth',
+                                                             'node_type': 'id'},
+                                                      'node_type': 'nominal',
+                                                      'package': None,
+                                                      'typeargs': []}}],
+                              'node_type': 'tupletype'}},
+        'type_params': []}
+    parse_code(data, expected, verbose=True, start="class_def")
+
+
 def test_parse_file():
-    module = "ponybench/_bench_async.pony"
+    module = "backpressure/backpressure.pony"
     print(os.path.join(find_pony_stdlib_path(), module))
     with open(os.path.join(find_pony_stdlib_path(), module)) as src:
         parse_code(src.read(), verbose=True)
